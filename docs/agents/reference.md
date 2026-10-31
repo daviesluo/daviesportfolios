@@ -4663,6 +4663,13 @@ fails too still reported (`edge-watchdog.retry`). In the three days before, 1,34
     the £1 holding line at fair (`cbTakeLine`, `isDust`'s); then a `take_shadow` event (limit, size, fee, funds, depth, read).
     The executor stays maker-only. The spot tier may not be the stable pair's price (its maker fills paid 0): each event carries
     the maker rate beside the taker.
+  - **The drain: surplus USDC back to pounds (2026-10-31, design §12; Davies: "a和b都改").** From `CB_LIVE_DRAIN_FROM`
+    (06:00 UTC), when a bid cannot rest for want of pounds and no ask lacks USDC, `planCbDrain` sells what the account holds
+    beyond its reserve (each ask rung's coin at fair, rounded up, and every held bid's coin), at most what the bids lack and
+    the day's `convert_max_gbp_day` of drains, post-only one tick inside the ask and never under fair (`makerSellTicks`), GTD
+    30 minutes; a resting one is cancelled the turn an ask lacks USDC or no bid lacks pounds. It answered 10-29 20:34 → 10-31's
+    idle 0.3 % bid (13.48 USDC over the asks' need, £9.84 short of the bids'). The page books a sale against the coins' cost (its
+    REALIZED counts trips, as before); the compounding counts trips only.
 
 ### Twin variants
 

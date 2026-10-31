@@ -518,6 +518,9 @@ that follow from that evidence, in short:
   **Its take is a shadow of records only** (`0187`, design §11; Davies, 2026-10-31: "Coinbase USDC/GBP也做好加开 shadow记录"):
   `take_mode` 'off' | 'shadow', never 'live' (the executor stays maker-only), a `take_shadow` event when a rung it would enter
   has Coinbase's book through k + the account's taker fee, deeper than the £1 line, outside closures and release blackouts.
+  **Since 2026-10-31 06:00 UTC it sells surplus USDC back to pounds** (Davies: "a和b都改"; design §12, `planCbDrain`): when a bid
+  lacks pounds and no ask lacks USDC, the coin beyond each ask's at fair and every held bid's, post-only one tick inside the ask and
+  never under fair, at most what the bids lack and the day's `convert_max_gbp_day`.
 - **The other maker's watch** (`0185`, `agents/maker_watch.ts`, `reviews/2026-10-30-maker-absent.md`; Davies, 2026-10-30: "我们能不能
   对他加个监控，实时观察和记录他的行为"): the automated maker that rests about 5,000 coins a side on Revolut X's GBP books, read from the
   book recorder's own snapshots inside its call (`agents?action=books`, no new `edge_calls` row), into `agent_maker_minutes` (a row a

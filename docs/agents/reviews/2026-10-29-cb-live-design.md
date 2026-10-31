@@ -426,3 +426,31 @@ select at, detail->>'rung' as rung, detail->>'limit' as lim, detail->>'base' as 
 ```
 
 Its undo: `update public.cb_live_config set take_mode = 'off', updated_at = now() where id = 1;`.
+
+## 12. The drain: surplus USDC back to pounds (2026-10-31)
+
+Davies, 2026-10-31 ~03:05 UTC, verbatim, on the agents audit's proposals: "a和b都改； c也改". b was the audit's finding that the
+executor could top its USDC up (pounds to coin, `planTopUps`' Coinbase twin) but never sell coin back: from 2026-10-29 20:34 UTC its
+0.3 % bid rested nothing, 1,748 `skip_inventory` events, while the account held 13.48 USDC more than its three asks need and £9.84
+less than its three bids do (USDC 93.71 against 26.77 + 26.74 + 26.72; GBP £50.16 against 3 × £20).
+
+**The rule** (`planCbDrain`, `cbDrainReserve`, `cb_live.ts`), from `CB_LIVE_DRAIN_FROM`, 2026-10-31 06:00 UTC:
+
+- **When.** A bid (an entry, or a held ask's buy-back) was skipped for want of pounds this turn (`gbpShort`, what the skipped bids
+  need less the pounds left free), no ask was skipped for want of USDC, the entries' gate is open (armed, not paused, tradable, no
+  loss stop, under the governor, a fresh fair), no conversion of either side rests, and no Coinbase refusal of a conversion in the
+  last 15 minutes. Dry-run with no live book writes it as a dry row, as the top-up does.
+- **How much.** The least of: the USDC beyond the reserve, in the account (available and on hold); the USDC available now (a sale
+  never takes coin an order holds); what the bids lack at the sale's price, rounded up a step and one step more; and what is left of
+  the day's `convert_max_gbp_day` of drains (counted apart from the top-ups'). Floored to the step, at least the minimum and £1.
+  **The reserve** is each ask rung's coin at FAIR, rounded up a step (every ask rests above fair, so it sells less: that is the
+  margin), and every held bid's coin, which its exit sells. So after the whole sale the account still holds every ask's coin.
+- **The price.** Post-only, good-til-date 30 minutes: one tick inside the ask, never under fair (`makerSellTicks`, Revolut X's
+  rebook's), so no sale converts at a loss to fair.
+- **While it rests.** It is cancelled the turn an ask lacks USDC (its coin goes back to the asks) or no bid lacks pounds (a part
+  filled, or pounds arrived: the rest is not needed). A top-up and a drain never rest together.
+
+**What it is not.** No rule of the paper arm changed; a drain is a conversion, never a rung's order. The page books its pounds
+against the coins' cost, so REALIZED counts round trips as before and the coins' P&L moves with the sale; the compounding counts
+round trips only. Pins in `cb_live.test.ts` ("drain: …"): the sale and its bounds, none before the instant, none while an ask lacks
+USDC, a partly filled sale resting while the bid still lacks pounds and cancelled the turn none does.

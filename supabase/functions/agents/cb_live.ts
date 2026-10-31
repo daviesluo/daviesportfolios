@@ -70,7 +70,7 @@ import { CB_BOOK, CB_FAIR_KIND, cbCoinFair, cbInUsd, cbMinuteInputs } from "./cb
 import { cbInBlackout } from "./cb_releases.ts";
 import { COMPOUND_UNIT_RUNGS_FROM, compoundDay, compoundPlan, compoundRefusal, type CompoundSettings } from "./quotes_compound.ts";
 import { fairHours, median, QUOTE_FX_LOOKBACK_MS, quoteTicks } from "./quotes.ts";
-import { readDepthThrough, readTouch, takeTriggered, type RecordedRead } from "./quotes_live.ts";
+import { makerSellTicks, readDepthThrough, readTouch, takeTriggered, type RecordedRead } from "./quotes_live.ts";
 import { inQuoteClosure } from "./quotes_weekend.ts";
 import type { CbProductBook } from "../_shared/coinbase.ts";
 
@@ -103,8 +103,46 @@ export const CB_LIVE_DENIED_MS = 15 * M;
 export const CB_LIVE_STOP_BAND = 0.005;
 /** A stop that came back unfilled is tried again this much later. */
 export const CB_LIVE_STOP_RETRY_MS = H;
-/** A USDC top-up rests this long. */
+/** A USDC top-up rests this long; so does a sale of surplus USDC back to pounds (the drain). */
 export const CB_LIVE_CONVERT_MS = 30 * M;
+/**
+ * THE DRAIN, the top-up the other way (Davies, 2026-10-31 ~03:05 UTC: "a和b都改", b the audit's proposal: Coinbase LIVE could not
+ * turn surplus USDC back into pounds, so its 0.3 % bid had rested nothing since 2026-10-29 20:34 while the account held 13.48 USDC
+ * more than its asks need and £9.84 less than its bids do). From this instant, when a bid (an entry, or a held ask's buy-back)
+ * cannot rest for want of pounds and no ask lacks USDC, the executor sells the USDC beyond what its asks and its held bids need
+ * (`planCbDrain`): a post-only good-til-date sale one tick inside the ask and never under fair (`makerSellTicks`, as Revolut X's
+ * rebook sells), at most what the bids lack, within the day's `convert_max_gbp_day` of drains (the top-up's cap, counted apart),
+ * under the governor and the kill switch as the top-up is. A resting sale is cancelled the turn an ask lacks USDC or no bid lacks
+ * pounds; a top-up and a drain never rest together.
+ */
+export const CB_LIVE_DRAIN_FROM = Date.parse("2026-10-31T06:00:00Z");
+/**
+ * Pure: the drain's sale, or why there is none. `reserveUsdc` is every USDC the book still needs: each ask rung's coin at FAIR,
+ * rounded up a step (an ask rests above fair, so it sells less than that: the margin), and every held bid's coin (its exit's).
+ * The sale is the least of what is beyond the reserve (in the account, available and on hold), what is available now, what the
+ * bids lack at the sale's price (rounded up a step), and what is left of the day's cap; floored to the step, over the minimum
+ * and worth at least £1.
+ */
+export function planCbDrain(i: {
+  totalUsdc: number; freeUsdc: number; reserveUsdc: number; gbpShort: number; usdcShort: number;
+  touch: { bid: number | null; ask: number | null }; fair: number | null; step: number; minSize: number; capGbp: number; spentGbp: number;
+}): { size: number; price: number; surplus: number } | { skip: string } {
+  if (i.usdcShort > 1e-9) return { skip: "an ask lacks USDC" };
+  if (!(i.gbpShort > 1e-9)) return { skip: "no bid lacks pounds" };
+  if (i.fair == null || i.touch.bid == null || i.touch.ask == null) return { skip: "no fair or no touch" };
+  const price = Number((makerSellTicks(i.touch.bid, i.touch.ask, i.fair) * QUOTE_TICK).toFixed(4));
+  const surplus = i.totalUsdc - i.reserveUsdc;
+  const want = Math.ceil(i.gbpShort / price / i.step - 1e-9) * i.step + i.step;
+  const size = floorTo(Math.min(surplus, i.freeUsdc, want, (i.capGbp - i.spentGbp) / price), i.step);
+  if (size < i.minSize || size * price < CB_LIVE_DUST_GBP) return { skip: `${Math.max(0, surplus).toFixed(2)} USDC beyond the book's need, under the minimum` };
+  return { size, price, surplus };
+}
+/** Pure: the reserve `planCbDrain` keeps: each ask rung's coin at fair, rounded up a step, and every bid trip's held coin. */
+export function cbDrainReserve(askRungs: number, rungGbp: number, fair: number, step: number, heldBidCoin: number): number {
+  return askRungs * Math.ceil(rungGbp / fair / step - 1e-9) * step + heldBidCoin;
+}
+/** Is a conversion row a drain (a SELL of USDC for pounds)? A top-up is a BUY. */
+export const isCbDrain = (o: { leg: string; side: string }) => o.leg === "convert" && o.side === "SELL";
 /** Fills older than this are not read back into the turn: the 24-hour stop closes every trip well inside it. */
 export const CB_LIVE_TRIP_WINDOW_MS = 7 * DAY;
 /**
@@ -711,7 +749,7 @@ export async function runCbLive(d: CbLiveDeps): Promise<CbLiveReport> {
       if (w.side === "BUY") { if (freeGbp == null) return true; if (freeGbp < w.price * w.size) return false; freeGbp -= w.price * w.size; return true; }
       if (freeUsdc == null) return true; if (freeUsdc < w.size) return false; freeUsdc -= w.size; return true;
     };
-    let usdcShort = 0;
+    let usdcShort = 0, gbpSkipped = 0;
     const cancelLive = async (o: OrderRow, why: string): Promise<boolean> => {
       if (!client) return false;
       try {
@@ -805,6 +843,7 @@ export async function runCbLive(d: CbLiveDeps): Promise<CbLiveReport> {
       if (!w) continue;
       if (!covered(w)) {
         if (w.leg === "entry" && w.side === "SELL") usdcShort += w.size;
+        if (w.side === "BUY") gbpSkipped += w.price * w.size;
         ev("skip_inventory", { key, leg: w.leg, side: w.side, need: w.side === "SELL" ? w.size : w.size * w.price, have: w.side === "SELL" ? freeUsdc : freeGbp });
         continue;
       }
@@ -822,7 +861,7 @@ export async function runCbLive(d: CbLiveDeps): Promise<CbLiveReport> {
     const convOpen = orders.filter((o) => o.leg === "convert" && o.mode === convMode && (o.state === "open" || o.state === "pending" || o.state === "dry" || o.state === "cancelling"));
     const convDenied = orders.some((o) => o.leg === "convert" && o.mode === "live" && isDenied(o) && now - msOf(o.created_at) < CB_LIVE_DENIED_MS);
     if (!paused && usdcShort > 0 && !convOpen.length && !convDenied && touch.bid != null) {
-      const spent = orders.filter((o) => o.leg === "convert" && msOf(o.created_at) >= dayStart && o.mode === (armed ? "live" : "dry_run")).reduce((s, o) => s + convertSpentGbp(o), 0);
+      const spent = orders.filter((o) => o.leg === "convert" && o.side === "BUY" && msOf(o.created_at) >= dayStart && o.mode === (armed ? "live" : "dry_run")).reduce((s, o) => s + convertSpentGbp(o), 0);
       // The asks' shortfall and 2 % over, at most what the pounds the bids leave free and the day's cap allow.
       const px = touch.bid;
       const room = Math.min(cfg.convert_max_gbp_day - spent, freeGbp ?? Infinity) / px;
@@ -830,6 +869,27 @@ export async function runCbLive(d: CbLiveDeps): Promise<CbLiveReport> {
       if (size >= minSize && size * px >= CB_LIVE_DUST_GBP && (armed || (cfg.dry_run && !hasLiveBook))) {
         await place({ leg: "convert", rungSide: "bid", k: 0, side: "BUY", price: px, size, trip: "", paperKey: null, fair, ioc: false });
       } else ev("convert_skipped", { short: usdcShort, spent, cap: cfg.convert_max_gbp_day, freeGbp });
+    }
+    // 6c. The drain (CB_LIVE_DRAIN_FROM): surplus USDC sold back to pounds a starved bid needs. A resting one goes the turn an
+    // ask lacks USDC or no bid lacks pounds, so it never takes coin an ask needs and never sells past what the bids lack.
+    const gbpShort = Math.max(0, gbpSkipped - Math.max(0, freeGbp ?? 0));
+    for (const o of convOpen.filter((o) => isCbDrain(o) && o.mode === "live" && o.state === "open")) {
+      if (usdcShort > 0 || !(gbpShort > 0)) await cancelLive(o, usdcShort > 0 ? "an ask lacks USDC" : "no bid lacks pounds");
+    }
+    if (now >= CB_LIVE_DRAIN_FROM && !paused && !convOpen.length && !convDenied && gbpShort > 0 && gateOf(fair, stale) == null && usdc != null && freeUsdc != null
+      && (armed || (cfg.dry_run && !hasLiveBook))) {
+      const heldBidCoin = [...trips.values()].filter((t) => t.rungSide === "bid").reduce((a, t) => a + tripHeld(t), 0);
+      const askRungs = rungs.filter((r) => r.side === "ask").length;
+      const holdUsdc = balances?.ccy.USDC?.hold ?? 0;
+      const spentGbp = orders.filter((o) => isCbDrain(o) && msOf(o.created_at) >= dayStart && o.mode === (armed ? "live" : "dry_run")).reduce((s, o) => s + convertSpentGbp(o), 0);
+      const plan = planCbDrain({
+        totalUsdc: usdc + holdUsdc, freeUsdc, reserveUsdc: cbDrainReserve(askRungs, cfg.rung_gbp, fair!, step, heldBidCoin), gbpShort, usdcShort,
+        touch, fair, step, minSize, capGbp: cfg.convert_max_gbp_day, spentGbp,
+      });
+      if ("size" in plan) {
+        ev("drain", { size: plan.size, price: plan.price, surplus: plan.surplus, gbpShort, spentGbp });
+        await place({ leg: "convert", rungSide: "ask", k: 0, side: "SELL", price: plan.price, size: plan.size, trip: "", paperKey: null, fair, ioc: false });
+      }
     }
     // 6b. The take shadow (0187): records only, never an order. Its failure is an event, never the turn's error.
     const takeMode: CbLiveTakeMode = cfg.take_mode === "shadow" ? "shadow" : "off";

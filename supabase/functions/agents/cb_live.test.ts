@@ -16,7 +16,7 @@
 import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { b64ToBytes } from "../_shared/bytes.ts";
 import { CB_KEY_NAME_SECRET, CB_PRIVATE_KEY_SECRET } from "../_shared/coinbase.ts";
-import { CB_LIVE_GTD_MS, CB_LIVE_NAME, cbTakeClosed, cbTakeFeeOf, cbTakeLimitTicks, cbTakeLine, convertSpentGbp, isDust, venueBalances, readCbLive, runCbLive, rungQty, tripPnl, tripsOf, type CbLiveSelf, type FillRow } from "./cb_live.ts";
+import { CB_LIVE_DRAIN_FROM, CB_LIVE_GTD_MS, CB_LIVE_NAME, cbDrainReserve, isCbDrain, planCbDrain, cbTakeClosed, cbTakeFeeOf, cbTakeLimitTicks, cbTakeLine, convertSpentGbp, isDust, venueBalances, readCbLive, runCbLive, rungQty, tripPnl, tripsOf, type CbLiveSelf, type FillRow } from "./cb_live.ts";
 import { exitTicks, newBookState, quoteTicks, QUOTE_TICK, type BookState } from "./quotes.ts";
 import { CB_NUDGE_ARM, runCbNudge } from "./cb_nudge.ts";
 import { cbUsdcArmNewState } from "./cb_usdc.ts";
@@ -724,4 +724,80 @@ Deno.test("take shadow: an ask rung's take with no USDC to sell says its funds d
   const off = world({ dry: false, armed: true }), vOff = venue({ post: true, usdc: 0, touch, book: { bids: [["0.7515", "30"]], asks: [] } });
   await turn(off, vOff, T0 + 10e3);
   assertEquals([evsOf(off, "take_shadow").length, callsOf(vOff, "/product_book"), callsOf(vOff, "/transaction_summary")], [0, 0, 0]);
+});
+
+// THE DRAIN (Davies, 2026-10-31 ~03:05 UTC: "a和b都改"): from CB_LIVE_DRAIN_FROM, USDC beyond what the asks and the held bids need is
+// sold back to the pounds a starved bid lacks, post-only one tick inside the ask and never under fair, and never so much that an ask
+// goes short. 10-31's case: £50 of pounds and 93.7 USDC, £120 of rungs at fair 0.75: two bids rest, the third does not.
+const T1 = CB_LIVE_DRAIN_FROM + 4 * H;
+const drainWorld = (t: number) => world({ dry: false, armed: true, book: paperBook(FAIR, t), last: t - M });
+const drains = (w: ReturnType<typeof world>) => rows(w).filter((x) => x.leg === "convert" && x.side === "SELL");
+
+Deno.test("drain: a starved bid and USDC beyond the asks' need: a post-only sale at the ask less a tick, never under fair, never into the asks' coin", async () => {
+  const w = drainWorld(T1), v = venue({ post: true, gbp: 50, usdc: 93.7 });
+  await turn(w, v, T1 + 10e3);
+  const bids = rows(w).filter((x) => x.leg === "entry" && x.side === "BUY" && x.state === "open"), asks = rows(w).filter((x) => x.leg === "entry" && x.side === "SELL" && x.state === "open");
+  assertEquals([bids.length, asks.length], [2, 3]);
+  const [d] = drains(w);
+  assert(d, "a drain was sent");
+  assertEquals([Number(d.price), d.rung_side, d.mode, d.state], [0.75, null, "live", "open"]);
+  assert(((d.request as { order_configuration: { limit_limit_gtd: { post_only: boolean } } }).order_configuration.limit_limit_gtd.post_only));
+  // Never into the asks' coin: what is left after the whole sale still covers every ask resting, and the reserve at fair.
+  const asksCoin = asks.reduce((s, x) => s + Number(x.base_size), 0);
+  assert(93.7 - Number(d.base_size) >= asksCoin, `${93.7 - Number(d.base_size)} < ${asksCoin}`);
+  assert(93.7 - Number(d.base_size) >= cbDrainReserve(3, 20, FAIR, 0.01, 0) - 1e-9);
+  // Enough for the third bid: what the two left plus the sale's pounds.
+  const third = rungQty(20, quoteTicks(FAIR, 0.003, "bid") * QUOTE_TICK, 0.01) * quoteTicks(FAIR, 0.003, "bid") * QUOTE_TICK;
+  const left = 50 - bids.reduce((s, x) => s + Number(x.price) * Number(x.base_size), 0);
+  assert(left + Number(d.base_size) * 0.75 >= third - 1e-9, `${left} + ${Number(d.base_size) * 0.75} < ${third}`);
+  assertEquals(evsOf(w, "drain").length, 1);
+});
+
+Deno.test("drain: none before CB_LIVE_DRAIN_FROM (the counterfactual: the bid stays starved), none while an ask lacks USDC, none dry", async () => {
+  const t0 = CB_LIVE_DRAIN_FROM - H;
+  const before = drainWorld(t0);
+  await turn(before, venue({ post: true, gbp: 50, usdc: 93.7 }), t0 + 10e3);
+  assertEquals(drains(before).length, 0);
+  // Both look needed: the asks lack USDC (60 held) and a bid lacks pounds. No sale; the top-up, as before, buys within what is free.
+  const both = drainWorld(T1);
+  await turn(both, venue({ post: true, gbp: 50, usdc: 60 }), T1 + 10e3);
+  assertEquals(drains(both).length, 0);
+  assert(rows(both).every((x) => !(x.leg === "convert" && x.side === "SELL")));
+  // Dry-run with a live book never sends one; disarmed, nothing is sold.
+  const dis = world({ dry: false, armed: false, book: paperBook(FAIR, T1), last: T1 - M });
+  await turn(dis, venue({ post: true, gbp: 50, usdc: 93.7 }), T1 + 10e3);
+  assertEquals(drains(dis).filter((x) => x.mode === "live").length, 0);
+});
+
+Deno.test("drain: a sale partly filled rests while the bid still lacks pounds, and is cancelled the turn none does", async () => {
+  const w = drainWorld(T1), opts = { post: true, gbp: 50, usdc: 93.7, holdGbp: 0, holdUsdc: 0 }, v = venue(opts);
+  await turn(w, v, T1 + 10e3);
+  const d = drains(w)[0], size = Number(d.base_size);
+  const bidsCost = rows(w).filter((x) => x.leg === "entry" && x.side === "BUY").reduce((s, x) => s + Number(x.price) * Number(x.base_size), 0);
+  const asksCoin = rows(w).filter((x) => x.leg === "entry" && x.side === "SELL").reduce((s, x) => s + Number(x.base_size), 0);
+  // 6 of it fill: £4.50 more, still under the third bid's £20.
+  v.fill(String(d.venue_order_id), 6, T1 + 30e3);
+  v.bal.GBP = 50 - bidsCost + 6 * 0.75; v.bal.USDC = 93.7 - asksCoin - size;
+  opts.holdGbp = bidsCost; opts.holdUsdc = asksCoin + size - 6;
+  await turn(w, v, T1 + M + 10e3);
+  assertEquals(drains(w).map((x) => x.state), ["open"]);
+  // The rest of the pounds arrive another way (a deposit): no bid lacks any, so the remainder is cancelled, and no new sale goes.
+  v.bal.GBP = 40;
+  await turn(w, v, T1 + 2 * M + 10e3);
+  assertEquals(drains(w).map((x) => [x.state, x.reason]), [["cancelled", "no bid lacks pounds"]]);
+  assertEquals(rows(w).filter((x) => x.leg === "entry" && x.side === "BUY" && x.state === "open").length, 3);
+});
+
+Deno.test("planCbDrain: the least of the surplus, what is free, what the bids lack and the day's cap; nothing under the minimum", () => {
+  const base = { totalUsdc: 93.7, freeUsdc: 13.88, reserveUsdc: 80.01, gbpShort: 9.98, usdcShort: 0, touch: { bid: 0.7499, ask: 0.7501 }, fair: 0.75, step: 0.01, minSize: 1, capGbp: 70, spentGbp: 0 };
+  assertEquals(planCbDrain(base), { size: 13.32, price: 0.75, surplus: 93.7 - 80.01 });
+  assertEquals("skip" in planCbDrain({ ...base, usdcShort: 0.5 }), true);
+  assertEquals("skip" in planCbDrain({ ...base, gbpShort: 0 }), true);
+  assertEquals((planCbDrain({ ...base, freeUsdc: 5 }) as { size: number }).size, 5);            // a sale never takes coin on hold
+  assertEquals((planCbDrain({ ...base, spentGbp: 66 }) as { size: number }).size, 5.33);       // the day's cap: £4 left
+  assertEquals("skip" in planCbDrain({ ...base, totalUsdc: 80.5 }), true);                     // 0.49 beyond: under the minimum
+  // A wide book: one tick inside the ask; a book under fair: at fair.
+  assertEquals((planCbDrain({ ...base, touch: { bid: 0.7490, ask: 0.7520 } }) as { price: number }).price, 0.7519);
+  assertEquals((planCbDrain({ ...base, touch: { bid: 0.7480, ask: 0.7490 } }) as { price: number }).price, 0.75);
+  assertEquals(isCbDrain({ leg: "convert", side: "SELL" }) && !isCbDrain({ leg: "convert", side: "BUY" }), true);
 });

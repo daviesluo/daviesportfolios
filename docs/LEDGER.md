@@ -820,6 +820,11 @@ and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 0
   `cbLiveRungCount`): LIVE £6, RXU £4, Coinbase £6 (unchanged), `live600`/`live1200`/`take50` £6, `n600no03` £4, the both-book
   twins £12. `0189` stores the same. Deviation `reviews/2026-10-31-compound-unit-deviation.md`; pins in `quotes_compound.test.ts`
   (£6.70 realised moves LIVE to £606; in £12 it stays 600) and `compound_unit_deviation.test.js`.
+- **Coinbase LIVE sells surplus USDC back to pounds from 2026-10-31 06:00 UTC** (Davies: "a和b都改"; `CB_LIVE_DRAIN_FROM`, move it to
+  the next whole hour if the push lands later). Its 0.3 % bid had rested nothing since 10-29 20:34 (13.48 USDC over the asks' need,
+  £9.84 short of the bids'). `planCbDrain`: only when a bid lacks pounds and no ask lacks USDC; the coin beyond each ask's at fair
+  (rounded up) and every held bid's; at most what the bids lack and the day's cap; post-only a tick inside the ask, never under
+  fair; cancelled the turn an ask lacks USDC or no bid lacks pounds. Design §12, reference item 68; pins in `cb_live.test.ts`.
 
 ### [2026-10-31 03:07 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Agents-module audit, round 1 landed** (fa07448e paged reads in waves, 80bb0fcd monitor reads Coinbase LIVE). Davies on its
