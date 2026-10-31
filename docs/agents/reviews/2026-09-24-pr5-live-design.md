@@ -463,6 +463,17 @@ reading LIVE's record.
   * Pins: `quotes_live_take_rules.test.ts`. From the instant, shallow reads take nothing and the first deep read takes
     once, whole. On 10-30, the counterfactual, the same reads sent three IOCs.
   * The next step is unchanged: the first USDT-only take event that reads clean, then the proposal to Davies.
+* 2026-10-31, **no take inside an FX closure, at once** (`reviews/2026-10-31-take-closure-deviation.md`).
+  * The gap: with `weekend_mode` 'live', a closure minute is the weekend replica's, on a held X. The take and its shadow ran
+    on it too, so on a Saturday with the book through a limit, 'live' would have sent an IOC and 'shadow' would have recorded
+    one.
+  * Why it is closed: every take the rule was priced and tested on is a weekday's. That is variant-2's 14 (it has no
+    weekend rule, so a closure minute gives it no fair) and the shadow's 2.
+  * The guard: `takeClosed` in the shared take path. A closure minute has no take and no `take_shadow`; the weekend entries
+    go on as before.
+  * Pin: `quotes_live_switches.test.ts`, "no take inside an FX closure". With the guard reverted, the closure minute sends
+    one IOC and records one shadow event.
+  * When Davies' word turns `take_mode` 'live', it takes on weekdays only.
 
 ## Addendum (2026-10-28): the operator's conversion follows the bid
 

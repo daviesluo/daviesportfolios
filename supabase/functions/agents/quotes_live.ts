@@ -1765,6 +1765,14 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLiveIn
   // pounds, after the entry's own funds check, recorded as an entry with no paper order and `request.take`. The venue
   // fills it, or not; a fill is any entry's (step 5's exit, re-price and 24-hour stop).
   const takeOn = (!!inst.take && d.now >= inst.take.from) || takeMode === "live";
+  /**
+   * No take inside an FX closure (2026-10-31, before Davies decides on LIVE's take): the paper minute in a closure is
+   * decided on a held X (the live account's weekend replica, `weekend_mode` 'live', or an instance's own `weekend` rule),
+   * and every take the rule was priced and tested on is a weekday's (variant-2's 14, LIVE's shadow's 2 opportunities;
+   * variant-2 has no weekend). Neither the take nor its shadow runs then; the rung's weekend entry goes on. Variant-2's own
+   * turns never see one: without a weekend rule a closure minute has no fair.
+   */
+  const takeClosed = T != null && inQuoteClosure(T);
   const readsOf = new Map<QuoteBook, Promise<RecordedRead | null>>();
   const recordedOf = (b: QuoteBook) => {
     if (!readsOf.has(b)) {
@@ -1779,7 +1787,7 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLiveIn
    * read) instead of the IOC. Nothing is sent, nothing is cancelled, no funds are promised: the rung's paper entry goes on.
    */
   const shadowTake = async (r: RungNow, o: LiveOrderRow | null): Promise<void> => {
-    const f = inputs[r.book]?.f ?? null;
+    const f = takeClosed ? null : inputs[r.book]?.f ?? null;
     const read = f == null ? null : await recordedOf(r.book);
     if (f == null || !read) return;
     const limit = takeLimitTicks(f, r.k, r.side), touch = readTouch(read);
@@ -1800,7 +1808,7 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLiveIn
   };
   /** Whether the rung's turn is the take's: false when the book is not through its limit, and then its paper entry goes on. */
   const takeTurn = async (r: RungNow, o: LiveOrderRow | null): Promise<boolean> => {
-    const f = inputs[r.book]?.f ?? null;
+    const f = takeClosed ? null : inputs[r.book]?.f ?? null;
     const read = f == null ? null : await recordedOf(r.book);
     if (f == null || !read) return false;
     const limit = takeLimitTicks(f, r.k, r.side), touch = readTouch(read);

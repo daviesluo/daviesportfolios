@@ -17,6 +17,12 @@ const DOC = read('docs/agents/reviews/2026-10-29-rx-usdc-live-prereg.md').toStri
 const DEV = read('docs/agents/reviews/2026-10-29-rx-usdc-live-deviation.md').toString('utf8');
 const namedIn = (doc, f) => [...doc.matchAll(new RegExp('\\| `' + f.replace(/[.]/g, '\\.') + '` \\| ([0-9a-f]{64}) \\|', 'g'))].map((m) => m[1]);
 const S = '2026-10-30T00:00:00Z';
+/** The closure deviation (2026-10-31, no take inside an FX closure), recorded apart: the files as they are, under a pre-registration's own heading. */
+const DTC = read('docs/agents/reviews/2026-10-31-take-closure-deviation.md').toString('utf8');
+const namedTC = (head, f) => {
+  const s = DTC.indexOf('### `docs/agents/reviews/' + head + '`'), rest = s < 0 ? '' : DTC.slice(s + 1), e = rest.search(/\n##/);
+  return [...rest.slice(0, e < 0 ? undefined : e).matchAll(new RegExp('\\| `' + f.replace(/[.]/g, '\\.') + '` \\| ([0-9a-f]{64}) \\|', 'g'))].map((m) => m[1]);
+};
 /** TAKE-DEPTH's deviation (2026-10-31), recorded apart: the files as they are, under a pre-registration's own heading. */
 const DTD = read('docs/agents/reviews/2026-10-31-take-depth-deviation.md').toString('utf8');
 const namedTD = (head, f) => {
@@ -63,7 +69,7 @@ describe("the USDC/GBP LIVE twin's pre-registration", () => {
     ]) expect(namedIn(DOC, f), f).toEqual([sha(f)]);
     // The executor as frozen, then as LIVE's exit-tick deviation (0181) names it under this pre-registration's heading.
     const live = 'supabase/functions/agents/quotes_live.ts';
-    expect([...namedIn(DOC, live), ...namedX1('2026-10-29-rx-usdc-live-prereg.md', live), ...namedTD('2026-10-29-rx-usdc-live-prereg.md', live)], live).toEqual(['d683bb5a4f1accf144c630a7d69bd565953a23879be847eade2ce2868d8bc86c', 'b6bdbd8cc1947b0949923322988290b6928f679798f7042c100b1776ffbcc3a1', sha(live)]);
+    expect([...namedIn(DOC, live), ...namedX1('2026-10-29-rx-usdc-live-prereg.md', live), ...namedTD('2026-10-29-rx-usdc-live-prereg.md', live), ...namedTC('2026-10-29-rx-usdc-live-prereg.md', live)], live).toEqual(['d683bb5a4f1accf144c630a7d69bd565953a23879be847eade2ce2868d8bc86c', 'b6bdbd8cc1947b0949923322988290b6928f679798f7042c100b1776ffbcc3a1', '2ec5455b525f8f5d5d9996e994e9b512154cc0abfe4890df14dd33e786b06270', sha(live)]);
   });
 
   it('holds its bar as written', () => {
@@ -79,10 +85,13 @@ describe("the USDC/GBP executor's deviation (0180)", () => {
     for (const h of ['2026-10-29-usdt-only-twins-prereg.md', '2026-10-29-revx-usdc-nudge-twin-prereg.md', '2026-10-29-revx-exit-tick-twin-prereg.md', '2026-10-29-rx-usdc-live-prereg.md']) {
       expect(namedX1(h, live), h).toEqual(['b6bdbd8cc1947b0949923322988290b6928f679798f7042c100b1776ffbcc3a1']);
       // Then TAKE-DEPTH's deviation (2026-10-31): the executor as it is.
-      expect(namedTD(h, live), h).toEqual([sha(live)]);
+      expect(namedTD(h, live), h).toEqual(['2ec5455b525f8f5d5d9996e994e9b512154cc0abfe4890df14dd33e786b06270']);
+      // Then the closure deviation (2026-10-31): the executor as it is.
+      expect(namedTC(h, live), h).toEqual([sha(live)]);
     }
     expect(DX1).toContain('the executor was `d683bb5a4f1accf144c630a7d69bd565953a23879be847eade2ce2868d8bc86c` before this change');
     expect(DTD).toContain('the executor was `b6bdbd8cc1947b0949923322988290b6928f679798f7042c100b1776ffbcc3a1` before this change');
+    expect(DTC).toContain('the executor was `2ec5455b525f8f5d5d9996e994e9b512154cc0abfe4890df14dd33e786b06270` before this change');
     expect(sha('supabase/functions/agents/quotes_live_frozen.ts')).toBe('60d3f33f2bb8d328fe14693d570396afdffcc2cae9b75e05e2d4eed5ea459a52');
   });
 });

@@ -61,8 +61,20 @@ describe("TAKE-DEPTH (2026-10-31), TAKE's deviation recorded apart", () => {
     const s = dev.indexOf('### `docs/agents/reviews/2026-10-03-take-prereg.md`'), rest = dev.slice(s + 1), e = rest.search(/\n##/);
     const named = [...rest.slice(0, e).matchAll(/\| `supabase\/functions\/agents\/quotes_live\.ts` \| ([0-9a-f]{64}) \|/g)].map((m) => m[1]);
     expect(s).toBeGreaterThan(0);
-    expect(named).toEqual([sha(live)]);
+    expect(named).toEqual(['2ec5455b525f8f5d5d9996e994e9b512154cc0abfe4890df14dd33e786b06270']);
     expect(dev).toContain('按照你推荐的来，确保效果最佳，你觉得需要改就改');
     expect(read(live).toString('utf8')).toContain('export const TAKE_DEPTH_FROM = Date.parse("2026-10-31T04:00:00Z");');
+  });
+});
+
+describe("no take inside an FX closure (2026-10-31), recorded apart", () => {
+  it('names the executor as it is under the take pre-registration\'s heading, and the executor holds the guard', () => {
+    const dev = read('docs/agents/reviews/2026-10-31-take-closure-deviation.md').toString('utf8');
+    const live = 'supabase/functions/agents/quotes_live.ts';
+    const s = dev.indexOf('### `docs/agents/reviews/2026-10-03-take-prereg.md`'), rest = dev.slice(s + 1), e = rest.search(/\n##/);
+    const named = [...rest.slice(0, e).matchAll(/\| `supabase\/functions\/agents\/quotes_live\.ts` \| ([0-9a-f]{64}) \|/g)].map((m) => m[1]);
+    expect(s).toBeGreaterThan(0);
+    expect(named).toEqual([sha(live)]);
+    expect(read(live).toString('utf8')).toContain('const takeClosed = T != null && inQuoteClosure(T);');
   });
 });

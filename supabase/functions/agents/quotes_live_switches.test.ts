@@ -344,3 +344,25 @@ Deno.test("the weekend replica: off, nothing; on a weekday, nothing; in the hour
   assertEquals(nextClosureStart(Date.parse("2026-10-24T03:00:00Z")), Date.parse("2026-10-30T21:00:00Z"));   // inside one: the next
   assertEquals(closureStartOf(Date.parse("2026-10-25T20:59:00Z")), Date.parse("2026-10-23T21:00:00Z"));
 });
+
+Deno.test("no take inside an FX closure: with weekend_mode 'live' and the book through the take limit, take_mode 'live' sends no IOC and 'shadow' records none; the replica's entries are the same as with take off", async () => {
+  /** Two Saturday turns on the weekend replica, the second meeting a USDC read asking 0.7539, 500 deep (through the 0.1 % bid's limit at the held X). */
+  const closed = async (config: Record<string, unknown>) => {
+    const w = world({ t0: SAT, config: { weekend_mode: "live", ...config }, fxLive: false });
+    const at2 = SAT + 2 * M + 25e3;
+    w.read(USDC, at2 - 15e3, at2 + 15e3, [[0.7530, 500]], [[0.7539, 500]]);
+    const reports: QuoteLiveReport[] = [];
+    for (let t = SAT; t < SAT + 2 * M; t += M) { await w.paper(t); await w.weekend(t); reports.push(await w.turn(t)); }
+    return { w, reports };
+  };
+  const off = await closed({}), lv = await closed({ take_mode: "live" }), sh = await closed({ take_mode: "shadow" });
+  assertEquals(lv.reports.at(-1)!.weekend, { source: "weekend" });
+  // The replica's 0.1 % USDC bid rests at 0.7546 (12 entries in all): through 0.7539 on a weekday it would be the take's turn.
+  assertEquals(entries(off.w).filter((o) => o.book === USDC && o.rung_side === "bid" && Number(o.k) === 0.001).map((o) => [Number(o.price), o.state]), [[0.7546, "new"]]);
+  assertEquals([lv.w.orders().filter(isTake).length, sh.w.events("take_shadow").length, sh.reports.at(-1)!.shadow?.takes ?? 0], [0, 0, 0]);
+  assertEquals(lv.w.orders().map(shape), off.w.orders().map(shape));
+  assertEquals(sh.w.orders().map(shape), off.w.orders().map(shape));
+  // The same book on a weekday is a take, live and in shadow (`takeCase` above): the closure alone stops it.
+  assertEquals((await takeCase({ take_mode: "live" })).w.orders().filter(isTake).length, 1);
+  assertEquals((await takeCase({ take_mode: "shadow" })).w.events("take_shadow").length, 1);
+});

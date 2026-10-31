@@ -47834,3 +47834,36 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
   `0183`: `0146`'s rule (`quotes_compound.ts`, realised to 00:00 incl. conversion sales) on every enabled twin (`agent_quote_twin_compound`,
   `runTwinsCompound`) and the Coinbase arms (`cb_compound.ts`, frozen drivers changed, deviation recorded apart with pin tests) from
   10-31 00:00; RX USDC/GBP and `cb_live` columns 'off'. Replay (`backtests/compound/`): +2.4 points a year on ~22 %, none in a month.
+
+## LEDGER.md, archived 2026-10-31 (thirty-seventh) — the 2026-10-30 02:05, 2026-10-30 02:11, 2026-10-30 02:12, 2026-10-30 02:17 UTC history sections, oldest first
+
+### [2026-10-30 02:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **MMCOMP-2: the two strategies in depth, and the maker's takings** (sub-agent; commit, not pushed; Davies, 10-30 ~02:00:
+  "这两个策略你深入研究下…可以完全自动化实现吗？…这里说的这个做市商的盈利水平如何？我们有机会赢他吗？"). `reviews/2026-10-30-mmcomp-2.md`,
+  `backtests/mmcomp/` (xhedge, inner_rung2, maker_pnl). A (one tick inside the maker on Revolut X, hedged on Coinbase): the
+  hedge's delay 0–90 s changes nothing (the basis, not speed); transfers (Revolut X £3 + network, no withdrawal API) eat it, so
+  run without: USDT-GBP £0.72/day on £600, £1.08 on £1,200 (+6.3/+6.7 bps a fill net, 15/16 days), USDC-GBP £0.30/£0.44;
+  MMCOMP's £10/day was without inventory limits. Revolut X's daily order limit does not apply to sub-accounts (its docs): a new
+  sub-account of Davies', never a family member's. Paper engine plan + prereg sketch. B (0.05 % inner rung) without LIVE's 813
+  prints: USDT-GBP −0.17/+0.26 bps/day (P 0.60/0.30): not built. The maker: ~£6–7/day a book on its own fills (4.2–5.2 bps at
+  30 min, adverse 1–1.6 bps), ≤ ~£21; one tick inside takes 10–37 % of it. Nothing live changes.
+
+### [2026-10-30 02:11 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **OKX paper twins compound too** (sub-agent; commit, not pushed; Davies, 10-30: "…你觉得需要做的话就做"). `okx_compound.ts`: each book's
+  `rungUsd` and loss stop × capital/$600 from 10-31 00:00 (LIVE's rule, $6 units, `days` kept); deviation apart with pin tests;
+  base Coinbase test left as a control. Design doc records the three live flips (~02:10, "打开").
+
+### [2026-10-30 02:12 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Compounding ON for the three live executors** (main session; Davies, 10-30 ~02:10: "打开"). `0183`/`0146`'s statements run
+  as written in `reviews/2026-10-30-compounding.md` §6: `agent_quote_live_config` (base £600), `agent_quote_rxu_config` (base £120),
+  `cb_live_config` (base £120, £20 rungs), each `compound_mode` 'realised' from 2026-10-31 00:00 UTC, one row each. A deposit or
+  withdrawal of £D moves `compound_base_gbp` by D. Off: `set compound_mode = 'off'`. OKX twins next (a1cb); the base Coinbase test
+  stays uncompounded as the weekend reading's control. Research MMCOMP-2 landed (A: paper proposed, awaits Davies; B: no).
+
+### [2026-10-30 02:17 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Coinbase LIVE now decides for itself** (main session; Davies, 10-30 ~02:15: the switch is mine to decide, "这个你来做决定不用问我").
+  Shadow 01:20-02:15 (47 turns, `cb_live_shadow`): no rung where one side quoted and the other did not, no crossing, no
+  `shadow_error`; self's fair 0.8 min fresher and 0.6 bps (max 2.2) from the paper's; the 0.2/0.3 % asks 1-2 ticks apart from
+  each side's own re-price anchor (same fair, same price). `update cb_live_config set decide = 'self'` at 02:16:16; the 02:17 turn
+  re-placed those two asks at self's prices, no error. Back: `set decide = 'paper'`. A (RX↔Coinbase hedge) goes to paper on
+  Davies' word ("做成实时纸面测试加到testing里"); a5a02 builds it.

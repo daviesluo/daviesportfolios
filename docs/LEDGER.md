@@ -273,7 +273,7 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      20:28:27, all cancelled by 20:29:26 with 0 filled. Re-set to 'live' at 21:06:04, outside the closure (PR5's
      minute 21:04); first trading Fri 10-23 21:00. Take shadow read 10-23 18:05 (five weekdays): 0 events, not a fail,
      'shadow' kept (the addendum's log). Read again 10-30 18:00: 47 events, 2 opportunities, (a)–(d) pass. Davies 10-31: stays
-     'shadow'; TAKE-DEPTH from 10-31 04:00 (no take through £1 of coin or less). Next: the first USDT-only take event, read against
+     'shadow'; TAKE-DEPTH from 10-31 04:00 (no take through £1 of coin or less); no take inside an FX closure (10-31). Next: the first USDT-only take event, read against
      (a)–(d), then Claude proposes the flip.
      **Review 10-26** (`reviews/2026-10-26-stablecoin-quotes-review.md`): "+64.9 %" right but realised-only, half one weekend.
      **LIVE at £600 since 2026-10-27 03:09 UTC** (Davies; §8): his two maker conversions for the asks' coin. Since 10-28 an operator's
@@ -804,7 +804,19 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 "LEDGER.md history, archived 2026-09-22" or "LEDGER.md, archived <date> (<n-th>)" that names the sections it holds, oldest
 first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 2026-10-29 01:24 UTC section (archived
 2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth), and the 2026-10-29 01:45, 2026-10-29 01:57 one(s) (thirteenth), the 2026-10-29 02:19 one(s) (fourteenth),
-and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 02:43, 2026-10-29 02:36, 2026-10-29 02:49, 2026-10-29 03:00, 2026-10-29 03:02, 2026-10-29 03:07, 2026-10-29 03:12 ones (sixteenth), and the 2026-10-29 03:24, 2026-10-29 03:30, 2026-10-29 03:39, 2026-10-29 03:41, 2026-10-29 03:49 ones (seventeenth), and the 2026-10-29 04:18, 2026-10-29 05:50 ones (eighteenth), and the 2026-10-29 06:05, 2026-10-29 06:30, 2026-10-29 06:41 ones (nineteenth), and the 2026-10-29 06:56, 2026-10-29 07:05, 2026-10-29 07:26, 2026-10-29 07:31 ones (twentieth), and the 2026-10-29 07:45, 2026-10-29 07:52, 2026-10-29 07:58 ones (twenty-first), and the 2026-10-29 08:10, 2026-10-29 08:25, 2026-10-29 09:05 ones (twenty-second), and the 2026-10-29 09:22, 2026-10-29 09:40, 2026-10-29 09:45, 2026-10-29 10:15 ones (twenty-third), and the 2026-10-29 17:10, 2026-10-29 18:20, 2026-10-29 18:33, 2026-10-29 18:43 ones (twenty-fourth), and the 2026-10-29 19:16, 2026-10-29 19:25, 2026-10-29 19:28, 2026-10-29 19:31 ones (twenty-fifth), and the 2026-10-29 19:50, 2026-10-29 19:55, 2026-10-29 20:00, 2026-10-29 20:15 ones (twenty-sixth), and the 2026-10-29 20:41, 2026-10-29 21:07 ones (twenty-seventh), and the 2026-10-29 21:30, 2026-10-29 22:10 ones (twenty-eighth), and the 2026-10-29 22:12, 2026-10-29 22:27 ones (twenty-ninth), and the 2026-10-29 22:40, 2026-10-29 22:43 ones (thirtieth), and the 2026-10-29 22:55, 2026-10-29 23:13 ones (thirty-first), and the 2026-10-29 23:24, 2026-10-29 23:30 ones (thirty-second), and the 2026-10-30 00:17, 2026-10-30 00:30 ones (thirty-third), and the 2026-10-30 00:35, 2026-10-30 00:57 ones (thirty-fourth), and the 2026-10-30 01:05, 2026-10-30 01:20 ones (thirty-fifth), and the 2026-10-30 01:45, 2026-10-30 01:48 ones (thirty-sixth).
+and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 02:43, 2026-10-29 02:36, 2026-10-29 02:49, 2026-10-29 03:00, 2026-10-29 03:02, 2026-10-29 03:07, 2026-10-29 03:12 ones (sixteenth), and the 2026-10-29 03:24, 2026-10-29 03:30, 2026-10-29 03:39, 2026-10-29 03:41, 2026-10-29 03:49 ones (seventeenth), and the 2026-10-29 04:18, 2026-10-29 05:50 ones (eighteenth), and the 2026-10-29 06:05, 2026-10-29 06:30, 2026-10-29 06:41 ones (nineteenth), and the 2026-10-29 06:56, 2026-10-29 07:05, 2026-10-29 07:26, 2026-10-29 07:31 ones (twentieth), and the 2026-10-29 07:45, 2026-10-29 07:52, 2026-10-29 07:58 ones (twenty-first), and the 2026-10-29 08:10, 2026-10-29 08:25, 2026-10-29 09:05 ones (twenty-second), and the 2026-10-29 09:22, 2026-10-29 09:40, 2026-10-29 09:45, 2026-10-29 10:15 ones (twenty-third), and the 2026-10-29 17:10, 2026-10-29 18:20, 2026-10-29 18:33, 2026-10-29 18:43 ones (twenty-fourth), and the 2026-10-29 19:16, 2026-10-29 19:25, 2026-10-29 19:28, 2026-10-29 19:31 ones (twenty-fifth), and the 2026-10-29 19:50, 2026-10-29 19:55, 2026-10-29 20:00, 2026-10-29 20:15 ones (twenty-sixth), and the 2026-10-29 20:41, 2026-10-29 21:07 ones (twenty-seventh), and the 2026-10-29 21:30, 2026-10-29 22:10 ones (twenty-eighth), and the 2026-10-29 22:12, 2026-10-29 22:27 ones (twenty-ninth), and the 2026-10-29 22:40, 2026-10-29 22:43 ones (thirtieth), and the 2026-10-29 22:55, 2026-10-29 23:13 ones (thirty-first), and the 2026-10-29 23:24, 2026-10-29 23:30 ones (thirty-second), and the 2026-10-30 00:17, 2026-10-30 00:30 ones (thirty-third), and the 2026-10-30 00:35, 2026-10-30 00:57 ones (thirty-fourth), and the 2026-10-30 01:05, 2026-10-30 01:20 ones (thirty-fifth), and the 2026-10-30 01:45, 2026-10-30 01:48 ones (thirty-sixth), and the 2026-10-30 02:05, 2026-10-30 02:11, 2026-10-30 02:12, 2026-10-30 02:17 ones (thirty-seventh).
+
+### [2026-10-31 02:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **No take inside an FX closure, at once** (sub-agent; commit, not pushed). With `weekend_mode` 'live' a closure minute is the
+  weekend replica's (held X), and the take and its shadow ran on it. Every take the rule was tested on is a weekday's
+  (take50's 14, the shadow's 2), so `takeClosed` in the shared take path now stops both in a closure. take50 never sees one
+  with a fair (no weekend rule), and no enabled twin has take and weekend together. Pin in `quotes_live_switches.test.ts`
+  (counterfactual: the guard reverted sends one IOC and records one shadow event). Recorded apart in
+  `reviews/2026-10-31-take-closure-deviation.md` (the five pre-registrations' executor hash; their tests and `take_twin.test.js`).
+- **Davies, 2026-10-31 ~02:00 UTC: "RX USDT/GBP上 / RX USDC/GBP开 shadow / Coinbase USDC/GBP也做好加开 shadow记录".** RXU's
+  `take_mode` 'shadow' at 02:00:12 (`update public.agent_quote_rxu_config set take_mode = 'shadow' …`; undo 'off'). LIVE's
+  `take_mode` 'live' follows once this guard is deployed (undo 'shadow'). Coinbase's take shadow is to build (cb_live has no
+  take path). No USDC take was ever seen: take50 0 of 14 since 09-23, LIVE's shadow 0 of 47 rows while it quoted both books.
 
 ### [2026-10-31 01:47 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - xhedge Deviation 2's measurement added after the replay: at most 3 (`inside`) and 2 (`behind`) folded trips; both arms decided
@@ -921,34 +933,3 @@ and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 0
   (watchdog), starts at the first 00:00 UTC after its first run; two TESTING rows on Revolut X's card. Replay
   (`scripts/xhedge_a2.py`): USDT-GBP £1.00/day inside, £0.46 behind. Frozen prereg `reviews/2026-10-30-xhedge-prereg.md` (28
   days; each arm's USDT-GBP: sum > 0, P(mean ≤ 0) < 0.10, ≥ 300 / 100 fills). Nothing live.
-
-### [2026-10-30 02:17 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Coinbase LIVE now decides for itself** (main session; Davies, 10-30 ~02:15: the switch is mine to decide, "这个你来做决定不用问我").
-  Shadow 01:20-02:15 (47 turns, `cb_live_shadow`): no rung where one side quoted and the other did not, no crossing, no
-  `shadow_error`; self's fair 0.8 min fresher and 0.6 bps (max 2.2) from the paper's; the 0.2/0.3 % asks 1-2 ticks apart from
-  each side's own re-price anchor (same fair, same price). `update cb_live_config set decide = 'self'` at 02:16:16; the 02:17 turn
-  re-placed those two asks at self's prices, no error. Back: `set decide = 'paper'`. A (RX↔Coinbase hedge) goes to paper on
-  Davies' word ("做成实时纸面测试加到testing里"); a5a02 builds it.
-
-### [2026-10-30 02:12 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Compounding ON for the three live executors** (main session; Davies, 10-30 ~02:10: "打开"). `0183`/`0146`'s statements run
-  as written in `reviews/2026-10-30-compounding.md` §6: `agent_quote_live_config` (base £600), `agent_quote_rxu_config` (base £120),
-  `cb_live_config` (base £120, £20 rungs), each `compound_mode` 'realised' from 2026-10-31 00:00 UTC, one row each. A deposit or
-  withdrawal of £D moves `compound_base_gbp` by D. Off: `set compound_mode = 'off'`. OKX twins next (a1cb); the base Coinbase test
-  stays uncompounded as the weekend reading's control. Research MMCOMP-2 landed (A: paper proposed, awaits Davies; B: no).
-
-### [2026-10-30 02:11 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **OKX paper twins compound too** (sub-agent; commit, not pushed; Davies, 10-30: "…你觉得需要做的话就做"). `okx_compound.ts`: each book's
-  `rungUsd` and loss stop × capital/$600 from 10-31 00:00 (LIVE's rule, $6 units, `days` kept); deviation apart with pin tests;
-  base Coinbase test left as a control. Design doc records the three live flips (~02:10, "打开").
-
-### [2026-10-30 02:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **MMCOMP-2: the two strategies in depth, and the maker's takings** (sub-agent; commit, not pushed; Davies, 10-30 ~02:00:
-  "这两个策略你深入研究下…可以完全自动化实现吗？…这里说的这个做市商的盈利水平如何？我们有机会赢他吗？"). `reviews/2026-10-30-mmcomp-2.md`,
-  `backtests/mmcomp/` (xhedge, inner_rung2, maker_pnl). A (one tick inside the maker on Revolut X, hedged on Coinbase): the
-  hedge's delay 0–90 s changes nothing (the basis, not speed); transfers (Revolut X £3 + network, no withdrawal API) eat it, so
-  run without: USDT-GBP £0.72/day on £600, £1.08 on £1,200 (+6.3/+6.7 bps a fill net, 15/16 days), USDC-GBP £0.30/£0.44;
-  MMCOMP's £10/day was without inventory limits. Revolut X's daily order limit does not apply to sub-accounts (its docs): a new
-  sub-account of Davies', never a family member's. Paper engine plan + prereg sketch. B (0.05 % inner rung) without LIVE's 813
-  prints: USDT-GBP −0.17/+0.26 bps/day (P 0.60/0.30): not built. The maker: ~£6–7/day a book on its own fills (4.2–5.2 bps at
-  30 min, adverse 1–1.6 bps), ≤ ~£21; one tick inside takes 10–37 % of it. Nothing live changes.
