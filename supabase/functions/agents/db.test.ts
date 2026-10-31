@@ -1,6 +1,8 @@
 import { assert, assertEquals, assertThrows } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { assertPagedOrder, DB_ERROR_CHARS, dbErrorText, makeDb, PAGE_ROWS, PAGE_WAVE } from "./db.ts";
+import { assertPagedOrder, DB_ERROR_CHARS, dbErrorText, makeDb, PAGE_ROWS, PAGE_WAVE, UPSERT_FIRST_WINS, upsertRows } from "./db.ts";
 import { isUniqueViolation } from "./tick.ts";
+import { fetchFx } from "./quotes.ts";
+import { memDb } from "./testing.ts";
 
 // PostgREST's refusal as it arrives: `code, details, hint, message`, with `details` quoting the whole failing row.
 const failingRow = `Failing row contains (${Array.from({ length: 40 }, (_, i) => `v${i}`).join(", ")}, paused, sell).`;
@@ -92,4 +94,33 @@ Deno.test("selectAll: past the first page, pages go out PAGE_WAVE at a time and 
   const big = serve(10443);
   await makeDb("https://db.example", "k", big.f).selectAll("agent_orders", "select=id&order=id.asc");
   assertEquals(big.most(), PAGE_WAVE); // one after another before: never more than one in flight
+});
+
+// One batch, one conflict key twice (2026-10-31 audit): Postgres fails the whole statement (21000), and the double does too, as xhedge's
+// trips did on 10-30. Yahoo's minutes carry a stray in-minute point on Friday evenings, so the EUR/USD batch into `cb_quote_inputs`
+// failed 33 times from 10-16: a vendor's bar series keeps each key's first row, the bar; nothing else is merged unseen.
+Deno.test("a batch with a key twice: a vendor's bar series keeps its first row, sent once; any other table fails whole, in production and the double", async () => {
+  // Yahoo's answer as it came on those evenings: the 21:48 bar, then a point at 21:48:37 inside the same minute.
+  const bar = Date.parse("2026-10-30T21:48:00Z") / 1000;
+  const yahoo = { chart: { result: [{ timestamp: [bar - 60, bar, bar + 37], indicators: { quote: [{ close: [1.0861, 1.0862, 1.08625] }] } }] } };
+  const fx = await fetchFx(Date.parse("2026-10-30T21:50:00Z"), (() => Promise.resolve(new Response(JSON.stringify(yahoo)))) as unknown as typeof fetch, "EURUSD=X");
+  assertEquals(fx.map(([t]) => new Date(t).toISOString()), ["2026-10-30T21:47:00.000Z", "2026-10-30T21:48:00.000Z", "2026-10-30T21:48:00.000Z"]);
+  const rows = fx.map(([t, v]) => ({ kind: "fx:EURUSD", t: new Date(t).toISOString(), value: v }));
+  // The double: the batch is stored, the 21:48 bar's own close kept.
+  const m = memDb({ cb_quote_inputs: [] }, { now: () => Date.now() });
+  await m.db.upsert("cb_quote_inputs", rows, "kind,t");
+  assertEquals((m.tables.cb_quote_inputs as Array<{ t: string; value: number }>).map((r) => [r.t, r.value]), [["2026-10-30T21:47:00.000Z", 1.0861], ["2026-10-30T21:48:00.000Z", 1.0862]]);
+  // Production's client sends each key once.
+  const sent: unknown[] = [];
+  const f = ((_: string, init: RequestInit) => { sent.push(JSON.parse(String(init.body))); return Promise.resolve(new Response(null, { status: 201 })); }) as unknown as typeof fetch;
+  await makeDb("https://db.example", "k", f).upsert("cb_quote_inputs", rows, "kind,t");
+  assertEquals((sent[0] as unknown[]).length, 2);
+  // A trip twice (xhedge's key) is never merged: the double fails it whole, as Postgres does, and the client sends it as given.
+  const trip = { arm: "inside", book: "USDT-GBP", side: "bid", t_fill: "2026-10-30T09:57:00Z", t_hedge: "2026-10-30T09:57:31Z", qty: 1 };
+  const x = memDb({ agent_xhedge_trips: [] }, { now: () => Date.now() });
+  const err = await x.db.upsert("agent_xhedge_trips", [trip, { ...trip, qty: 2 }], "arm,book,side,t_fill,t_hedge").then(() => null, (e: Error) => e.message);
+  assert(err?.includes("21000"), String(err));
+  assertEquals((x.tables.agent_xhedge_trips ?? []).length, 0);
+  assertEquals(upsertRows("agent_xhedge_trips", [trip, trip], "arm,book,side,t_fill,t_hedge").length, 2);
+  assertEquals(Object.keys(UPSERT_FIRST_WINS).sort(), ["agent_quote_inputs", "cb_quote_inputs", "cxbot_tape", "igbot_bars"]);
 });

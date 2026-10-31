@@ -189,7 +189,8 @@ that follow from that evidence, in short:
   the in-memory db ignored `agent_orders_mode_check` (a paused row's exit
   was refused in production), and its `selectAll` skipped the order
   guard (the tick threw for three hours). Shared rules live in one function
-  both call (`assertPagedOrder`); after a tick deploy, read decisions and
+  both call (`assertPagedOrder`; since 2026-10-31 `upsertRows`: a batch whose rows share a conflict key fails whole, 21000, in the
+  double as in Postgres, but for a vendor's bar series, `UPSERT_FIRST_WINS`, which keeps each key's first row); after a tick deploy, read decisions and
   `ops_errors`, not the basis — the basis is written before most of the
   loop runs and reads "alive" through a crash.
 - Paper first, per strategy; live only on Davies' explicit go, and the

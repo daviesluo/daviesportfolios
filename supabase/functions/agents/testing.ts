@@ -6,7 +6,7 @@
 // threw on every run for three hours. The rules below are the schema's (0037, 0041, 0042), checked on INSERT *and*
 // UPDATE, because Postgres checks both — a settle whose fee is NaN goes over the wire as null and is refused by
 // `fee_usd NOT NULL` exactly as a bad insert is.
-import { assertPagedOrder, PAGE_ROWS, type Db } from "./db.ts";
+import { assertPagedOrder, PAGE_ROWS, upsertRows, type Db } from "./db.ts";
 import { stepDecimals } from "../_shared/agents_strategy.ts";
 import { JEV_OPENROUTER_URL } from "../_shared/jev.ts";
 import { cancelOrderBody, exchangeFor, orderHash, postOrderBody, recoverSigner, type PmReply, type PmVenue } from "../_shared/polymarket_orders.ts";
@@ -992,7 +992,17 @@ export function memDb(seed: Record<string, Row[]>, opts: { now: () => number; ho
         return refuse("POST", table, "there is no unique or exclusion constraint matching the ON CONFLICT specification");
       }
       const t = (tables[table] ??= []);
-      const list = overTheWire(rows) as Row[];
+      const list = upsertRows(table, overTheWire(rows) as Row[], onConflict);
+      // Postgres refuses an ON CONFLICT DO UPDATE whose rows share a conflict key: the whole statement fails (21000), as
+      // xhedge's trips did on 2026-10-30 and the EUR/USD minutes on Fridays. Merging them here hid both.
+      {
+        const seen = new Set<string>();
+        for (const r of list) {
+          const k = keys.map((c) => String(r[c])).join("\u0000");
+          if (seen.has(k)) return Promise.reject(new Error(`db POST ${table} → 500: {"code":"21000","message":"ON CONFLICT DO UPDATE command cannot affect row a second time"}`));
+          seen.add(k);
+        }
+      }
       // The recorder's tables (0092): Postgres checks the row an upsert proposes (its defaults filled, the identity and the
       // generated phase computed) and then the row as stored; a write naming a column it fills itself is refused.
       if (isPmRecTable(table)) {

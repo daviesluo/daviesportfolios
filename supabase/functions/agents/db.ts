@@ -115,6 +115,29 @@ export function dbErrorText(body: string, max = DB_ERROR_CHARS): string {
   return body.slice(0, max);
 }
 
+/**
+ * Series a vendor serves as a list of bars, where a key that comes twice in one batch is the same bar seen twice: Yahoo's minutes
+ * (`fetchFx`: a stray in-minute point floors onto its bar's minute, so the EUR/USD batch into `cb_quote_inputs` failed whole, 21000,
+ * on Friday evenings since 2026-10-16), Hyperliquid's candles, IG's hour bars. A batch into one of these keeps the FIRST row a key
+ * has, the bar, which later runs store anyway once the stray point is gone. Any other table keeps Postgres' rule: a batch whose
+ * rows share a conflict key fails whole (a trip, a fill or an event must never be dropped or merged unseen: xhedge's trips are
+ * folded by their own code, `xhSettle`). Both `makeDb` and the test double call this.
+ */
+export const UPSERT_FIRST_WINS: Record<string, string> = {
+  agent_quote_inputs: "kind,t", cb_quote_inputs: "kind,t", cxbot_tape: "venue,coin,t", igbot_bars: "epic,hour",
+};
+/** The rows an upsert sends: for a table of UPSERT_FIRST_WINS, each conflict key's first row; any other table's, as given. */
+export function upsertRows<T>(table: string, rows: T, onConflict: string): T {
+  if (UPSERT_FIRST_WINS[table] !== onConflict || !Array.isArray(rows)) return rows;
+  const keys = onConflict.split(","), seen = new Set<string>();
+  return rows.filter((r: Record<string, unknown>) => {
+    const k = keys.map((c) => String(r[c])).join("\u0000");
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  }) as T;
+}
+
 /** PostgREST's page: Supabase's `max-rows` default, and the page size `selectAll` asks for. */
 export const PAGE_ROWS = 1000;
 /** How many pages past the first `selectAll` asks for at once (`makeDb`): at most this many minus one are read past the end. */
@@ -137,7 +160,7 @@ export function makeDb(supabaseUrl: string, serviceKey: string, fetchImpl: typeo
     insert: (table, rows, returning = true) =>
       call("POST", table, rows, { Prefer: returning ? "return=representation" : "return=minimal" }),
     upsert: async (table, rows, onConflict) => {
-      await call("POST", `${table}?on_conflict=${onConflict}`, rows, { Prefer: "resolution=merge-duplicates,return=minimal" });
+      await call("POST", `${table}?on_conflict=${onConflict}`, upsertRows(table, rows, onConflict), { Prefer: "resolution=merge-duplicates,return=minimal" });
     },
     update: async (table, query, patch) => { await call("PATCH", `${table}?${query}`, patch, { Prefer: "return=minimal" }); },
     claim: (table, query, patch) => call("PATCH", `${table}?${query}`, patch, { Prefer: "return=representation" }),

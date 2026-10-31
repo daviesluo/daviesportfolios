@@ -828,6 +828,14 @@ and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 0
 - **`skip_inventory` once a skip** (cb_live): an event when a rung's skip for funds starts, changes leg or side, or its need or funds
   move over 5 %, not every minute (1,748 of `cb_live_events`' 1,938 rows were one bid repeating). The last told skip per rung is kept
   in the state (`skips`); pin in `cb_live.test.ts` (old code: five events where one is news).
+- **A batch upsert with a key twice** (`db.ts` `upsertRows`): the test double merged such a batch where Postgres fails it whole
+  (21000: xhedge's stall of 10-30, the EUR/USD minutes' 33 errors from 10-16); now it fails it too. Yahoo's stray in-minute point
+  makes a repeated minute legitimately: a vendor's bar series (`UPSERT_FIRST_WINS`: `agent_quote_inputs`, `cb_quote_inputs`,
+  `cxbot_tape`, `igbot_bars`) keeps each key's first row, the bar, which later runs stored anyway (no EUR/USD gap over 3 minutes
+  on a weekday in 20 days). No frozen file changed (the fix is in the client, not `cb_quotes.ts`/`quotes.ts`), and no decision:
+  the failing batch was caught and the arms read the stored series. Every other batch upsert in the module was read: keys unique
+  by construction (one row a book/source/minute, trade ids, a lease's id). Pin in `db.test.ts` (old code: the merge keeps the
+  stray value, three rows sent, xhedge's duplicate stored).
 
 ### [2026-10-31 03:07 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Agents-module audit, round 1 landed** (fa07448e paged reads in waves, 80bb0fcd monitor reads Coinbase LIVE). Davies on its
