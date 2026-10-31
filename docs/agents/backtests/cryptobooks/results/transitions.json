@@ -1,0 +1,136 @@
+{
+ "ETH-GBP": {
+  "first_3h_after_wide_to_tight": 0.0252,
+  "first_hour_after_tight_to_wide": 0.1876,
+  "first_hour_after_wide_to_tight": -1.2342,
+  "hours": 339,
+  "p_tight_hours": 0.4228,
+  "p_wide_hours": null,
+  "switches": [
+   [
+    "10-18 22:00",
+    "wide"
+   ],
+   [
+    "10-18 23:00",
+    "tight"
+   ],
+   [
+    "10-30 00:00",
+    "wide"
+   ],
+   [
+    "10-30 01:00",
+    "tight"
+   ],
+   [
+    "10-31 01:00",
+    "wide"
+   ],
+   [
+    "10-31 04:00",
+    "tight"
+   ],
+   [
+    "10-31 06:00",
+    "wide"
+   ],
+   [
+    "10-31 08:00",
+    "tight"
+   ]
+  ],
+  "tight_gbp_an_hour": 0.0076,
+  "tight_hours": 332,
+  "wide_gbp_an_hour": 0.1045,
+  "wide_hours": 7
+ },
+ "SOL-GBP": {
+  "first_3h_after_wide_to_tight": 1.2575,
+  "first_hour_after_tight_to_wide": -0.9876,
+  "first_hour_after_wide_to_tight": -1.2881,
+  "hours": 340,
+  "p_tight_hours": 0.1335,
+  "p_wide_hours": null,
+  "switches": [
+   [
+    "10-30 00:00",
+    "wide"
+   ],
+   [
+    "10-30 01:00",
+    "tight"
+   ],
+   [
+    "10-30 09:00",
+    "wide"
+   ],
+   [
+    "10-30 11:00",
+    "tight"
+   ],
+   [
+    "10-31 03:00",
+    "wide"
+   ],
+   [
+    "10-31 08:00",
+    "tight"
+   ]
+  ],
+  "tight_gbp_an_hour": 0.0664,
+  "tight_hours": 332,
+  "wide_gbp_an_hour": 0.1189,
+  "wide_hours": 8
+ },
+ "XRP-GBP": {
+  "first_3h_after_wide_to_tight": 0.6004,
+  "first_hour_after_tight_to_wide": 0.6566,
+  "first_hour_after_wide_to_tight": 0.5777,
+  "hours": 338,
+  "p_tight_hours": 0.0075,
+  "p_wide_hours": 0.0,
+  "switches": [
+   [
+    "10-17 21:00",
+    "wide"
+   ],
+   [
+    "10-17 23:00",
+    "tight"
+   ],
+   [
+    "10-28 15:00",
+    "wide"
+   ],
+   [
+    "10-29 05:00",
+    "tight"
+   ],
+   [
+    "10-29 06:00",
+    "wide"
+   ],
+   [
+    "10-30 06:00",
+    "tight"
+   ],
+   [
+    "10-30 07:00",
+    "wide"
+   ],
+   [
+    "10-30 16:00",
+    "tight"
+   ],
+   [
+    "10-30 17:00",
+    "wide"
+   ]
+  ],
+  "tight_gbp_an_hour": 0.1134,
+  "tight_hours": 271,
+  "wide_gbp_an_hour": 1.2613,
+  "wide_hours": 67
+ }
+}

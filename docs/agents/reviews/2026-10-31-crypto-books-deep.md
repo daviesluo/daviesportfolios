@@ -304,7 +304,8 @@ XRP-GBP's maker: £6.1 and £8.5 a day out of sample; £2.2 and £2.8 a day in h
 
 ## 7. Pre-registration draft: "Crypto quotes XRP/GBP" (paper)
 
-**Status: DRAFT.** Not frozen, nothing built. It freezes, if Davies says so, at the commit that adds the paper test's code.
+**Status: DRAFT, superseded** by `reviews/2026-10-31-xrp-gbp-strategy.md` §8 (the same day: the rule card's numbers, the
+regime column and the bar changed there). Kept as written.
 
 1. **What it tests.** Whether method (a) on XRP-GBP earns on live data it has not seen, and how much of that needs the fast
    layer to be away. SOL-GBP runs beside it as a second book, judged apart.

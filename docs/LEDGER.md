@@ -804,7 +804,19 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 "LEDGER.md history, archived 2026-09-22" or "LEDGER.md, archived <date> (<n-th>)" that names the sections it holds, oldest
 first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 2026-10-29 01:24 UTC section (archived
 2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth), and the 2026-10-29 01:45, 2026-10-29 01:57 one(s) (thirteenth), the 2026-10-29 02:19 one(s) (fourteenth),
-and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 02:43, 2026-10-29 02:36, 2026-10-29 02:49, 2026-10-29 03:00, 2026-10-29 03:02, 2026-10-29 03:07, 2026-10-29 03:12 ones (sixteenth), and the 2026-10-29 03:24, 2026-10-29 03:30, 2026-10-29 03:39, 2026-10-29 03:41, 2026-10-29 03:49 ones (seventeenth), and the 2026-10-29 04:18, 2026-10-29 05:50 ones (eighteenth), and the 2026-10-29 06:05, 2026-10-29 06:30, 2026-10-29 06:41 ones (nineteenth), and the 2026-10-29 06:56, 2026-10-29 07:05, 2026-10-29 07:26, 2026-10-29 07:31 ones (twentieth), and the 2026-10-29 07:45, 2026-10-29 07:52, 2026-10-29 07:58 ones (twenty-first), and the 2026-10-29 08:10, 2026-10-29 08:25, 2026-10-29 09:05 ones (twenty-second), and the 2026-10-29 09:22, 2026-10-29 09:40, 2026-10-29 09:45, 2026-10-29 10:15 ones (twenty-third), and the 2026-10-29 17:10, 2026-10-29 18:20, 2026-10-29 18:33, 2026-10-29 18:43 ones (twenty-fourth), and the 2026-10-29 19:16, 2026-10-29 19:25, 2026-10-29 19:28, 2026-10-29 19:31 ones (twenty-fifth), and the 2026-10-29 19:50, 2026-10-29 19:55, 2026-10-29 20:00, 2026-10-29 20:15 ones (twenty-sixth), and the 2026-10-29 20:41, 2026-10-29 21:07 ones (twenty-seventh), and the 2026-10-29 21:30, 2026-10-29 22:10 ones (twenty-eighth), and the 2026-10-29 22:12, 2026-10-29 22:27 ones (twenty-ninth), and the 2026-10-29 22:40, 2026-10-29 22:43 ones (thirtieth), and the 2026-10-29 22:55, 2026-10-29 23:13 ones (thirty-first), and the 2026-10-29 23:24, 2026-10-29 23:30 ones (thirty-second), and the 2026-10-30 00:17, 2026-10-30 00:30 ones (thirty-third), and the 2026-10-30 00:35, 2026-10-30 00:57 ones (thirty-fourth), and the 2026-10-30 01:05, 2026-10-30 01:20 ones (thirty-fifth), and the 2026-10-30 01:45, 2026-10-30 01:48 ones (thirty-sixth), and the 2026-10-30 02:05, 2026-10-30 02:11, 2026-10-30 02:12, 2026-10-30 02:17 ones (thirty-seventh), and the 2026-10-30 02:55, 2026-10-30 03:05 ones (thirty-eighth), and the 2026-10-30 03:50, 2026-10-30 04:05, 2026-10-30 04:20, 2026-10-30 05:25 ones (thirty-ninth), and the 2026-10-30 05:40, 2026-10-30 05:55 ones (fortieth), and the 2026-10-30 18:30, 2026-10-31 01:10 ones (forty-first), and the 2026-10-31 01:16, 2026-10-31 01:23 ones (forty-second), and the 2026-10-31 01:41, 2026-10-31 01:47 ones (forty-third), and the 2026-10-31 02:00, 2026-10-31 02:11 ones (forty-fourth), and the 2026-10-31 02:16, 2026-10-31 02:49 ones (forty-fifth).
+and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 02:43, 2026-10-29 02:36, 2026-10-29 02:49, 2026-10-29 03:00, 2026-10-29 03:02, 2026-10-29 03:07, 2026-10-29 03:12 ones (sixteenth), and the 2026-10-29 03:24, 2026-10-29 03:30, 2026-10-29 03:39, 2026-10-29 03:41, 2026-10-29 03:49 ones (seventeenth), and the 2026-10-29 04:18, 2026-10-29 05:50 ones (eighteenth), and the 2026-10-29 06:05, 2026-10-29 06:30, 2026-10-29 06:41 ones (nineteenth), and the 2026-10-29 06:56, 2026-10-29 07:05, 2026-10-29 07:26, 2026-10-29 07:31 ones (twentieth), and the 2026-10-29 07:45, 2026-10-29 07:52, 2026-10-29 07:58 ones (twenty-first), and the 2026-10-29 08:10, 2026-10-29 08:25, 2026-10-29 09:05 ones (twenty-second), and the 2026-10-29 09:22, 2026-10-29 09:40, 2026-10-29 09:45, 2026-10-29 10:15 ones (twenty-third), and the 2026-10-29 17:10, 2026-10-29 18:20, 2026-10-29 18:33, 2026-10-29 18:43 ones (twenty-fourth), and the 2026-10-29 19:16, 2026-10-29 19:25, 2026-10-29 19:28, 2026-10-29 19:31 ones (twenty-fifth), and the 2026-10-29 19:50, 2026-10-29 19:55, 2026-10-29 20:00, 2026-10-29 20:15 ones (twenty-sixth), and the 2026-10-29 20:41, 2026-10-29 21:07 ones (twenty-seventh), and the 2026-10-29 21:30, 2026-10-29 22:10 ones (twenty-eighth), and the 2026-10-29 22:12, 2026-10-29 22:27 ones (twenty-ninth), and the 2026-10-29 22:40, 2026-10-29 22:43 ones (thirtieth), and the 2026-10-29 22:55, 2026-10-29 23:13 ones (thirty-first), and the 2026-10-29 23:24, 2026-10-29 23:30 ones (thirty-second), and the 2026-10-30 00:17, 2026-10-30 00:30 ones (thirty-third), and the 2026-10-30 00:35, 2026-10-30 00:57 ones (thirty-fourth), and the 2026-10-30 01:05, 2026-10-30 01:20 ones (thirty-fifth), and the 2026-10-30 01:45, 2026-10-30 01:48 ones (thirty-sixth), and the 2026-10-30 02:05, 2026-10-30 02:11, 2026-10-30 02:12, 2026-10-30 02:17 ones (thirty-seventh), and the 2026-10-30 02:55, 2026-10-30 03:05 ones (thirty-eighth), and the 2026-10-30 03:50, 2026-10-30 04:05, 2026-10-30 04:20, 2026-10-30 05:25 ones (thirty-ninth), and the 2026-10-30 05:40, 2026-10-30 05:55 ones (fortieth), and the 2026-10-30 18:30, 2026-10-31 01:10 ones (forty-first), and the 2026-10-31 01:16, 2026-10-31 01:23 ones (forty-second), and the 2026-10-31 01:41, 2026-10-31 01:47 ones (forty-third), and the 2026-10-31 02:00, 2026-10-31 02:11 ones (forty-fourth), and the 2026-10-31 02:16, 2026-10-31 02:49 ones (forty-fifth), and the 2026-10-31 03:07, 2026-10-31 03:07 ones (forty-sixth).
+
+### [2026-10-31 11:36 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **CRYPTOBOOKS-2, the XRP/GBP strategy in depth** (sub-agent; commit, not pushed; Davies, ~08:20: "出 XRP/GBP 每秒报价的架构方案并继续深度研究
+  具体策略"; the architecture is another agent's). `reviews/2026-10-31-xrp-gbp-strategy.md`, `backtests/cryptobooks/` (`rule.py` the
+  rule's engine). The fast layer is the norm: in a year of 13–16 UTC samples, XRP-GBP was wide on 6 of 349 days (1–2-day spells;
+  the current one, from 10-28 16:00, is the year's longest), SOL-GBP 13 of 347, ETH-GBP 4 of 283. Today SOL-GBP and ETH-GBP went
+  wide at 01:00 and tight at 08:00, with the GBP stablecoin maker (00:58 / 07:18–08:04). Rule card: 14 bps from Binance's second
+  price, re-price on 5 bps, κ 0.5, £200 a quote on £600, start in pounds, 300 bps safety stop, data ≤ 1 s, ~2,540 placements and
+  cancels a day on a sub-account. 15 days: £7.77 a day (P 0.000; plateau d 12–16 × θ 3–10; 2 s −21 %, 5 s −59 %, 15 s < 0);
+  the year's windows: about £1.8 a day (P 0.042), two losing months. No regime gate (each costs money); the signal is reported.
+  SOL-GBP reported only (year P 0.35), ETH-GBP dropped; stale take on SUI/NEAR £1.4–1.8 a day a book. Paper draft updated (§8;
+  not frozen, nothing built). Moved the two 03:07 sections to handover (forty-sixth).
 
 ### [2026-10-31 09:35 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **The minute's `agents` calls spread over seconds** (sub-agent; commit, not pushed; Davies, ~08:20 UTC: "做"). 24 h to 08:30:
@@ -902,40 +914,3 @@ and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 0
 ### [2026-10-31 03:31 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - Agents audit round 2, rebased on 0188 (cblive's watchdog retry on): the monitor's `cbLive` comment names it. Moved the 10-30
   05:40, 05:55 sections to handover (fortieth).
-
-### [2026-10-31 03:07 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Agents audit, round 2 (sub-agent; commits, not pushed).** `agents/index.ts` loads each action's modules when the request
-  asks for them, after its beat, not at boot: 56 imports became bindings set by literal `import()` loaders, and
-  `AGENTS_ROUTE_MODULES` lists each action's (an action not listed loads all; a test importing the file loads all). The boot
-  graph went from 76 modules / 2.21 MB to 5 / 0.28 MB; LIVE's minute loads 5 modules, Coinbase LIVE's 2. Function bodies are
-  unchanged. `src/agents_lazy_modules.test.js` reads the code and fails when an action reaches a binding outside its list
-  (counterfactual: `quotes` without `quotes_live_weekend.ts` fails). Measure after deploy: `function_edge_logs` 503 share
-  for the agents function a hour (49-161 of ~950 on 10-30), its boot_time, and `edge_call_retries` a day for `agents%`
-  (quotes 134-154 a day since 10-27). Moved the 10-30 03:50, 04:05, 04:20 (two), 05:25 sections to handover (thirty-ninth).
-- **Compounding a pound a rung from 2026-11-01 00:00 UTC** (Davies, ~03:05: "a和b都改； c也改"). LIVE moved in whole £12 (£2 a rung of its six
-  USDT-GBP rungs): the unit and step are now derived, £1 × the rungs each strategy quotes at the day's 00:00 (`compoundUnitOf`,
-  `cbLiveRungCount`): LIVE £6, RXU £4, Coinbase £6 (unchanged), `live600`/`live1200`/`take50` £6, `n600no03` £4, the both-book
-  twins £12. `0189` stores the same. Deviation `reviews/2026-10-31-compound-unit-deviation.md`; pins in `quotes_compound.test.ts`
-  (£6.70 realised moves LIVE to £606; in £12 it stays 600) and `compound_unit_deviation.test.js`.
-- **Coinbase LIVE sells surplus USDC back to pounds from 2026-10-31 06:00 UTC** (Davies: "a和b都改"; `CB_LIVE_DRAIN_FROM`, move it to
-  the next whole hour if the push lands later). Its 0.3 % bid had rested nothing since 10-29 20:34 (13.48 USDC over the asks' need,
-  £9.84 short of the bids'). `planCbDrain`: only when a bid lacks pounds and no ask lacks USDC; the coin beyond each ask's at fair
-  (rounded up) and every held bid's; at most what the bids lack and the day's cap; post-only a tick inside the ask, never under
-  fair; cancelled the turn an ask lacks USDC or no bid lacks pounds. Design §12, reference item 68; pins in `cb_live.test.ts`.
-- **`skip_inventory` once a skip** (cb_live): an event when a rung's skip for funds starts, changes leg or side, or its need or funds
-  move over 5 %, not every minute (1,748 of `cb_live_events`' 1,938 rows were one bid repeating). The last told skip per rung is kept
-  in the state (`skips`); pin in `cb_live.test.ts` (old code: five events where one is news).
-- **A batch upsert with a key twice** (`db.ts` `upsertRows`): the test double merged such a batch where Postgres fails it whole
-  (21000: xhedge's stall of 10-30, the EUR/USD minutes' 33 errors from 10-16); now it fails it too. Yahoo's stray in-minute point
-  makes a repeated minute legitimately: a vendor's bar series (`UPSERT_FIRST_WINS`: `agent_quote_inputs`, `cb_quote_inputs`,
-  `cxbot_tape`, `igbot_bars`) keeps each key's first row, the bar, which later runs stored anyway (no EUR/USD gap over 3 minutes
-  on a weekday in 20 days). No frozen file changed (the fix is in the client, not `cb_quotes.ts`/`quotes.ts`), and no decision:
-  the failing batch was caught and the arms read the stored series. Every other batch upsert in the module was read: keys unique
-  by construction (one row a book/source/minute, trade ids, a lease's id). Pin in `db.test.ts` (old code: the merge keeps the
-  stray value, three rows sent, xhedge's duplicate stored).
-
-### [2026-10-31 03:07 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Agents-module audit, round 1 landed** (fa07448e paged reads in waves, 80bb0fcd monitor reads Coinbase LIVE). Davies on its
-  proposals: "a和b都改； c也改". A: `0188` turns the watchdog retry on for `agents?action=cblive` (188 of 1,440 minutes a day lost
-  to boot failures). B (Coinbase USDC→GBP maker rebalance) and C (LIVE's compounding unit £12 → £6, a pound a rung on six
-  USDT-GBP rungs; RXU £4/4 and Coinbase £6/6 already are) go to the audit agent's round 2 with the lazy-import boot fix.

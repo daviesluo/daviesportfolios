@@ -48031,3 +48031,42 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
   has no watchdog retry (0177) and missed 188 of 1,440 minutes on 10-30/31 to the `agents` boot failures, at most four in a row
   since armed. A turn over five minutes old now fails the loop check (two minutes running pages). Pins in
   `monitor/index.test.ts` and `monitor_worker.test.js` (counterfactual: four health tests fail on the old file).
+
+## LEDGER.md, archived 2026-10-31 (forty-sixth) — the 2026-10-31 03:07, 2026-10-31 03:07 UTC history sections, oldest first
+
+### [2026-10-31 03:07 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Agents-module audit, round 1 landed** (fa07448e paged reads in waves, 80bb0fcd monitor reads Coinbase LIVE). Davies on its
+  proposals: "a和b都改； c也改". A: `0188` turns the watchdog retry on for `agents?action=cblive` (188 of 1,440 minutes a day lost
+  to boot failures). B (Coinbase USDC→GBP maker rebalance) and C (LIVE's compounding unit £12 → £6, a pound a rung on six
+  USDT-GBP rungs; RXU £4/4 and Coinbase £6/6 already are) go to the audit agent's round 2 with the lazy-import boot fix.
+
+### [2026-10-31 03:07 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Agents audit, round 2 (sub-agent; commits, not pushed).** `agents/index.ts` loads each action's modules when the request
+  asks for them, after its beat, not at boot: 56 imports became bindings set by literal `import()` loaders, and
+  `AGENTS_ROUTE_MODULES` lists each action's (an action not listed loads all; a test importing the file loads all). The boot
+  graph went from 76 modules / 2.21 MB to 5 / 0.28 MB; LIVE's minute loads 5 modules, Coinbase LIVE's 2. Function bodies are
+  unchanged. `src/agents_lazy_modules.test.js` reads the code and fails when an action reaches a binding outside its list
+  (counterfactual: `quotes` without `quotes_live_weekend.ts` fails). Measure after deploy: `function_edge_logs` 503 share
+  for the agents function a hour (49-161 of ~950 on 10-30), its boot_time, and `edge_call_retries` a day for `agents%`
+  (quotes 134-154 a day since 10-27). Moved the 10-30 03:50, 04:05, 04:20 (two), 05:25 sections to handover (thirty-ninth).
+- **Compounding a pound a rung from 2026-11-01 00:00 UTC** (Davies, ~03:05: "a和b都改； c也改"). LIVE moved in whole £12 (£2 a rung of its six
+  USDT-GBP rungs): the unit and step are now derived, £1 × the rungs each strategy quotes at the day's 00:00 (`compoundUnitOf`,
+  `cbLiveRungCount`): LIVE £6, RXU £4, Coinbase £6 (unchanged), `live600`/`live1200`/`take50` £6, `n600no03` £4, the both-book
+  twins £12. `0189` stores the same. Deviation `reviews/2026-10-31-compound-unit-deviation.md`; pins in `quotes_compound.test.ts`
+  (£6.70 realised moves LIVE to £606; in £12 it stays 600) and `compound_unit_deviation.test.js`.
+- **Coinbase LIVE sells surplus USDC back to pounds from 2026-10-31 06:00 UTC** (Davies: "a和b都改"; `CB_LIVE_DRAIN_FROM`, move it to
+  the next whole hour if the push lands later). Its 0.3 % bid had rested nothing since 10-29 20:34 (13.48 USDC over the asks' need,
+  £9.84 short of the bids'). `planCbDrain`: only when a bid lacks pounds and no ask lacks USDC; the coin beyond each ask's at fair
+  (rounded up) and every held bid's; at most what the bids lack and the day's cap; post-only a tick inside the ask, never under
+  fair; cancelled the turn an ask lacks USDC or no bid lacks pounds. Design §12, reference item 68; pins in `cb_live.test.ts`.
+- **`skip_inventory` once a skip** (cb_live): an event when a rung's skip for funds starts, changes leg or side, or its need or funds
+  move over 5 %, not every minute (1,748 of `cb_live_events`' 1,938 rows were one bid repeating). The last told skip per rung is kept
+  in the state (`skips`); pin in `cb_live.test.ts` (old code: five events where one is news).
+- **A batch upsert with a key twice** (`db.ts` `upsertRows`): the test double merged such a batch where Postgres fails it whole
+  (21000: xhedge's stall of 10-30, the EUR/USD minutes' 33 errors from 10-16); now it fails it too. Yahoo's stray in-minute point
+  makes a repeated minute legitimately: a vendor's bar series (`UPSERT_FIRST_WINS`: `agent_quote_inputs`, `cb_quote_inputs`,
+  `cxbot_tape`, `igbot_bars`) keeps each key's first row, the bar, which later runs stored anyway (no EUR/USD gap over 3 minutes
+  on a weekday in 20 days). No frozen file changed (the fix is in the client, not `cb_quotes.ts`/`quotes.ts`), and no decision:
+  the failing batch was caught and the arms read the stored series. Every other batch upsert in the module was read: keys unique
+  by construction (one row a book/source/minute, trade ids, a lease's id). Pin in `db.test.ts` (old code: the merge keeps the
+  stray value, three rows sent, xhedge's duplicate stored).

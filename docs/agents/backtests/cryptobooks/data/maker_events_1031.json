@@ -1,0 +1,7 @@
+{
+ "source": "select book, kind, to_char(ts at time zone 'UTC','MM-DD HH24:MI') from agent_maker_events where ts >= '2026-10-30 18:00' and kind in ('appeared','disappeared') order by ts (read-only, 2026-10-31 ~09:21 UTC); ts is the first minute of the run",
+ "rows": [["USDT-GBP", "disappeared", "10-30 18:30"], ["USDC-GBP", "disappeared", "10-30 18:30"], ["USDC-GBP", "appeared", "10-30 18:55"],
+          ["USDT-GBP", "appeared", "10-30 18:55"], ["USDT-GBP", "disappeared", "10-30 19:08"], ["USDT-GBP", "appeared", "10-30 19:30"],
+          ["USDT-GBP", "disappeared", "10-30 23:49"], ["USDT-GBP", "appeared", "10-31 00:21"], ["USDC-GBP", "disappeared", "10-31 00:58"],
+          ["USDT-GBP", "disappeared", "10-31 00:58"], ["USDT-GBP", "appeared", "10-31 07:18"], ["USDC-GBP", "appeared", "10-31 08:04"]]
+}
