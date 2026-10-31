@@ -914,6 +914,29 @@ export function readTouch(r: Pick<RecordedRead, "bids" | "asks">): { bid: number
 export function takeTriggered(side: Side, limitTicks: number, touch: { bid: number | null; ask: number | null }): boolean {
   return side === "bid" ? touch.ask != null && touch.ask <= limitTicks : touch.bid != null && touch.bid >= limitTicks;
 }
+/**
+ * TAKE-DEPTH (Davies, 2026-10-31: "按照你推荐的来，确保效果最佳，你觉得需要改就改"; the take pre-registration's deviation
+ * reviews/2026-10-31-take-depth-deviation.md): from this instant a take goes only when the read rests more coin through its
+ * limit than the rung's holding line (`holdLineBase` at fair, `holdMin`'s £1 on LIVE and every twin on its rules). A take
+ * that could fill only under the line left the rung unheld, and the next minute sent the rung's whole IOC again, each
+ * fill paying the venue's pennies (a sell's fee is at least £0.01, a buy's pounds are rounded up). On the recorder's
+ * USDT-GBP reads from 10-05 to 10-31 an ask rung's limit had £1 or less through it 132 times (69 on the 0.1 % rung, 63 on
+ * the 0.2 %, all on 10-22 between 05:00 and 09:00 UTC), and each, taken, lost to fair: −£0.015 on average, the best
+ * −£0.0089. No take the twin or the shadow recorded had so little through its limit (the least, 48.45 coins).
+ */
+export const TAKE_DEPTH_FROM = Date.parse("2026-10-31T04:00:00Z");
+/** The coin a read rests through a take's limit: the asks at or under it for a bid rung's buy, the bids at or over it for an ask rung's sell. */
+export function readDepthThrough(r: Pick<RecordedRead, "bids" | "asks">, side: Side, limitTicks: number): number {
+  const levels = side === "bid" ? r.asks : r.bids;
+  return levels.reduce((a, l) => {
+    const t = Math.round(Number(l[0]) / QUOTE_TICK), q = Number(l[1]);
+    return a + ((side === "bid" ? t <= limitTicks : t >= limitTicks) && q > 0 ? q : 0);
+  }, 0);
+}
+/** Step 3 from TAKE_DEPTH_FROM: the read must rest more coin through the limit than `line` (the coin a holding must pass). */
+export function takeDeep(now: number, depth: number, line: number): boolean {
+  return now < TAKE_DEPTH_FROM || depth > line;
+}
 
 /** The governor's level for a count of today's POSTs. */
 export function governorLevel(postsToday: number): "all" | "no-entries" | "stops-only" {
@@ -1736,7 +1759,8 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLiveIn
   // TAKE (docs/agents/reviews/2026-10-03-take-prereg.md), an instance's option from `take.from`. On a rung that may enter
   // in the live book (its turn's entry conditions, the rung holding nothing and quoting no exit, the paper rung in no
   // position of its own), the recorder's read of the book at most 90 s old (step 2) is checked against the rung's take
-  // limit, k + the 0.09 % fee from this turn's fair (step 3). Through it, the rung's turn is the take's (step 4): its
+  // limit, k + the 0.09 % fee from this turn's fair (step 3), and from TAKE_DEPTH_FROM resting more coin through it than the
+  // rung's holding line (`takeDeep`). Through it, the rung's turn is the take's (step 4): its
   // entry is cancelled and read back (a frozen cancel waits), and one taker IOC goes out at the limit for the rung's
   // pounds, after the entry's own funds check, recorded as an entry with no paper order and `request.take`. The venue
   // fills it, or not; a fill is any entry's (step 5's exit, re-price and 24-hour stop).
@@ -1759,7 +1783,7 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLiveIn
     const read = f == null ? null : await recordedOf(r.book);
     if (f == null || !read) return;
     const limit = takeLimitTicks(f, r.k, r.side), touch = readTouch(read);
-    if (!takeTriggered(r.side, limit, touch)) return;
+    if (!takeTriggered(r.side, limit, touch) || !takeDeep(d.now, readDepthThrough(read, r.side, limit), holdLineBase(inst, d.now, 0, f))) return;
     const pair = pairs[LIVE_SYMBOL[r.book]];
     const price = limit * QUOTE_TICK, side = venueSideOf(r.side, "entry");
     const base = pair ? rungBase(gbpOf(r), price, pair, side) : null;
@@ -1781,6 +1805,8 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLiveIn
     if (f == null || !read) return false;
     const limit = takeLimitTicks(f, r.k, r.side), touch = readTouch(read);
     if (!takeTriggered(r.side, limit, touch)) return false;
+    // TAKE-DEPTH: a read with no more coin through the limit than the holding line is no take (its paper entry goes on).
+    if (!takeDeep(d.now, readDepthThrough(read, r.side, limit), holdLineBase(inst, d.now, 0, f))) return false;
     if (o && (await cancelConfirmed(o, "a take replaces the rung's entry")) !== "cancelled") return true;
     const pair = pairs[LIVE_SYMBOL[r.book]];
     const price = limit * QUOTE_TICK, side = venueSideOf(r.side, "entry");

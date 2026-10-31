@@ -2,7 +2,9 @@
 // 10-18 word: the £1 holding line (`holdMin`, 10-29 22:00), USDT-GBP alone (`weights`, 10-29 22:30), every exit a tick beyond
 // fair (`exitOffset`, 10-30 00:00) and, for three days after new weights, the coin rebook (`rebookOn`). The two risks the
 // 2026-10-30 re-read of the shadow left unverified (docs/agents/reviews/2026-09-24-pr5-live-design.md, the 10-18 addendum):
-//   1. a take IOC that fills only under the line leaves the rung not holding: may it send more IOCs, and how many?
+//   1. a take IOC that fills only under the line leaves the rung not holding: may it send more IOCs, and how many? Before
+//      TAKE_DEPTH_FROM it did, an IOC a minute; from it a read resting no more coin through the limit than the line is no
+//      take at all (TAKE-DEPTH, the take pre-registration's deviation reviews/2026-10-31-take-depth-deviation.md);
 //   2. a rebook's sale of surplus coin against the coin a take bought: may it offer that coin too, or starve the rung's exit?
 // The live executor (quotes_live.ts) with the live account's instance runs on a simulated Revolut X account (revx_sim.ts),
 // wired as quotes_live_switches.test.ts wires it; PR5's engine is stepped by its own `stepMinute`. Each pin has its
@@ -11,10 +13,10 @@
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { REVX_REGION, revxVenue } from "../_shared/revx.ts";
 import { newBookState, QUOTE_BOOKS, stepMinute, type BookState, type Print, type QuoteBook } from "./quotes.ts";
-import { holdLineBase, QUOTE_LIVE_INSTANCE, rebookOn, runQuotesLive, takeBookRow, type QuoteLiveInstance, type QuoteLiveReport } from "./quotes_live.ts";
+import { holdLineBase, QUOTE_LIVE_INSTANCE, readDepthThrough, rebookOn, runQuotesLive, TAKE_DEPTH_FROM, takeBookRow, takeDeep, type QuoteLiveInstance, type QuoteLiveReport } from "./quotes_live.ts";
 import { LIVE_WK_PAPER } from "./quotes_live_weekend.ts";
 import { newSimState, SimRevx, type SimState } from "./revx_sim.ts";
-import { simBookOfRead, stampTs, takeFillRead, takeReadsAt } from "./quotes_twin.ts";
+import { simBookOfRead, specFromRow, stampTs, takeFillRead, takeReadsAt, TWIN_SPEC_ROWS } from "./quotes_twin.ts";
 import { memDb, type Row } from "./testing.ts";
 
 const M = 60e3, H = 3600e3;
@@ -24,15 +26,17 @@ const iso = (ms: number) => new Date(ms).toISOString();
 const KEY = (await crypto.subtle.generateKey({ name: "Ed25519" }, false, ["sign", "verify"]) as CryptoKeyPair).privateKey;
 const USDT: QuoteBook = "USDT-GBP";
 const T0 = Date.parse("2026-11-05T09:00:00Z");   // a Thursday, every rule of LIVE's in force, the rebook's three days over
+const T0_DEFAULT = T0;
+const BEFORE = Date.parse("2026-10-30T09:00:00Z"); // a Friday before TAKE_DEPTH_FROM, every other rule of LIVE's in force
 const isTake = (r: Row) => (r.request as { take?: unknown } | null)?.take === true;
 const isDrainRow = (r: Row) => (r.request as { drain?: unknown } | null)?.drain === true;
 const OPEN = new Set(["pending", "new", "partially_filled"]);
 
-type Opts = { inst?: QuoteLiveInstance; config?: Record<string, unknown>; balances?: Record<string, number> };
+type Opts = { t0?: number; inst?: QuoteLiveInstance; config?: Record<string, unknown>; balances?: Record<string, number> };
 
 /** The live account's executor after PR5's engine, its turns 25 s into the minute after the one decided, on a simulated account. */
 function world(o: Opts = {}) {
-  const I = o.inst ?? QUOTE_LIVE_INSTANCE;
+  const I = o.inst ?? QUOTE_LIVE_INSTANCE, T0 = o.t0 ?? T0_DEFAULT;
   const clock = { now: T0 };
   const inputs: Row[] = [];
   for (let t = T0 - 2 * H; t <= T0 + 3 * H; t += M) inputs.push({ kind: "fx", t: iso(t), value: X });
@@ -40,8 +44,8 @@ function world(o: Opts = {}) {
   const mem = memDb({
     agent_locks: [{ name: I.lease, lease_until: iso(0), holder: null }],
     agent_risk: [{ id: 1, global_pause: false }],
-    agent_quote_live_config: [{ id: 1, dry_run: false, live_confirmed_at: iso(T0 - H), capital_gbp: 600, take_mode: "live", ...(o.config ?? {}) }],
-    agent_quote_live_orders: [], agent_quote_live_events: [], agent_quote_live_state: [], agent_quote_state: [], [LIVE_WK_PAPER]: [],
+    [I.config]: [{ id: 1, dry_run: false, live_confirmed_at: iso(T0 - H), capital_gbp: 600, take_mode: "live", ...(o.config ?? {}) }],
+    [I.orders]: [], [I.events]: [], [I.state]: [], [I.paper]: [], [LIVE_WK_PAPER]: [],
     agent_quote_inputs: inputs, agent_quote_events: [], agent_book_levels: [],
   }, { now: () => clock.now });
   const seed = (b: QuoteBook): Print => ({ id: `s-${b}`, ts: T0 - 30e3, ticks: 7553, qty: 10, side: "sell" });
@@ -49,7 +53,7 @@ function world(o: Opts = {}) {
   const st: SimState = newSimState(o.balances ?? { GBP: 400, USDC: 0, USDT: 400 }, { "USDC-GBP": seed("USDC-GBP"), [USDT]: seed(USDT) });
   let n = 0;
   return {
-    mem, clock, st, I,
+    mem, clock, st, I, t0: T0,
     async paper(t: number) {
       for (const b of QUOTE_BOOKS) stepMinute(books[b], t, { x: X, fairU: 1.0, prints: [] });
       await mem.db.upsert(I.paper, [{ id: 1, state: { lastMinute: t, books, fetchedTo: {}, hourFetchedFor: 0 }, last_minute: iso(t), updated_at: iso(t) }], "id");
@@ -71,8 +75,8 @@ function world(o: Opts = {}) {
         recordedBook: (b: QuoteBook) => Promise.resolve(takeBookRow(reads[b].before, at)),
       });
     },
-    orders: () => mem.tables.agent_quote_live_orders as Row[],
-    events: (kind: string) => (mem.tables.agent_quote_live_events as Row[]).filter((e) => e.kind === kind),
+    orders: () => mem.tables[I.orders] as Row[],
+    events: (kind: string) => (mem.tables[I.events] as Row[]).filter((e) => e.kind === kind),
   };
 }
 type World = ReturnType<typeof world>;
@@ -93,59 +97,93 @@ const exitsOf = (w: World) => bid1(w).filter((o) => o.leg === "exit");
 /** Five turns after the first: the 0.1 % bid's take limit is 0.7539; turn i meets a read asking it `depths[i - 1]` deep (500 past the list). */
 async function partialCase(o: Opts, depths: number[]) {
   const w = world(o);
-  await turnWith(w, T0, null);
+  await turnWith(w, w.t0, null);
   const reports: QuoteLiveReport[] = [];
-  for (let i = 1; i <= 5; i++) reports.push(await turnWith(w, T0 + i * M, [[0.7539, depths[i - 1] ?? 500]]));
+  for (let i = 1; i <= 5; i++) reports.push(await turnWith(w, w.t0 + i * M, [[0.7539, depths[i - 1] ?? 500]]));
   return { w, reports };
 }
+/** When turn i's order was written: 25 s into the minute after PR5's minute t0 + i. */
+const turnTs = (w: World, i: number) => iso(w.t0 + (i + 1) * M + 25e3);
 
-Deno.test("a take that fills under the £1 line leaves the rung unheld: the next turn sends the rung's whole IOC again; one a turn at most, the coin carried at most a line over the rung, one exit for all of it, none while it holds", async () => {
+Deno.test("TAKE-DEPTH: the coin a read rests through a take's limit, and from TAKE_DEPTH_FROM a take only through more of it than the holding line", () => {
+  const read = { bids: [[0.7569, 0.2, 1], [0.7570, 0.3, 1], [0.7568, 9, 1]] as Array<[number, number, number]>, asks: [[0.7539, 0.6, 1], [0.7538, 0.5, 2], [0.7540, 9, 1]] as Array<[number, number, number]> };
+  // A bid rung's buy at 7539 meets the asks at or under it (0.6 + 0.5); an ask rung's sell at 7569 the bids at or over it (0.2 + 0.3).
+  assertEquals([readDepthThrough(read, "bid", 7539), readDepthThrough(read, "ask", 7569), readDepthThrough(read, "bid", 7537), readDepthThrough(read, "ask", 7571)], [1.1, 0.5, 0, 0]);
+  assertEquals(TAKE_DEPTH_FROM, Date.parse("2026-10-31T04:00:00Z"));
+  // Before the instant every depth takes; from it, only more than the line.
+  assertEquals([takeDeep(TAKE_DEPTH_FROM - 1, 0.1, 1.3238), takeDeep(TAKE_DEPTH_FROM, 1.3238, 1.3238), takeDeep(TAKE_DEPTH_FROM, 1.3239, 1.3238), takeDeep(TAKE_DEPTH_FROM, 0.1, 0)], [true, false, true, true]);
+});
+
+Deno.test("from TAKE_DEPTH_FROM a read resting no more than the £1 line through the limit is no take: the rung's entry rests on, the first deeper read takes once, whole; before it, the same reads sent an IOC a minute", async () => {
   // The line: £1 of coin at fair, 1 / 0.7554 = 1.3238 USDT (the venue's minimum under it).
   assertEquals(Number(holdLineBase(QUOTE_LIVE_INSTANCE, T0, 0, F).toFixed(4)), 1.3238);
   const { w, reports } = await partialCase({}, [0.6, 0.6, 500]);
-  // Turn 1: the rung's maker entry is cancelled for the take, and an IOC for its £100 at 0.7539 (132.64358 USDT) meets a read
-  // 0.6 deep: 0.6 filled, 0.59946 after the 0.09 % fee in the coin, under the line. Turn 2: the rung counts as holding
-  // nothing, the book is still through, and the same IOC goes again (0.6 more). Turn 3: again, against a read 500 deep: it
-  // fills whole. Three IOCs on one opportunity, each for the rung's whole pounds, never two in a turn.
+  // Turns 1 and 2 meet a read 0.6 deep through 0.7539: no take, and the rung's maker entry (0.7546) is not touched. Turn 3
+  // meets one 500 deep: the entry is cancelled for the take and one IOC for the rung's £100 (132.64358 USDT) fills whole.
   assertEquals(takes(w).map((o) => [o.ts, Number(o.price), Number(o.base_size), o.state, Number(o.filled_base)]), [
-    [iso(T0 + 2 * M + 25e3), 0.7539, 132.64358, "filled", 0.59946],
-    [iso(T0 + 3 * M + 25e3), 0.7539, 132.64358, "filled", 0.59946],
-    [iso(T0 + 4 * M + 25e3), 0.7539, 132.64358, "filled", 132.5242],
+    [turnTs(w, 3), 0.7539, 132.64358, "filled", 132.5242],
   ]);
-  assertEquals(bid1(w)[0].cancel_reason, "a take replaces the rung's entry");
-  for (const r of reports) assert(r.placed.filter((p) => p.rung === "USDT-GBP|bid|0.001" && p.leg === "entry").length <= 1);
-  // What it carries: the rung's 132.5242 and the two partials' 1.19892, over its £100 by less than the line. One exit sells
-  // all of it (trimmed to the penny by `pennyExit`) a tick beyond fair (0.7556), and the turn after it, the book still
-  // through the limit, sends no fourth IOC: the rung holds.
-  const held = 0.59946 * 2 + 132.5242;
-  assert(held - 132.5242 < 1.3238);
+  const entry = bid1(w)[0];
+  assertEquals([entry.ts, Number(entry.price), entry.state, entry.cancel_reason, entry.cancel_requested_at], [turnTs(w, 0), 0.7546, "cancelled", "a take replaces the rung's entry", turnTs(w, 3)]);
+  // It holds the rung's own coin, no partial carried; one exit sells it a tick beyond fair (0.7556), and no IOC follows.
   const [exit] = exitsOf(w);
-  assertEquals([exitsOf(w).length, exit.side, Number(exit.price), exit.state], [1, "sell", 0.7556, "new"]);
-  assert(Number(exit.base_size) <= held && held - Number(exit.base_size) < 0.01, String(exit.base_size));
+  assertEquals([exitsOf(w).length, exit.ts, exit.side, Number(exit.price), exit.state], [1, turnTs(w, 4), "sell", 0.7556, "new"]);
+  assert(Number(exit.base_size) <= 132.5242 && 132.5242 - Number(exit.base_size) < 0.01, String(exit.base_size));
   assertEquals(reports.flatMap((r) => r.errors), []);
-
-  // Counterfactual, the depth: a read 2 coins deep (over the line) fills 1.9982 after the fee: the rung holds, its exit goes
-  // out the next turn, and no second IOC follows though the book stays through the limit for four more turns.
+  // A read 2 coins deep (over the line) takes at once: 1.9982 after the fee, a holding, its exit the next turn, no second IOC.
   const deep = await partialCase({}, [2, 0.6, 0.6]);
-  assertEquals(takes(deep.w).map((o) => [o.ts, Number(o.filled_base)]), [[iso(T0 + 2 * M + 25e3), 1.9982]]);
-  assertEquals(exitsOf(deep.w).map((o) => [o.ts, Number(o.price)]), [[iso(T0 + 3 * M + 25e3), 0.7556]]);
-  // Counterfactual, the line: the same 0.6-coin partial with no `holdMin` (the line the venue's minimum, LIVE before 10-29
-  // 22:00) is a holding: one IOC, then its exit, no second.
+  assertEquals(takes(deep.w).map((o) => [o.ts, Number(o.filled_base)]), [[turnTs(deep.w, 1), 1.9982]]);
+  assertEquals(exitsOf(deep.w).map((o) => [o.ts, Number(o.price)]), [[turnTs(deep.w, 2), 0.7556]]);
+
+  // Counterfactual, the rule before TAKE_DEPTH_FROM (what the code did until this deviation): the same reads on 10-30. The
+  // 0.6-deep read took: an IOC for the rung's whole £100, 0.59946 filled after the fee, under the line, so the rung counted
+  // as holding nothing; the next turn sent the same IOC again (0.6 more); the third, against the deep read, filled whole.
+  // Three IOCs on one opportunity, one a turn, the rung carrying 1.19892 coins over its pounds into one exit.
+  const old = await partialCase({ t0: BEFORE }, [0.6, 0.6, 500]);
+  assertEquals(takes(old.w).map((o) => [o.ts, Number(o.price), Number(o.base_size), o.state, Number(o.filled_base)]), [
+    [turnTs(old.w, 1), 0.7539, 132.64358, "filled", 0.59946],
+    [turnTs(old.w, 2), 0.7539, 132.64358, "filled", 0.59946],
+    [turnTs(old.w, 3), 0.7539, 132.64358, "filled", 132.5242],
+  ]);
+  for (const r of old.reports) assert(r.placed.filter((p) => p.rung === "USDT-GBP|bid|0.001" && p.leg === "entry").length <= 1);
+  const held = 0.59946 * 2 + 132.5242, [oldExit] = exitsOf(old.w);
+  assertEquals([exitsOf(old.w).length, Number(oldExit.price)], [1, 0.7556]);
+  assert(Number(oldExit.base_size) <= held && held - Number(oldExit.base_size) < 0.01 && Number(oldExit.base_size) > 133.7, String(oldExit.base_size));
+  // Counterfactual, the line: with no `holdMin` the line is the venue's minimum, so a 0.6-coin read is deep enough and its fill
+  // a holding: one IOC, then its exit, no second.
   const noLine = await partialCase({ inst: { ...QUOTE_LIVE_INSTANCE, holdMin: undefined } }, [0.6, 0.6, 500]);
   assertEquals(takes(noLine.w).map((o) => Number(o.filled_base)), [0.59946]);
   assertEquals(exitsOf(noLine.w).length, 1);
 });
 
-Deno.test("take_mode shadow on the same partials: no IOC, every order as 'off' sends it, and one take_shadow event a minute the book is through", async () => {
+Deno.test("take_mode shadow under TAKE-DEPTH: no IOC, every order as 'off' sends it, and a take_shadow event only a minute the read is deeper than the line", async () => {
   const off = await partialCase({ config: { take_mode: "off" } }, [0.6, 0.6, 500]);
   const sh = await partialCase({ config: { take_mode: "shadow" } }, [0.6, 0.6, 500]);
   assertEquals([takes(off.w).length, takes(sh.w).length], [0, 0]);
   assertEquals(sh.w.orders().map(shape), off.w.orders().map(shape));
-  // The paper entry keeps resting (no print fills it), so the shadow's would-be IOC is the same each minute: five of them.
-  const ev = sh.w.events("take_shadow").filter((e) => e.book === USDT);
-  assertEquals(ev.map((e) => [e.rung_side, Number(e.k), (e.detail as { limit: number }).limit, (e.detail as { base: string }).base]),
-    Array.from({ length: 5 }, () => ["bid", 0.001, 0.7539, "132.64358"]));
+  const events = (w: World) => w.events("take_shadow").filter((e) => e.book === USDT)
+    .map((e) => [e.minute, e.rung_side, Number(e.k), (e.detail as { limit: number }).limit, (e.detail as { base: string }).base]);
+  // The paper entry keeps resting (no print fills it): turns 3 to 5, 500 deep, each record the would-be IOC; turns 1 and 2 none.
+  assertEquals(events(sh.w), [3, 4, 5].map((i) => [iso(sh.w.t0 + (i + 1) * M), "bid", 0.001, 0.7539, "132.64358"]));
   assertEquals(bid1(sh.w).map((o) => [Number(o.price), o.state]), [[0.7546, "new"]]);
+  // Counterfactual: before TAKE_DEPTH_FROM the shallow reads were recorded too, all five minutes.
+  const old = await partialCase({ t0: BEFORE, config: { take_mode: "shadow" } }, [0.6, 0.6, 500]);
+  assertEquals(events(old.w).length, 5);
+});
+
+/** Variant-2 (`take50`) as its row stands since 0181: TAKE's rule on LIVE's (the holding line, USDT-GBP alone, the exit a tick beyond fair). */
+const TAKE50 = specFromRow({
+  ...TWIN_SPEC_ROWS[1], id: "take50", display_name: "Stablecoin quotes variant-2", display_order: 30, table_prefix: "agent_quote_twin_take50",
+  lease: "quotes-twin-take50", backfill: null, prereg: "docs/agents/reviews/2026-10-03-take-prereg.md", migration: "0089",
+  rules: { take: { from: "2026-10-04T16:00:00Z" }, holdMin: { gbp: 1, from: "2026-10-29T22:00:00Z" }, weights: { book: { "USDC-GBP": 0, "USDT-GBP": 1 }, from: "2026-10-29T22:30:00Z" }, exitOffset: { from: "2026-10-30T00:00:00Z", ticks: 1 } },
+}).instance;
+
+Deno.test("variant-2 (take50) takes TAKE-DEPTH at the same minute as LIVE: its shallow reads take nothing from TAKE_DEPTH_FROM and took an IOC a minute before it", async () => {
+  assertEquals([TAKE50.orders, TAKE50.holdMin, TAKE50.liveSwitches], ["agent_quote_twin_take50_orders", { from: Date.parse("2026-10-29T22:00:00Z"), gbp: 1 }, undefined]);
+  const now = await partialCase({ inst: TAKE50 }, [0.6, 0.6, 500]);
+  assertEquals(takes(now.w).map((o) => [o.ts, Number(o.filled_base)]), [[turnTs(now.w, 3), 132.5242]]);
+  const old = await partialCase({ inst: TAKE50, t0: BEFORE }, [0.6, 0.6, 500]);
+  assertEquals(takes(old.w).map((o) => [o.ts, Number(o.filled_base)]), [[turnTs(old.w, 1), 0.59946], [turnTs(old.w, 2), 0.59946], [turnTs(old.w, 3), 132.5242]]);
 });
 
 // ------------------------------------------------------------------ 2. a rebook's sale and the coin a take bought

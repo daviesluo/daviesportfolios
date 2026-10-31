@@ -53,3 +53,16 @@ describe('0090 — TAKE starts on 2026-10-04 at 16:00 UTC (its Addendum 1)', () 
   });
 });
 
+
+describe("TAKE-DEPTH (2026-10-31), TAKE's deviation recorded apart", () => {
+  it('names the executor as it is under its heading, takes effect at 04:00 UTC, and says it on Davies\' word', () => {
+    const dev = read('docs/agents/reviews/2026-10-31-take-depth-deviation.md').toString('utf8');
+    const live = 'supabase/functions/agents/quotes_live.ts';
+    const s = dev.indexOf('### `docs/agents/reviews/2026-10-03-take-prereg.md`'), rest = dev.slice(s + 1), e = rest.search(/\n##/);
+    const named = [...rest.slice(0, e).matchAll(/\| `supabase\/functions\/agents\/quotes_live\.ts` \| ([0-9a-f]{64}) \|/g)].map((m) => m[1]);
+    expect(s).toBeGreaterThan(0);
+    expect(named).toEqual([sha(live)]);
+    expect(dev).toContain('按照你推荐的来，确保效果最佳，你觉得需要改就改');
+    expect(read(live).toString('utf8')).toContain('export const TAKE_DEPTH_FROM = Date.parse("2026-10-31T04:00:00Z");');
+  });
+});

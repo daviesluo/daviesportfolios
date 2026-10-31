@@ -47821,3 +47821,16 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
   Revolut X's withdrawal fee, two-venue inventory). FX lead-lag taker −6 to −10 bps: no. (4) Coinbase's and Kraken's GBP books
   were one tick wide every week June → October (no August change: Revolut X's alone); Coinbase's touch holds ~15k-coin orders,
   no room inside. Nothing live changes.
+
+## LEDGER.md, archived 2026-10-31 (thirty-sixth) — the 2026-10-30 01:45, 2026-10-30 01:48 UTC history sections, oldest first
+
+### [2026-10-30 01:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Quotes pages show only what is quoted** (sub-agent; not pushed; Davies, ~01:20). BOOKS: traded books, rungs by weight
+  (`quoteRungsTraded`); an old book keeps its trips card. INVENTORY: no "in orders". RX USDC/GBP page under its own name.
+
+### [2026-10-30 01:48 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Profit put back to work: the audit, the rule for all, live behind switches** (sub-agent; commit, not pushed; Davies, 10-30 ~01:35:
+  "另外再确认一下目前所有的live和testing的Stablecoin quotes都能有效做到盈利金额再利用吗？如果不能请研究实现"). None reused it (LIVE's `0146` off).
+  `0183`: `0146`'s rule (`quotes_compound.ts`, realised to 00:00 incl. conversion sales) on every enabled twin (`agent_quote_twin_compound`,
+  `runTwinsCompound`) and the Coinbase arms (`cb_compound.ts`, frozen drivers changed, deviation recorded apart with pin tests) from
+  10-31 00:00; RX USDC/GBP and `cb_live` columns 'off'. Replay (`backtests/compound/`): +2.4 points a year on ~22 %, none in a month.

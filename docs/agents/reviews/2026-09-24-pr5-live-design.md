@@ -448,6 +448,21 @@ reading LIVE's record.
      * Counterfactual: with `beyond` not subtracting the longs, the test fails.
   * **The next step: take stays 'shadow'** until the first take event under USDT-only reads clean against criteria
     (a) to (d). Then Claude proposes the flip to Davies, with the statement above.
+* 2026-10-31 ~02:30 UTC, **TAKE-DEPTH: no take through £1 of coin or less, from 2026-10-31 04:00 UTC** (Davies, ~01:30:
+  "按照你推荐的来，确保效果最佳，你觉得需要改就改"; `reviews/2026-10-31-take-depth-deviation.md`).
+  * What it measured:
+    * None of variant-2's 14 takes or LIVE's 47 shadow events had £1 or less through its limit (the least was 48.45 coins).
+    * On the recorder's USDT-GBP reads from 10-05 to 10-31, an ask rung's limit had £1 or less through it 132 times, all on
+      10-22 between 05:00 and 09:00, while LIVE's asks were holding.
+    * Each of the 132, taken, lost to fair: −£0.015 on average, the best −£0.0089. The cause is the venue's penny on the
+      fee and on the proceeds.
+  * Which option won: (B), depth through the limit over the holding line, alone. (A), sizing a repeat take to the
+    remainder, changes nothing on the record and would only buy a carry's worth (under a line) less at a take's edge.
+  * Built in the shared take path (`takeDeep`, `readDepthThrough`, `TAKE_DEPTH_FROM`): LIVE's instance (the shadow
+    included) and variant-2 take it at the same minute. `take_mode` stays 'shadow'.
+  * Pins: `quotes_live_take_rules.test.ts`. From the instant, shallow reads take nothing and the first deep read takes
+    once, whole. On 10-30, the counterfactual, the same reads sent three IOCs.
+  * The next step is unchanged: the first USDT-only take event that reads clean, then the proposal to Davies.
 
 ## Addendum (2026-10-28): the operator's conversion follows the bid
 
