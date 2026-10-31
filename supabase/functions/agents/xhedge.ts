@@ -258,7 +258,16 @@ export function xhSettle(book: XhBook, s: XhBookState, reads: CbRead[], upTo: nu
     let pnl: number;
     if (o.side === "bid") { s.cbCoin = r9(s.cbCoin - o.qty); s.cbGbp = r9(s.cbGbp + gross - fee); pnl = gross - fee - o.rxGbp; }
     else { s.cbCoin = r9(s.cbCoin + o.qty); s.cbGbp = r9(s.cbGbp - gross - fee); pnl = o.rxGbp - gross - fee; }
-    trips.push({ arm, book, side: o.side, t_fill: iso(o.firstFill), t_hedge: iso(r.at), qty: o.qty, rx_price: r9(o.rxGbp / o.qty), cb_price: px, fee_gbp: r9(fee), pnl_gbp: r9(pnl), fills: o.fills });
+    // Two prints of one instant (a taker's order split across levels) each over £1 owe two hedges with the same first fill, settled
+    // on the same read: one trip, since the record's key is (arm, book, side, t_fill, t_hedge) and an upsert of both in one batch
+    // fails the whole run (10-30, 09:57 on: both arms stood still).
+    const t_fill = iso(o.firstFill), t_hedge = iso(r.at);
+    const same = trips.find((t) => t.side === o.side && t.t_fill === t_fill && t.t_hedge === t_hedge);
+    if (same) {
+      const qty = r9(same.qty + o.qty);
+      same.rx_price = r9((same.rx_price * same.qty + o.rxGbp) / qty); same.qty = qty;
+      same.fee_gbp = r9(same.fee_gbp + fee); same.pnl_gbp = r9(same.pnl_gbp + pnl); same.fills += o.fills;
+    } else trips.push({ arm, book, side: o.side, t_fill, t_hedge, qty: o.qty, rx_price: r9(o.rxGbp / o.qty), cb_price: px, fee_gbp: r9(fee), pnl_gbp: r9(pnl), fills: o.fills });
   }
   s.owed = keep;
   return trips;

@@ -126,6 +126,9 @@ Any change to the rule, its numbers, its inputs or the reading is written here a
 
 A fix that only makes the code do what §2 says is a deviation too, with its effect measured on the minutes it touched.
 
+Recorded apart in `2026-10-30-xhedge-deviation.md`: Deviation 1 (the window starts at 2026-10-30 04:20 UTC) and Deviation 2
+(two hedges of one key settle as one trip, 2026-10-31; the new sha256 of `xhedge.ts` and `xhedge.test.ts`).
+
 ## 8. Frozen files
 
 | file | sha256 |

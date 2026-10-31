@@ -14,10 +14,19 @@ const named = (doc, f) => [...doc.matchAll(new RegExp('\\| `' + f.replace(/[.]/g
 
 describe("'Stablecoin quotes RX↔Coinbase hedge' and '… - 1'", () => {
   it('names the sha256 of each file it froze, once, and each file is that one', () => {
-    for (const f of ['supabase/functions/agents/xhedge.ts', 'supabase/functions/agents/xhedge.test.ts', 'supabase/migrations/0184_xhedge_paper.sql',
-      'docs/agents/backtests/mmcomp/scripts/xhedge_reading.py']) {
+    for (const f of ['supabase/migrations/0184_xhedge_paper.sql', 'docs/agents/backtests/mmcomp/scripts/xhedge_reading.py']) {
       expect(named(DOC, f), f).toEqual([sha(f)]);
     }
+    // Deviation 2 (2026-10-31, two hedges of one key settle as one trip) changed these two, recorded apart: §8 keeps the bytes
+    // it froze, and each file is the one Deviation 2 names.
+    const DEV = read('docs/agents/reviews/2026-10-30-xhedge-deviation.md').toString('utf8');
+    const dev2 = DEV.slice(DEV.indexOf('## Deviation 2'));
+    for (const [f, frozen] of [['supabase/functions/agents/xhedge.ts', 'c62279eb50650e9901ba525c5a1e20379128c6c0d65f7561b1de210118c09d49'],
+      ['supabase/functions/agents/xhedge.test.ts', 'a117703abf82c5da475121e459bdb5170365bd99d89af79a99819553cffaf7f0']]) {
+      expect(named(DOC, f), f).toEqual([frozen]);
+      expect(named(dev2, f), f).toEqual([sha(f)]);
+    }
+    expect(DOC).toContain('Recorded apart in `2026-10-30-xhedge-deviation.md`: Deviation 1');
     expect(DOC).toContain('**Status: FROZEN**');
   });
 

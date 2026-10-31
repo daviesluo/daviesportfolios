@@ -804,6 +804,19 @@ first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 
 2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth), and the 2026-10-29 01:45, 2026-10-29 01:57 one(s) (thirteenth), the 2026-10-29 02:19 one(s) (fourteenth),
 and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 02:43, 2026-10-29 02:36, 2026-10-29 02:49, 2026-10-29 03:00, 2026-10-29 03:02, 2026-10-29 03:07, 2026-10-29 03:12 ones (sixteenth), and the 2026-10-29 03:24, 2026-10-29 03:30, 2026-10-29 03:39, 2026-10-29 03:41, 2026-10-29 03:49 ones (seventeenth), and the 2026-10-29 04:18, 2026-10-29 05:50 ones (eighteenth), and the 2026-10-29 06:05, 2026-10-29 06:30, 2026-10-29 06:41 ones (nineteenth), and the 2026-10-29 06:56, 2026-10-29 07:05, 2026-10-29 07:26, 2026-10-29 07:31 ones (twentieth), and the 2026-10-29 07:45, 2026-10-29 07:52, 2026-10-29 07:58 ones (twenty-first), and the 2026-10-29 08:10, 2026-10-29 08:25, 2026-10-29 09:05 ones (twenty-second), and the 2026-10-29 09:22, 2026-10-29 09:40, 2026-10-29 09:45, 2026-10-29 10:15 ones (twenty-third), and the 2026-10-29 17:10, 2026-10-29 18:20, 2026-10-29 18:33, 2026-10-29 18:43 ones (twenty-fourth), and the 2026-10-29 19:16, 2026-10-29 19:25, 2026-10-29 19:28, 2026-10-29 19:31 ones (twenty-fifth), and the 2026-10-29 19:50, 2026-10-29 19:55, 2026-10-29 20:00, 2026-10-29 20:15 ones (twenty-sixth), and the 2026-10-29 20:41, 2026-10-29 21:07 ones (twenty-seventh), and the 2026-10-29 21:30, 2026-10-29 22:10 ones (twenty-eighth), and the 2026-10-29 22:12, 2026-10-29 22:27 ones (twenty-ninth), and the 2026-10-29 22:40, 2026-10-29 22:43 ones (thirtieth), and the 2026-10-29 22:55, 2026-10-29 23:13 ones (thirty-first), and the 2026-10-29 23:24, 2026-10-29 23:30 ones (thirty-second), and the 2026-10-30 00:17, 2026-10-30 00:30 ones (thirty-third), and the 2026-10-30 00:35, 2026-10-30 00:57 ones (thirty-fourth).
 
+### [2026-10-31 01:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **xhedge A1/A2 stood still from 10-30 09:57 (inside) and 10:55 (behind) to this fix** (Davies: "两个策略停了，有报错").
+  Two Revolut X prints of one millisecond, each over £1, owed two hedges with the same first fill, settled on one Coinbase
+  read: two trips with one key (arm, book, side, t_fill, t_hedge), so the batch upsert failed (21000) and every run rolled
+  the arm back. `xhSettle` now folds them into one trip (qty, fee, P&L and fills summed, RX price qty-weighted); pin test
+  fails on the old code. The arms replay the missed minutes from the recorded inputs, 30 a minute, about half an hour;
+  recorded as the test's Deviation 2 (`reviews/2026-10-30-xhedge-deviation.md`): money unchanged by construction, the files' new sha256 named there.
+- **PR5 take stays 'shadow'** (Davies: "按照你推荐的来"): the two unverified risks of the 10-30 re-read (a partial fill
+  under holdMin letting more IOCs out; a rebook sale competing with the exit) go to tests first; Claude proposes the flip
+  after the first USDT-only take event reads clean.
+- **IGBOT:** C-003 answered by Grok (the 8.5 h gap was its own pause after a box restart; restore step added); checked
+  against the record and closed on `igbot-ledger` 7ca96b50.
+
 ### [2026-10-30 18:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **PR5 take shadow read again, 10-18 05:17 → 10-30 18:00** (sub-agent; commit, not pushed; routine "PR5 take-shadow
   re-check"). 47 `take_shadow` rows are 2 opportunities (10-28 18:42, one 49.8-coin bid ~30 bps over fair repeated each

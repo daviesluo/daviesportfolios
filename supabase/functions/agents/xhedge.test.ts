@@ -88,6 +88,24 @@ Deno.test("a fill and its hedge: bought on Revolut X at 0.7501, sold at Coinbase
   assertEquals([xhSettle("USDT-GBP", s2, cb, T0 + 100e3).length, s2.owed.length], [0, 1]);
 });
 
+Deno.test("two prints of one instant, each a whole hedge, settle as one trip: the record's key holds (10-30 09:57, both arms stood still)", () => {
+  const s = xhNewBook(0.75025, 0.75045);
+  const rx = [rxAt(T0 - 20e3, 0.75, 0.7505)];
+  const cb = [cbAt(T0 + 1e3, 0.7504, 0.7505), cbAt(T0 + 121e3, 0.7506, 0.7507)];
+  // One taker's sell split in two prints at T0 + 40 s: £50 and £50 of our £100 bid, each over £1, so two hedges owed.
+  const half = 50 / 0.7501;
+  const out = xhStep("USDT-GBP", s, { t: T0, rx, cb, prints: [pr("p1", T0 + 40e3, 0.7501, half, "sell"), pr("p2", T0 + 40e3, 0.7501, half, "sell")], ordersToday: 0 });
+  assertEquals([out.fills.length, s.owed.length, s.owed[0].firstFill === s.owed[1].firstFill], [2, 2, true]);
+  const trips = xhSettle("USDT-GBP", s, cb, T0 + 3 * M);
+  assertEquals(trips.length, 1);
+  const q = out.fills[0].qty + out.fills[1].qty, gross = q * 0.7506, fee = gross * 0.000045;
+  assertAlmostEquals(trips[0].qty, q, 1e-8);
+  assertAlmostEquals(trips[0].rx_price, 0.7501, 1e-9);
+  assertAlmostEquals(trips[0].fee_gbp, fee, 1e-8);
+  assertAlmostEquals(trips[0].pnl_gbp, gross - fee - q * 0.7501, 1e-6);
+  assertEquals([trips[0].fills, trips[0].cb_price, s.owed.length], [2, 0.7506, 0]);
+});
+
 Deno.test("no rebalancing: the bids run Coinbase's coin down and stop; an ask fill brings them back", () => {
   const s = xhNewBook(0.75, 0.75);
   s.cbCoin = 150;                                            // £112.50 of coin left on Coinbase: room for one more bid
