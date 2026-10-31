@@ -1,0 +1,8273 @@
+{
+ "rows": {
+  "USDC|forward|improve|C1610|fx0|ask_live_exit_plus1": {
+   "best_day": 2.658,
+   "boot_all": [
+    -0.038,
+    0.701,
+    0.0766
+   ],
+   "boot_first_half": [
+    -0.259,
+    0.415,
+    0.3237
+   ],
+   "boot_second_half": [
+    -0.027,
+    1.157,
+    0.0593
+   ],
+   "bot_prints_at_our_price": 19,
+   "coin_held_max_usd": 1523,
+   "conversion_days": 22,
+   "conversion_usd_median": 691,
+   "conversions": 22,
+   "days": 32,
+   "days_positive": 22,
+   "edge_bps_vs_fair": {
+    "ask": 5.36,
+    "bid": 2.3
+   },
+   "end_state_usd": {
+    "coin": 167,
+    "gbp_in_usd": 267,
+    "usd": 1186
+   },
+   "fills_a_day": {
+    "ask": 8.5,
+    "bid": 7.8
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 40,
+   "max_drawdown": -3.292,
+   "orders_a_day_max": 737,
+   "orders_a_day_mean": 354.2,
+   "usd_a_day": 0.314,
+   "usd_a_day_halves": [
+    0.096,
+    0.532
+   ],
+   "usd_filled_a_day": {
+    "ask": 522,
+    "bid": 527
+   },
+   "waiting_for_app_max_usd": 1554,
+   "worst_day": -2.506
+  },
+  "USDC|forward|improve|C1610|fx0|daily_incl_weekend": {
+   "best_day": 2.817,
+   "boot_all": [
+    0.264,
+    0.911,
+    0.0003
+   ],
+   "boot_first_half": [
+    -0.01,
+    0.539,
+    0.0568
+   ],
+   "boot_second_half": [
+    0.409,
+    1.392,
+    0.0
+   ],
+   "bot_prints_at_our_price": 23,
+   "coin_held_max_usd": 1606,
+   "conversion_days": 31,
+   "conversion_usd_median": 820,
+   "conversions": 31,
+   "days": 32,
+   "days_positive": 23,
+   "edge_bps_vs_fair": {
+    "ask": 3.51,
+    "bid": 2.41
+   },
+   "end_state_usd": {
+    "coin": 167,
+    "gbp_in_usd": 267,
+    "usd": 1195
+   },
+   "fills_a_day": {
+    "ask": 12.2,
+    "bid": 10.5
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 252,
+   "max_drawdown": -2.271,
+   "orders_a_day_max": 699,
+   "orders_a_day_mean": 335.7,
+   "usd_a_day": 0.575,
+   "usd_a_day_halves": [
+    0.264,
+    0.885
+   ],
+   "usd_filled_a_day": {
+    "ask": 704,
+    "bid": 709
+   },
+   "waiting_for_app_max_usd": 1624,
+   "worst_day": -2.271
+  },
+  "USDC|forward|improve|C1610|fx0|daily_weekdays": {
+   "best_day": 2.817,
+   "boot_all": [
+    0.024,
+    0.78,
+    0.0396
+   ],
+   "boot_first_half": [
+    -0.136,
+    0.552,
+    0.1703
+   ],
+   "boot_second_half": [
+    -0.04,
+    1.219,
+    0.0625
+   ],
+   "bot_prints_at_our_price": 21,
+   "coin_held_max_usd": 1606,
+   "conversion_days": 22,
+   "conversion_usd_median": 893,
+   "conversions": 22,
+   "days": 32,
+   "days_positive": 20,
+   "edge_bps_vs_fair": {
+    "ask": 3.22,
+    "bid": 2.4
+   },
+   "end_state_usd": {
+    "coin": 167,
+    "gbp_in_usd": 267,
+    "usd": 1189
+   },
+   "fills_a_day": {
+    "ask": 10.7,
+    "bid": 9.3
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 236,
+   "max_drawdown": -2.626,
+   "orders_a_day_max": 699,
+   "orders_a_day_mean": 305.8,
+   "usd_a_day": 0.39,
+   "usd_a_day_halves": [
+    0.208,
+    0.572
+   ],
+   "usd_filled_a_day": {
+    "ask": 624,
+    "bid": 629
+   },
+   "waiting_for_app_max_usd": 1622,
+   "worst_day": -2.271
+  },
+  "USDC|forward|improve|C1610|fx0|mb2": {
+   "best_day": 2.579,
+   "boot_all": [
+    0.14,
+    0.826,
+    0.0085
+   ],
+   "boot_first_half": [
+    0.115,
+    0.453,
+    0.0018
+   ],
+   "boot_second_half": [
+    0.061,
+    1.288,
+    0.0345
+   ],
+   "bot_prints_at_our_price": 15,
+   "coin_held_max_usd": 1586,
+   "conversion_days": 20,
+   "conversion_usd_median": 709,
+   "conversions": 20,
+   "days": 32,
+   "days_positive": 21,
+   "edge_bps_vs_fair": {
+    "ask": 4.08,
+    "bid": 4.43
+   },
+   "end_state_usd": {
+    "coin": 167,
+    "gbp_in_usd": 267,
+    "usd": 1191
+   },
+   "fills_a_day": {
+    "ask": 7.8,
+    "bid": 6.4
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 144,
+   "max_drawdown": -2.302,
+   "orders_a_day_max": 614,
+   "orders_a_day_mean": 207.9,
+   "usd_a_day": 0.471,
+   "usd_a_day_halves": [
+    0.278,
+    0.664
+   ],
+   "usd_filled_a_day": {
+    "ask": 431,
+    "bid": 436
+   },
+   "waiting_for_app_max_usd": 1602,
+   "worst_day": -1.358
+  },
+  "USDC|forward|improve|C1610|fx0|twice_weekdays": {
+   "best_day": 1.893,
+   "boot_all": [
+    0.099,
+    0.502,
+    0.0071
+   ],
+   "boot_first_half": [
+    -0.076,
+    0.499,
+    0.1118
+   ],
+   "boot_second_half": [
+    0.107,
+    0.669,
+    0.0094
+   ],
+   "bot_prints_at_our_price": 22,
+   "coin_held_max_usd": 1607,
+   "conversion_days": 23,
+   "conversion_usd_median": 399,
+   "conversions": 44,
+   "days": 32,
+   "days_positive": 22,
+   "edge_bps_vs_fair": {
+    "ask": 3.67,
+    "bid": 2.62
+   },
+   "end_state_usd": {
+    "coin": 167,
+    "gbp_in_usd": 40,
+    "usd": 1413
+   },
+   "fills_a_day": {
+    "ask": 11.9,
+    "bid": 10.2
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 248,
+   "max_drawdown": -1.837,
+   "orders_a_day_max": 699,
+   "orders_a_day_mean": 322.0,
+   "usd_a_day": 0.303,
+   "usd_a_day_halves": [
+    0.218,
+    0.387
+   ],
+   "usd_filled_a_day": {
+    "ask": 680,
+    "bid": 685
+   },
+   "waiting_for_app_max_usd": 1598,
+   "worst_day": -1.837
+  },
+  "USDC|forward|improve|C1610|fx0|weekly": {
+   "best_day": 6.864,
+   "boot_all": [
+    -0.144,
+    1.138,
+    0.1099
+   ],
+   "boot_first_half": [
+    -0.569,
+    0.751,
+    0.3912
+   ],
+   "boot_second_half": [
+    -0.178,
+    1.927,
+    0.0936
+   ],
+   "bot_prints_at_our_price": 12,
+   "coin_held_max_usd": 1302,
+   "conversion_days": 5,
+   "conversion_usd_median": 1560,
+   "conversions": 5,
+   "days": 32,
+   "days_positive": 18,
+   "edge_bps_vs_fair": {
+    "ask": 3.81,
+    "bid": 3.21
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 1541,
+    "usd": 85
+   },
+   "fills_a_day": {
+    "ask": 4.9,
+    "bid": 4.0
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 104,
+   "max_drawdown": -8.012,
+   "orders_a_day_max": 538,
+   "orders_a_day_mean": 158.9,
+   "usd_a_day": 0.475,
+   "usd_a_day_halves": [
+    0.114,
+    0.835
+   ],
+   "usd_filled_a_day": {
+    "ask": 264,
+    "bid": 263
+   },
+   "waiting_for_app_max_usd": 1603,
+   "worst_day": -8.012
+  },
+  "USDC|forward|improve|C1610|fx10|daily_weekdays": {
+   "best_day": 1.95,
+   "boot_all": [
+    -0.606,
+    0.171,
+    0.8237
+   ],
+   "boot_first_half": [
+    -0.839,
+    -0.033,
+    0.9615
+   ],
+   "boot_second_half": [
+    -0.627,
+    0.62,
+    0.5211
+   ],
+   "bot_prints_at_our_price": 21,
+   "coin_held_max_usd": 1606,
+   "conversion_days": 22,
+   "conversion_usd_median": 893,
+   "conversions": 22,
+   "days": 32,
+   "days_positive": 18,
+   "edge_bps_vs_fair": {
+    "ask": 3.2,
+    "bid": 2.36
+   },
+   "end_state_usd": {
+    "coin": 167,
+    "gbp_in_usd": 267,
+    "usd": 1169
+   },
+   "fills_a_day": {
+    "ask": 10.6,
+    "bid": 9.3
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 234,
+   "max_drawdown": -7.645,
+   "orders_a_day_max": 699,
+   "orders_a_day_mean": 305.4,
+   "usd_a_day": -0.225,
+   "usd_a_day_halves": [
+    -0.437,
+    -0.012
+   ],
+   "usd_filled_a_day": {
+    "ask": 621,
+    "bid": 626
+   },
+   "waiting_for_app_max_usd": 1560,
+   "worst_day": -3.253
+  },
+  "USDC|forward|improve|C1610|fx25|daily_weekdays": {
+   "best_day": 0.894,
+   "boot_all": [
+    -1.6,
+    -0.682,
+    0.9999
+   ],
+   "boot_first_half": [
+    -1.941,
+    -0.849,
+    0.9999
+   ],
+   "boot_second_half": [
+    -1.599,
+    -0.208,
+    0.9884
+   ],
+   "bot_prints_at_our_price": 21,
+   "coin_held_max_usd": 1506,
+   "conversion_days": 22,
+   "conversion_usd_median": 893,
+   "conversions": 22,
+   "days": 32,
+   "days_positive": 12,
+   "edge_bps_vs_fair": {
+    "ask": 3.2,
+    "bid": 2.35
+   },
+   "end_state_usd": {
+    "coin": 167,
+    "gbp_in_usd": 267,
+    "usd": 1140
+   },
+   "fills_a_day": {
+    "ask": 10.6,
+    "bid": 9.3
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 234,
+   "max_drawdown": -36.621,
+   "orders_a_day_max": 699,
+   "orders_a_day_mean": 305.4,
+   "usd_a_day": -1.144,
+   "usd_a_day_halves": [
+    -1.405,
+    -0.884
+   ],
+   "usd_filled_a_day": {
+    "ask": 621,
+    "bid": 626
+   },
+   "waiting_for_app_max_usd": 1560,
+   "worst_day": -5.54
+  },
+  "USDC|forward|improve|C1610|fx5|daily_weekdays": {
+   "best_day": 2.383,
+   "boot_all": [
+    -0.291,
+    0.472,
+    0.3698
+   ],
+   "boot_first_half": [
+    -0.478,
+    0.252,
+    0.6955
+   ],
+   "boot_second_half": [
+    -0.33,
+    0.916,
+    0.2398
+   ],
+   "bot_prints_at_our_price": 21,
+   "coin_held_max_usd": 1606,
+   "conversion_days": 22,
+   "conversion_usd_median": 893,
+   "conversions": 22,
+   "days": 32,
+   "days_positive": 18,
+   "edge_bps_vs_fair": {
+    "ask": 3.2,
+    "bid": 2.36
+   },
+   "end_state_usd": {
+    "coin": 167,
+    "gbp_in_usd": 267,
+    "usd": 1179
+   },
+   "fills_a_day": {
+    "ask": 10.6,
+    "bid": 9.3
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 234,
+   "max_drawdown": -4.656,
+   "orders_a_day_max": 699,
+   "orders_a_day_mean": 305.4,
+   "usd_a_day": 0.082,
+   "usd_a_day_halves": [
+    -0.115,
+    0.278
+   ],
+   "usd_filled_a_day": {
+    "ask": 621,
+    "bid": 626
+   },
+   "waiting_for_app_max_usd": 1560,
+   "worst_day": -2.762
+  },
+  "USDC|forward|improve|C161|fx0|ask_live_exit_plus1": {
+   "best_day": 0.826,
+   "boot_all": [
+    -0.011,
+    0.179,
+    0.0803
+   ],
+   "boot_first_half": [
+    -0.037,
+    0.075,
+    0.2348
+   ],
+   "boot_second_half": [
+    -0.02,
+    0.308,
+    0.081
+   ],
+   "bot_prints_at_our_price": 8,
+   "coin_held_max_usd": 160,
+   "conversion_days": 21,
+   "conversion_usd_median": 159,
+   "conversions": 21,
+   "days": 32,
+   "days_positive": 18,
+   "edge_bps_vs_fair": {
+    "ask": 4.79,
+    "bid": 2.19
+   },
+   "end_state_usd": {
+    "coin": 40,
+    "gbp_in_usd": 0,
+    "usd": 123
+   },
+   "fills_a_day": {
+    "ask": 3.4,
+    "bid": 2.8
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 26,
+   "max_drawdown": -0.695,
+   "orders_a_day_max": 507,
+   "orders_a_day_mean": 182.2,
+   "usd_a_day": 0.079,
+   "usd_a_day_halves": [
+    0.024,
+    0.134
+   ],
+   "usd_filled_a_day": {
+    "ask": 93,
+    "bid": 94
+   },
+   "waiting_for_app_max_usd": 161,
+   "worst_day": -0.434
+  },
+  "USDC|forward|improve|C161|fx0|daily_incl_weekend": {
+   "best_day": 0.8,
+   "boot_all": [
+    0.006,
+    0.197,
+    0.0378
+   ],
+   "boot_first_half": [
+    -0.059,
+    0.093,
+    0.2811
+   ],
+   "boot_second_half": [
+    0.033,
+    0.326,
+    0.0133
+   ],
+   "bot_prints_at_our_price": 9,
+   "coin_held_max_usd": 160,
+   "conversion_days": 31,
+   "conversion_usd_median": 150,
+   "conversions": 31,
+   "days": 32,
+   "days_positive": 23,
+   "edge_bps_vs_fair": {
+    "ask": 3.78,
+    "bid": 2.02
+   },
+   "end_state_usd": {
+    "coin": 40,
+    "gbp_in_usd": 0,
+    "usd": 124
+   },
+   "fills_a_day": {
+    "ask": 5.0,
+    "bid": 4.0
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 99,
+   "max_drawdown": -0.851,
+   "orders_a_day_max": 498,
+   "orders_a_day_mean": 148.9,
+   "usd_a_day": 0.097,
+   "usd_a_day_halves": [
+    0.025,
+    0.17
+   ],
+   "usd_filled_a_day": {
+    "ask": 130,
+    "bid": 132
+   },
+   "waiting_for_app_max_usd": 161,
+   "worst_day": -0.661
+  },
+  "USDC|forward|improve|C161|fx0|daily_weekdays": {
+   "best_day": 0.8,
+   "boot_all": [
+    -0.02,
+    0.177,
+    0.1096
+   ],
+   "boot_first_half": [
+    -0.069,
+    0.073,
+    0.3755
+   ],
+   "boot_second_half": [
+    -0.015,
+    0.308,
+    0.0744
+   ],
+   "bot_prints_at_our_price": 8,
+   "coin_held_max_usd": 160,
+   "conversion_days": 22,
+   "conversion_usd_median": 159,
+   "conversions": 22,
+   "days": 32,
+   "days_positive": 18,
+   "edge_bps_vs_fair": {
+    "ask": 3.45,
+    "bid": 2.11
+   },
+   "end_state_usd": {
+    "coin": 40,
+    "gbp_in_usd": 0,
+    "usd": 123
+   },
+   "fills_a_day": {
+    "ask": 3.8,
+    "bid": 3.0
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 85,
+   "max_drawdown": -0.851,
+   "orders_a_day_max": 498,
+   "orders_a_day_mean": 134.0,
+   "usd_a_day": 0.074,
+   "usd_a_day_halves": [
+    0.01,
+    0.137
+   ],
+   "usd_filled_a_day": {
+    "ask": 100,
+    "bid": 101
+   },
+   "waiting_for_app_max_usd": 161,
+   "worst_day": -0.661
+  },
+  "USDC|forward|improve|C161|fx0|mb2": {
+   "best_day": 0.786,
+   "boot_all": [
+    0.021,
+    0.198,
+    0.0144
+   ],
+   "boot_first_half": [
+    0.027,
+    0.124,
+    0.0028
+   ],
+   "boot_second_half": [
+    -0.007,
+    0.306,
+    0.0613
+   ],
+   "bot_prints_at_our_price": 7,
+   "coin_held_max_usd": 160,
+   "conversion_days": 20,
+   "conversion_usd_median": 159,
+   "conversions": 20,
+   "days": 32,
+   "days_positive": 21,
+   "edge_bps_vs_fair": {
+    "ask": 3.74,
+    "bid": 3.38
+   },
+   "end_state_usd": {
+    "coin": 40,
+    "gbp_in_usd": 0,
+    "usd": 124
+   },
+   "fills_a_day": {
+    "ask": 3.2,
+    "bid": 2.5
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 63,
+   "max_drawdown": -0.651,
+   "orders_a_day_max": 496,
+   "orders_a_day_mean": 105.3,
+   "usd_a_day": 0.106,
+   "usd_a_day_halves": [
+    0.072,
+    0.14
+   ],
+   "usd_filled_a_day": {
+    "ask": 85,
+    "bid": 86
+   },
+   "waiting_for_app_max_usd": 161,
+   "worst_day": -0.305
+  },
+  "USDC|forward|improve|C161|fx0|twice_weekdays": {
+   "best_day": 0.499,
+   "boot_all": [
+    -0.004,
+    0.11,
+    0.0624
+   ],
+   "boot_first_half": [
+    -0.079,
+    0.068,
+    0.474
+   ],
+   "boot_second_half": [
+    0.033,
+    0.183,
+    0.0065
+   ],
+   "bot_prints_at_our_price": 11,
+   "coin_held_max_usd": 160,
+   "conversion_days": 23,
+   "conversion_usd_median": 130,
+   "conversions": 43,
+   "days": 32,
+   "days_positive": 21,
+   "edge_bps_vs_fair": {
+    "ask": 3.23,
+    "bid": 2.17
+   },
+   "end_state_usd": {
+    "coin": 40,
+    "gbp_in_usd": 0,
+    "usd": 123
+   },
+   "fills_a_day": {
+    "ask": 5.8,
+    "bid": 4.8
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 135,
+   "max_drawdown": -0.834,
+   "orders_a_day_max": 498,
+   "orders_a_day_mean": 178.5,
+   "usd_a_day": 0.054,
+   "usd_a_day_halves": [
+    0.001,
+    0.107
+   ],
+   "usd_filled_a_day": {
+    "ask": 156,
+    "bid": 157
+   },
+   "waiting_for_app_max_usd": 161,
+   "worst_day": -0.669
+  },
+  "USDC|forward|improve|C161|fx0|weekly": {
+   "best_day": 0.753,
+   "boot_all": [
+    -0.021,
+    0.138,
+    0.1236
+   ],
+   "boot_first_half": [
+    -0.072,
+    0.098,
+    0.3785
+   ],
+   "boot_second_half": [
+    -0.027,
+    0.226,
+    0.1035
+   ],
+   "bot_prints_at_our_price": 1,
+   "coin_held_max_usd": 120,
+   "conversion_days": 5,
+   "conversion_usd_median": 160,
+   "conversions": 5,
+   "days": 32,
+   "days_positive": 17,
+   "edge_bps_vs_fair": {
+    "ask": 3.54,
+    "bid": 1.58
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 159,
+    "usd": 4
+   },
+   "fills_a_day": {
+    "ask": 1.2,
+    "bid": 0.9
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 21,
+   "max_drawdown": -0.826,
+   "orders_a_day_max": 235,
+   "orders_a_day_mean": 32.2,
+   "usd_a_day": 0.057,
+   "usd_a_day_halves": [
+    0.016,
+    0.097
+   ],
+   "usd_filled_a_day": {
+    "ask": 30,
+    "bid": 30
+   },
+   "waiting_for_app_max_usd": 161,
+   "worst_day": -0.807
+  },
+  "USDC|forward|improve|C161|fx10|daily_weekdays": {
+   "best_day": 0.503,
+   "boot_all": [
+    -0.123,
+    0.063,
+    0.7134
+   ],
+   "boot_first_half": [
+    -0.183,
+    -0.014,
+    0.9771
+   ],
+   "boot_second_half": [
+    -0.11,
+    0.175,
+    0.4003
+   ],
+   "bot_prints_at_our_price": 8,
+   "coin_held_max_usd": 160,
+   "conversion_days": 22,
+   "conversion_usd_median": 143,
+   "conversions": 22,
+   "days": 32,
+   "days_positive": 15,
+   "edge_bps_vs_fair": {
+    "ask": 3.53,
+    "bid": 2.04
+   },
+   "end_state_usd": {
+    "coin": 40,
+    "gbp_in_usd": 0,
+    "usd": 120
+   },
+   "fills_a_day": {
+    "ask": 3.6,
+    "bid": 2.8
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 80,
+   "max_drawdown": -1.494,
+   "orders_a_day_max": 498,
+   "orders_a_day_mean": 130.3,
+   "usd_a_day": -0.032,
+   "usd_a_day_halves": [
+    -0.089,
+    0.026
+   ],
+   "usd_filled_a_day": {
+    "ask": 94,
+    "bid": 96
+   },
+   "waiting_for_app_max_usd": 161,
+   "worst_day": -0.82
+  },
+  "USDC|forward|improve|C161|fx25|daily_weekdays": {
+   "best_day": 0.322,
+   "boot_all": [
+    -0.254,
+    -0.07,
+    0.9982
+   ],
+   "boot_first_half": [
+    -0.355,
+    -0.12,
+    0.9999
+   ],
+   "boot_second_half": [
+    -0.206,
+    0.028,
+    0.8966
+   ],
+   "bot_prints_at_our_price": 8,
+   "coin_held_max_usd": 133,
+   "conversion_days": 22,
+   "conversion_usd_median": 120,
+   "conversions": 22,
+   "days": 32,
+   "days_positive": 11,
+   "edge_bps_vs_fair": {
+    "ask": 3.53,
+    "bid": 2.0
+   },
+   "end_state_usd": {
+    "coin": 40,
+    "gbp_in_usd": 0,
+    "usd": 116
+   },
+   "fills_a_day": {
+    "ask": 3.3,
+    "bid": 2.6
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 71,
+   "max_drawdown": -5.124,
+   "orders_a_day_max": 498,
+   "orders_a_day_mean": 120.9,
+   "usd_a_day": -0.16,
+   "usd_a_day_halves": [
+    -0.228,
+    -0.092
+   ],
+   "usd_filled_a_day": {
+    "ask": 86,
+    "bid": 87
+   },
+   "waiting_for_app_max_usd": 160,
+   "worst_day": -1.064
+  },
+  "USDC|forward|improve|C161|fx5|daily_weekdays": {
+   "best_day": 0.72,
+   "boot_all": [
+    -0.072,
+    0.123,
+    0.3701
+   ],
+   "boot_first_half": [
+    -0.128,
+    0.025,
+    0.8329
+   ],
+   "boot_second_half": [
+    -0.06,
+    0.252,
+    0.1923
+   ],
+   "bot_prints_at_our_price": 8,
+   "coin_held_max_usd": 160,
+   "conversion_days": 22,
+   "conversion_usd_median": 154,
+   "conversions": 22,
+   "days": 32,
+   "days_positive": 15,
+   "edge_bps_vs_fair": {
+    "ask": 3.52,
+    "bid": 2.13
+   },
+   "end_state_usd": {
+    "coin": 40,
+    "gbp_in_usd": 0,
+    "usd": 121
+   },
+   "fills_a_day": {
+    "ask": 3.7,
+    "bid": 2.9
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 82,
+   "max_drawdown": -1.079,
+   "orders_a_day_max": 498,
+   "orders_a_day_mean": 131.2,
+   "usd_a_day": 0.022,
+   "usd_a_day_halves": [
+    -0.043,
+    0.087
+   ],
+   "usd_filled_a_day": {
+    "ask": 97,
+    "bid": 98
+   },
+   "waiting_for_app_max_usd": 161,
+   "worst_day": -0.74
+  },
+  "USDC|forward|improve|C805|fx0|ask_live_exit_plus1": {
+   "best_day": 2.344,
+   "boot_all": [
+    -0.096,
+    0.557,
+    0.144
+   ],
+   "boot_first_half": [
+    -0.197,
+    0.225,
+    0.3846
+   ],
+   "boot_second_half": [
+    -0.119,
+    0.985,
+    0.1199
+   ],
+   "bot_prints_at_our_price": 13,
+   "coin_held_max_usd": 754,
+   "conversion_days": 22,
+   "conversion_usd_median": 691,
+   "conversions": 22,
+   "days": 32,
+   "days_positive": 19,
+   "edge_bps_vs_fair": {
+    "ask": 4.89,
+    "bid": 2.26
+   },
+   "end_state_usd": {
+    "coin": 100,
+    "gbp_in_usd": 0,
+    "usd": 712
+   },
+   "fills_a_day": {
+    "ask": 6.8,
+    "bid": 5.6
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 34,
+   "max_drawdown": -2.768,
+   "orders_a_day_max": 552,
+   "orders_a_day_mean": 283.4,
+   "usd_a_day": 0.213,
+   "usd_a_day_halves": [
+    0.033,
+    0.393
+   ],
+   "usd_filled_a_day": {
+    "ask": 389,
+    "bid": 391
+   },
+   "waiting_for_app_max_usd": 799,
+   "worst_day": -1.695
+  },
+  "USDC|forward|improve|C805|fx0|daily_incl_weekend": {
+   "best_day": 2.574,
+   "boot_all": [
+    0.103,
+    0.734,
+    0.0101
+   ],
+   "boot_first_half": [
+    -0.056,
+    0.409,
+    0.1018
+   ],
+   "boot_second_half": [
+    0.151,
+    1.15,
+    0.0116
+   ],
+   "bot_prints_at_our_price": 18,
+   "coin_held_max_usd": 784,
+   "conversion_days": 31,
+   "conversion_usd_median": 711,
+   "conversions": 31,
+   "days": 32,
+   "days_positive": 21,
+   "edge_bps_vs_fair": {
+    "ask": 3.49,
+    "bid": 2.09
+   },
+   "end_state_usd": {
+    "coin": 100,
+    "gbp_in_usd": 0,
+    "usd": 718
+   },
+   "fills_a_day": {
+    "ask": 10.2,
+    "bid": 8.2
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 209,
+   "max_drawdown": -2.192,
+   "orders_a_day_max": 515,
+   "orders_a_day_mean": 255.7,
+   "usd_a_day": 0.407,
+   "usd_a_day_halves": [
+    0.184,
+    0.63
+   ],
+   "usd_filled_a_day": {
+    "ask": 559,
+    "bid": 562
+   },
+   "waiting_for_app_max_usd": 801,
+   "worst_day": -2.192
+  },
+  "USDC|forward|improve|C805|fx0|daily_weekdays": {
+   "best_day": 2.503,
+   "boot_all": [
+    -0.049,
+    0.637,
+    0.0855
+   ],
+   "boot_first_half": [
+    -0.122,
+    0.358,
+    0.2046
+   ],
+   "boot_second_half": [
+    -0.116,
+    1.042,
+    0.1063
+   ],
+   "bot_prints_at_our_price": 15,
+   "coin_held_max_usd": 784,
+   "conversion_days": 22,
+   "conversion_usd_median": 717,
+   "conversions": 22,
+   "days": 32,
+   "days_positive": 19,
+   "edge_bps_vs_fair": {
+    "ask": 3.12,
+    "bid": 2.17
+   },
+   "end_state_usd": {
+    "coin": 100,
+    "gbp_in_usd": 0,
+    "usd": 714
+   },
+   "fills_a_day": {
+    "ask": 8.4,
+    "bid": 6.6
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 180,
+   "max_drawdown": -3.319,
+   "orders_a_day_max": 515,
+   "orders_a_day_mean": 217.3,
+   "usd_a_day": 0.279,
+   "usd_a_day_halves": [
+    0.123,
+    0.436
+   ],
+   "usd_filled_a_day": {
+    "ask": 453,
+    "bid": 456
+   },
+   "waiting_for_app_max_usd": 803,
+   "worst_day": -2.192
+  },
+  "USDC|forward|improve|C805|fx0|mb2": {
+   "best_day": 2.265,
+   "boot_all": [
+    0.072,
+    0.705,
+    0.0183
+   ],
+   "boot_first_half": [
+    0.103,
+    0.415,
+    0.0016
+   ],
+   "boot_second_half": [
+    -0.034,
+    1.081,
+    0.064
+   ],
+   "bot_prints_at_our_price": 11,
+   "coin_held_max_usd": 786,
+   "conversion_days": 20,
+   "conversion_usd_median": 620,
+   "conversions": 20,
+   "days": 32,
+   "days_positive": 20,
+   "edge_bps_vs_fair": {
+    "ask": 3.9,
+    "bid": 3.99
+   },
+   "end_state_usd": {
+    "coin": 100,
+    "gbp_in_usd": 0,
+    "usd": 717
+   },
+   "fills_a_day": {
+    "ask": 6.8,
+    "bid": 5.1
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 126,
+   "max_drawdown": -2.677,
+   "orders_a_day_max": 515,
+   "orders_a_day_mean": 170.6,
+   "usd_a_day": 0.373,
+   "usd_a_day_halves": [
+    0.25,
+    0.496
+   ],
+   "usd_filled_a_day": {
+    "ask": 357,
+    "bid": 360
+   },
+   "waiting_for_app_max_usd": 803,
+   "worst_day": -1.108
+  },
+  "USDC|forward|improve|C805|fx0|twice_weekdays": {
+   "best_day": 1.893,
+   "boot_all": [
+    0.067,
+    0.424,
+    0.0106
+   ],
+   "boot_first_half": [
+    -0.102,
+    0.358,
+    0.168
+   ],
+   "boot_second_half": [
+    0.081,
+    0.626,
+    0.0116
+   ],
+   "bot_prints_at_our_price": 19,
+   "coin_held_max_usd": 809,
+   "conversion_days": 23,
+   "conversion_usd_median": 380,
+   "conversions": 44,
+   "days": 32,
+   "days_positive": 23,
+   "edge_bps_vs_fair": {
+    "ask": 3.27,
+    "bid": 2.42
+   },
+   "end_state_usd": {
+    "coin": 167,
+    "gbp_in_usd": 40,
+    "usd": 606
+   },
+   "fills_a_day": {
+    "ask": 10.2,
+    "bid": 8.4
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 224,
+   "max_drawdown": -1.888,
+   "orders_a_day_max": 681,
+   "orders_a_day_mean": 283.8,
+   "usd_a_day": 0.243,
+   "usd_a_day_halves": [
+    0.137,
+    0.349
+   ],
+   "usd_filled_a_day": {
+    "ask": 568,
+    "bid": 573
+   },
+   "waiting_for_app_max_usd": 805,
+   "worst_day": -1.888
+  },
+  "USDC|forward|improve|C805|fx0|weekly": {
+   "best_day": 3.586,
+   "boot_all": [
+    -0.134,
+    0.624,
+    0.1593
+   ],
+   "boot_first_half": [
+    -0.372,
+    0.361,
+    0.4806
+   ],
+   "boot_second_half": [
+    -0.141,
+    1.103,
+    0.1132
+   ],
+   "bot_prints_at_our_price": 3,
+   "coin_held_max_usd": 700,
+   "conversion_days": 5,
+   "conversion_usd_median": 733,
+   "conversions": 5,
+   "days": 32,
+   "days_positive": 17,
+   "edge_bps_vs_fair": {
+    "ask": 2.86,
+    "bid": 1.96
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 739,
+    "usd": 74
+   },
+   "fills_a_day": {
+    "ask": 2.8,
+    "bid": 2.1
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 57,
+   "max_drawdown": -3.976,
+   "orders_a_day_max": 317,
+   "orders_a_day_mean": 66.8,
+   "usd_a_day": 0.234,
+   "usd_a_day_halves": [
+    0.009,
+    0.459
+   ],
+   "usd_filled_a_day": {
+    "ask": 137,
+    "bid": 137
+   },
+   "waiting_for_app_max_usd": 804,
+   "worst_day": -3.582
+  },
+  "USDC|forward|improve|C805|fx10|daily_weekdays": {
+   "best_day": 1.725,
+   "boot_all": [
+    -0.506,
+    0.174,
+    0.798
+   ],
+   "boot_first_half": [
+    -0.633,
+    -0.055,
+    0.9768
+   ],
+   "boot_second_half": [
+    -0.551,
+    0.548,
+    0.5282
+   ],
+   "bot_prints_at_our_price": 15,
+   "coin_held_max_usd": 784,
+   "conversion_days": 22,
+   "conversion_usd_median": 710,
+   "conversions": 22,
+   "days": 32,
+   "days_positive": 18,
+   "edge_bps_vs_fair": {
+    "ask": 3.1,
+    "bid": 2.16
+   },
+   "end_state_usd": {
+    "coin": 100,
+    "gbp_in_usd": 0,
+    "usd": 699
+   },
+   "fills_a_day": {
+    "ask": 8.4,
+    "bid": 6.6
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 179,
+   "max_drawdown": -6.339,
+   "orders_a_day_max": 515,
+   "orders_a_day_mean": 215.4,
+   "usd_a_day": -0.173,
+   "usd_a_day_halves": [
+    -0.329,
+    -0.016
+   ],
+   "usd_filled_a_day": {
+    "ask": 447,
+    "bid": 450
+   },
+   "waiting_for_app_max_usd": 800,
+   "worst_day": -2.989
+  },
+  "USDC|forward|improve|C805|fx25|daily_weekdays": {
+   "best_day": 0.822,
+   "boot_all": [
+    -1.198,
+    -0.464,
+    0.9998
+   ],
+   "boot_first_half": [
+    -1.44,
+    -0.606,
+    1.0
+   ],
+   "boot_second_half": [
+    -1.185,
+    -0.116,
+    0.9786
+   ],
+   "bot_prints_at_our_price": 14,
+   "coin_held_max_usd": 784,
+   "conversion_days": 22,
+   "conversion_usd_median": 703,
+   "conversions": 22,
+   "days": 32,
+   "days_positive": 12,
+   "edge_bps_vs_fair": {
+    "ask": 3.05,
+    "bid": 2.04
+   },
+   "end_state_usd": {
+    "coin": 100,
+    "gbp_in_usd": 0,
+    "usd": 678
+   },
+   "fills_a_day": {
+    "ask": 8.1,
+    "bid": 6.5
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 177,
+   "max_drawdown": -26.528,
+   "orders_a_day_max": 515,
+   "orders_a_day_mean": 207.6,
+   "usd_a_day": -0.829,
+   "usd_a_day_halves": [
+    -1.007,
+    -0.651
+   ],
+   "usd_filled_a_day": {
+    "ask": 437,
+    "bid": 440
+   },
+   "waiting_for_app_max_usd": 798,
+   "worst_day": -4.186
+  },
+  "USDC|forward|improve|C805|fx5|daily_weekdays": {
+   "best_day": 2.114,
+   "boot_all": [
+    -0.273,
+    0.404,
+    0.4093
+   ],
+   "boot_first_half": [
+    -0.374,
+    0.144,
+    0.7452
+   ],
+   "boot_second_half": [
+    -0.33,
+    0.789,
+    0.2874
+   ],
+   "bot_prints_at_our_price": 15,
+   "coin_held_max_usd": 784,
+   "conversion_days": 22,
+   "conversion_usd_median": 717,
+   "conversions": 22,
+   "days": 32,
+   "days_positive": 18,
+   "edge_bps_vs_fair": {
+    "ask": 3.12,
+    "bid": 2.17
+   },
+   "end_state_usd": {
+    "coin": 100,
+    "gbp_in_usd": 0,
+    "usd": 707
+   },
+   "fills_a_day": {
+    "ask": 8.4,
+    "bid": 6.6
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 180,
+   "max_drawdown": -4.829,
+   "orders_a_day_max": 515,
+   "orders_a_day_mean": 217.3,
+   "usd_a_day": 0.053,
+   "usd_a_day_halves": [
+    -0.103,
+    0.209
+   ],
+   "usd_filled_a_day": {
+    "ask": 453,
+    "bid": 456
+   },
+   "waiting_for_app_max_usd": 803,
+   "worst_day": -2.591
+  },
+  "USDC|forward|join|C1610|fx0|daily_weekdays": {
+   "best_day": 1.253,
+   "boot_all": [
+    -0.005,
+    0.38,
+    0.0546
+   ],
+   "boot_first_half": [
+    -0.002,
+    0.243,
+    0.054
+   ],
+   "boot_second_half": [
+    -0.088,
+    0.591,
+    0.1134
+   ],
+   "bot_prints_at_our_price": 18,
+   "coin_held_max_usd": 1155,
+   "conversion_days": 18,
+   "conversion_usd_median": 269,
+   "conversions": 18,
+   "days": 32,
+   "days_positive": 23,
+   "edge_bps_vs_fair": {
+    "ask": 3.86,
+    "bid": 3.74
+   },
+   "end_state_usd": {
+    "coin": 100,
+    "gbp_in_usd": 0,
+    "usd": 1516
+   },
+   "fills_a_day": {
+    "ask": 3.0,
+    "bid": 2.2
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 54,
+   "max_drawdown": -2.383,
+   "orders_a_day_max": 525,
+   "orders_a_day_mean": 218.4,
+   "usd_a_day": 0.186,
+   "usd_a_day_halves": [
+    0.12,
+    0.253
+   ],
+   "usd_filled_a_day": {
+    "ask": 191,
+    "bid": 194
+   },
+   "waiting_for_app_max_usd": 1084,
+   "worst_day": -1.208
+  },
+  "USDC|forward|join|C1610|fx10|daily_weekdays": {
+   "best_day": 0.852,
+   "boot_all": [
+    -0.208,
+    0.189,
+    0.498
+   ],
+   "boot_first_half": [
+    -0.137,
+    0.087,
+    0.6718
+   ],
+   "boot_second_half": [
+    -0.369,
+    0.386,
+    0.458
+   ],
+   "bot_prints_at_our_price": 18,
+   "coin_held_max_usd": 1155,
+   "conversion_days": 18,
+   "conversion_usd_median": 269,
+   "conversions": 18,
+   "days": 32,
+   "days_positive": 21,
+   "edge_bps_vs_fair": {
+    "ask": 3.86,
+    "bid": 3.74
+   },
+   "end_state_usd": {
+    "coin": 100,
+    "gbp_in_usd": 0,
+    "usd": 1510
+   },
+   "fills_a_day": {
+    "ask": 3.0,
+    "bid": 2.2
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 54,
+   "max_drawdown": -4.337,
+   "orders_a_day_max": 525,
+   "orders_a_day_mean": 218.4,
+   "usd_a_day": -0.004,
+   "usd_a_day_halves": [
+    -0.029,
+    0.021
+   ],
+   "usd_filled_a_day": {
+    "ask": 191,
+    "bid": 194
+   },
+   "waiting_for_app_max_usd": 1084,
+   "worst_day": -2.238
+  },
+  "USDC|forward|join|C1610|fx25|daily_weekdays": {
+   "best_day": 0.795,
+   "boot_all": [
+    -0.545,
+    -0.064,
+    0.9874
+   ],
+   "boot_first_half": [
+    -0.434,
+    -0.075,
+    0.9943
+   ],
+   "boot_second_half": [
+    -0.811,
+    0.112,
+    0.8884
+   ],
+   "bot_prints_at_our_price": 18,
+   "coin_held_max_usd": 1155,
+   "conversion_days": 18,
+   "conversion_usd_median": 269,
+   "conversions": 18,
+   "days": 32,
+   "days_positive": 18,
+   "edge_bps_vs_fair": {
+    "ask": 3.86,
+    "bid": 3.74
+   },
+   "end_state_usd": {
+    "coin": 100,
+    "gbp_in_usd": 0,
+    "usd": 1501
+   },
+   "fills_a_day": {
+    "ask": 3.0,
+    "bid": 2.2
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 54,
+   "max_drawdown": -9.281,
+   "orders_a_day_max": 525,
+   "orders_a_day_mean": 218.4,
+   "usd_a_day": -0.29,
+   "usd_a_day_halves": [
+    -0.253,
+    -0.327
+   ],
+   "usd_filled_a_day": {
+    "ask": 191,
+    "bid": 194
+   },
+   "waiting_for_app_max_usd": 1084,
+   "worst_day": -3.864
+  },
+  "USDC|forward|join|C1610|fx5|daily_weekdays": {
+   "best_day": 1.052,
+   "boot_all": [
+    -0.103,
+    0.282,
+    0.215
+   ],
+   "boot_first_half": [
+    -0.061,
+    0.158,
+    0.2574
+   ],
+   "boot_second_half": [
+    -0.228,
+    0.484,
+    0.2669
+   ],
+   "bot_prints_at_our_price": 18,
+   "coin_held_max_usd": 1155,
+   "conversion_days": 18,
+   "conversion_usd_median": 269,
+   "conversions": 18,
+   "days": 32,
+   "days_positive": 22,
+   "edge_bps_vs_fair": {
+    "ask": 3.86,
+    "bid": 3.74
+   },
+   "end_state_usd": {
+    "coin": 100,
+    "gbp_in_usd": 0,
+    "usd": 1513
+   },
+   "fills_a_day": {
+    "ask": 3.0,
+    "bid": 2.2
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 54,
+   "max_drawdown": -3.36,
+   "orders_a_day_max": 525,
+   "orders_a_day_mean": 218.4,
+   "usd_a_day": 0.091,
+   "usd_a_day_halves": [
+    0.046,
+    0.137
+   ],
+   "usd_filled_a_day": {
+    "ask": 191,
+    "bid": 194
+   },
+   "waiting_for_app_max_usd": 1084,
+   "worst_day": -1.696
+  },
+  "USDC|forward|join|C161|fx0|daily_weekdays": {
+   "best_day": 0.501,
+   "boot_all": [
+    0.003,
+    0.124,
+    0.0387
+   ],
+   "boot_first_half": [
+    -0.015,
+    0.05,
+    0.1944
+   ],
+   "boot_second_half": [
+    -0.0,
+    0.215,
+    0.0508
+   ],
+   "bot_prints_at_our_price": 13,
+   "coin_held_max_usd": 144,
+   "conversion_days": 17,
+   "conversion_usd_median": 80,
+   "conversions": 17,
+   "days": 32,
+   "days_positive": 23,
+   "edge_bps_vs_fair": {
+    "ask": 4.23,
+    "bid": 3.23
+   },
+   "end_state_usd": {
+    "coin": 41,
+    "gbp_in_usd": 0,
+    "usd": 122
+   },
+   "fills_a_day": {
+    "ask": 1.6,
+    "bid": 1.3
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 26,
+   "max_drawdown": -0.346,
+   "orders_a_day_max": 463,
+   "orders_a_day_mean": 126.3,
+   "usd_a_day": 0.059,
+   "usd_a_day_halves": [
+    0.018,
+    0.101
+   ],
+   "usd_filled_a_day": {
+    "ask": 50,
+    "bid": 51
+   },
+   "waiting_for_app_max_usd": 161,
+   "worst_day": -0.248
+  },
+  "USDC|forward|join|C161|fx10|daily_weekdays": {
+   "best_day": 0.341,
+   "boot_all": [
+    -0.041,
+    0.067,
+    0.4055
+   ],
+   "boot_first_half": [
+    -0.059,
+    0.012,
+    0.8581
+   ],
+   "boot_second_half": [
+    -0.052,
+    0.145,
+    0.2607
+   ],
+   "bot_prints_at_our_price": 13,
+   "coin_held_max_usd": 144,
+   "conversion_days": 17,
+   "conversion_usd_median": 80,
+   "conversions": 17,
+   "days": 32,
+   "days_positive": 21,
+   "edge_bps_vs_fair": {
+    "ask": 4.23,
+    "bid": 3.23
+   },
+   "end_state_usd": {
+    "coin": 41,
+    "gbp_in_usd": 0,
+    "usd": 120
+   },
+   "fills_a_day": {
+    "ask": 1.6,
+    "bid": 1.3
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 26,
+   "max_drawdown": -0.689,
+   "orders_a_day_max": 463,
+   "orders_a_day_mean": 126.3,
+   "usd_a_day": 0.009,
+   "usd_a_day_halves": [
+    -0.023,
+    0.042
+   ],
+   "usd_filled_a_day": {
+    "ask": 50,
+    "bid": 51
+   },
+   "waiting_for_app_max_usd": 161,
+   "worst_day": -0.392
+  },
+  "USDC|forward|join|C161|fx25|daily_weekdays": {
+   "best_day": 0.281,
+   "boot_all": [
+    -0.112,
+    -0.017,
+    0.9857
+   ],
+   "boot_first_half": [
+    -0.132,
+    -0.031,
+    0.9985
+   ],
+   "boot_second_half": [
+    -0.13,
+    0.035,
+    0.8295
+   ],
+   "bot_prints_at_our_price": 11,
+   "coin_held_max_usd": 144,
+   "conversion_days": 17,
+   "conversion_usd_median": 80,
+   "conversions": 17,
+   "days": 32,
+   "days_positive": 18,
+   "edge_bps_vs_fair": {
+    "ask": 3.79,
+    "bid": 3.2
+   },
+   "end_state_usd": {
+    "coin": 41,
+    "gbp_in_usd": 0,
+    "usd": 118
+   },
+   "fills_a_day": {
+    "ask": 1.5,
+    "bid": 1.2
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 25,
+   "max_drawdown": -2.068,
+   "orders_a_day_max": 463,
+   "orders_a_day_mean": 125.0,
+   "usd_a_day": -0.065,
+   "usd_a_day_halves": [
+    -0.08,
+    -0.05
+   ],
+   "usd_filled_a_day": {
+    "ask": 46,
+    "bid": 47
+   },
+   "waiting_for_app_max_usd": 160,
+   "worst_day": -0.607
+  },
+  "USDC|forward|join|C161|fx5|daily_weekdays": {
+   "best_day": 0.421,
+   "boot_all": [
+    -0.019,
+    0.095,
+    0.1648
+   ],
+   "boot_first_half": [
+    -0.036,
+    0.03,
+    0.5596
+   ],
+   "boot_second_half": [
+    -0.026,
+    0.18,
+    0.1249
+   ],
+   "bot_prints_at_our_price": 13,
+   "coin_held_max_usd": 144,
+   "conversion_days": 17,
+   "conversion_usd_median": 80,
+   "conversions": 17,
+   "days": 32,
+   "days_positive": 22,
+   "edge_bps_vs_fair": {
+    "ask": 4.23,
+    "bid": 3.23
+   },
+   "end_state_usd": {
+    "coin": 41,
+    "gbp_in_usd": 0,
+    "usd": 121
+   },
+   "fills_a_day": {
+    "ask": 1.6,
+    "bid": 1.3
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 26,
+   "max_drawdown": -0.517,
+   "orders_a_day_max": 463,
+   "orders_a_day_mean": 126.3,
+   "usd_a_day": 0.034,
+   "usd_a_day_halves": [
+    -0.003,
+    0.071
+   ],
+   "usd_filled_a_day": {
+    "ask": 50,
+    "bid": 51
+   },
+   "waiting_for_app_max_usd": 161,
+   "worst_day": -0.32
+  },
+  "USDC|forward|join|C805|fx0|daily_weekdays": {
+   "best_day": 1.253,
+   "boot_all": [
+    0.003,
+    0.328,
+    0.0455
+   ],
+   "boot_first_half": [
+    -0.011,
+    0.175,
+    0.0732
+   ],
+   "boot_second_half": [
+    -0.046,
+    0.537,
+    0.0904
+   ],
+   "bot_prints_at_our_price": 15,
+   "coin_held_max_usd": 654,
+   "conversion_days": 18,
+   "conversion_usd_median": 227,
+   "conversions": 18,
+   "days": 32,
+   "days_positive": 22,
+   "edge_bps_vs_fair": {
+    "ask": 3.92,
+    "bid": 3.06
+   },
+   "end_state_usd": {
+    "coin": 100,
+    "gbp_in_usd": 0,
+    "usd": 710
+   },
+   "fills_a_day": {
+    "ask": 2.5,
+    "bid": 1.7
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 45,
+   "max_drawdown": -1.677,
+   "orders_a_day_max": 500,
+   "orders_a_day_mean": 181.7,
+   "usd_a_day": 0.16,
+   "usd_a_day_halves": [
+    0.085,
+    0.235
+   ],
+   "usd_filled_a_day": {
+    "ask": 156,
+    "bid": 159
+   },
+   "waiting_for_app_max_usd": 712,
+   "worst_day": -1.231
+  },
+  "USDC|forward|join|C805|fx10|daily_weekdays": {
+   "best_day": 0.852,
+   "boot_all": [
+    -0.148,
+    0.164,
+    0.4888
+   ],
+   "boot_first_half": [
+    -0.14,
+    0.049,
+    0.7898
+   ],
+   "boot_second_half": [
+    -0.237,
+    0.357,
+    0.3942
+   ],
+   "bot_prints_at_our_price": 15,
+   "coin_held_max_usd": 654,
+   "conversion_days": 18,
+   "conversion_usd_median": 227,
+   "conversions": 18,
+   "days": 32,
+   "days_positive": 21,
+   "edge_bps_vs_fair": {
+    "ask": 3.92,
+    "bid": 3.06
+   },
+   "end_state_usd": {
+    "coin": 100,
+    "gbp_in_usd": 0,
+    "usd": 705
+   },
+   "fills_a_day": {
+    "ask": 2.5,
+    "bid": 1.7
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 45,
+   "max_drawdown": -3.03,
+   "orders_a_day_max": 500,
+   "orders_a_day_mean": 181.7,
+   "usd_a_day": 0.004,
+   "usd_a_day_halves": [
+    -0.047,
+    0.055
+   ],
+   "usd_filled_a_day": {
+    "ask": 156,
+    "bid": 159
+   },
+   "waiting_for_app_max_usd": 712,
+   "worst_day": -1.9
+  },
+  "USDC|forward|join|C805|fx25|daily_weekdays": {
+   "best_day": 0.725,
+   "boot_all": [
+    -0.404,
+    -0.06,
+    0.9888
+   ],
+   "boot_first_half": [
+    -0.398,
+    -0.094,
+    0.9994
+   ],
+   "boot_second_half": [
+    -0.537,
+    0.098,
+    0.8599
+   ],
+   "bot_prints_at_our_price": 15,
+   "coin_held_max_usd": 654,
+   "conversion_days": 18,
+   "conversion_usd_median": 227,
+   "conversions": 18,
+   "days": 32,
+   "days_positive": 17,
+   "edge_bps_vs_fair": {
+    "ask": 3.92,
+    "bid": 3.06
+   },
+   "end_state_usd": {
+    "coin": 100,
+    "gbp_in_usd": 0,
+    "usd": 698
+   },
+   "fills_a_day": {
+    "ask": 2.5,
+    "bid": 1.7
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 45,
+   "max_drawdown": -7.353,
+   "orders_a_day_max": 500,
+   "orders_a_day_mean": 181.7,
+   "usd_a_day": -0.23,
+   "usd_a_day_halves": [
+    -0.245,
+    -0.215
+   ],
+   "usd_filled_a_day": {
+    "ask": 156,
+    "bid": 159
+   },
+   "waiting_for_app_max_usd": 712,
+   "worst_day": -2.904
+  },
+  "USDC|forward|join|C805|fx5|daily_weekdays": {
+   "best_day": 1.052,
+   "boot_all": [
+    -0.07,
+    0.245,
+    0.2011
+   ],
+   "boot_first_half": [
+    -0.069,
+    0.108,
+    0.362
+   ],
+   "boot_second_half": [
+    -0.142,
+    0.446,
+    0.2149
+   ],
+   "bot_prints_at_our_price": 15,
+   "coin_held_max_usd": 654,
+   "conversion_days": 18,
+   "conversion_usd_median": 227,
+   "conversions": 18,
+   "days": 32,
+   "days_positive": 21,
+   "edge_bps_vs_fair": {
+    "ask": 3.92,
+    "bid": 3.06
+   },
+   "end_state_usd": {
+    "coin": 100,
+    "gbp_in_usd": 0,
+    "usd": 708
+   },
+   "fills_a_day": {
+    "ask": 2.5,
+    "bid": 1.7
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 45,
+   "max_drawdown": -2.353,
+   "orders_a_day_max": 500,
+   "orders_a_day_mean": 181.7,
+   "usd_a_day": 0.082,
+   "usd_a_day_halves": [
+    0.019,
+    0.145
+   ],
+   "usd_filled_a_day": {
+    "ask": 156,
+    "bid": 159
+   },
+   "waiting_for_app_max_usd": 712,
+   "worst_day": -1.566
+  },
+  "USDC|reverse|improve|C1610|fx0|ask_live_exit_plus1": {
+   "best_day": 2.637,
+   "boot_all": [
+    -0.075,
+    0.611,
+    0.1137
+   ],
+   "boot_first_half": [
+    -0.305,
+    0.202,
+    0.5981
+   ],
+   "boot_second_half": [
+    0.002,
+    1.107,
+    0.0493
+   ],
+   "bot_prints_at_our_price": 6,
+   "coin_held_max_usd": 1607,
+   "conversion_days": 20,
+   "conversion_usd_median": 445,
+   "conversions": 20,
+   "days": 32,
+   "days_positive": 18,
+   "edge_bps_vs_fair": {
+    "ask": 3.17,
+    "bid": 6.66
+   },
+   "end_state_usd": {
+    "coin": 1413,
+    "gbp_in_usd": 27,
+    "usd": 178
+   },
+   "fills_a_day": {
+    "ask": 4.7,
+    "bid": 4.8
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -2.278,
+   "orders_a_day_max": 390,
+   "orders_a_day_mean": 92.0,
+   "usd_a_day": 0.251,
+   "usd_a_day_halves": [
+    -0.041,
+    0.542
+   ],
+   "usd_filled_a_day": {
+    "ask": 318,
+    "bid": 362
+   },
+   "waiting_for_app_max_usd": 1300,
+   "worst_day": -2.025
+  },
+  "USDC|reverse|improve|C1610|fx0|daily_incl_weekend": {
+   "best_day": 5.39,
+   "boot_all": [
+    0.273,
+    1.162,
+    0.0014
+   ],
+   "boot_first_half": [
+    0.055,
+    0.688,
+    0.0243
+   ],
+   "boot_second_half": [
+    0.278,
+    1.8,
+    0.0086
+   ],
+   "bot_prints_at_our_price": 22,
+   "coin_held_max_usd": 1581,
+   "conversion_days": 31,
+   "conversion_usd_median": 865,
+   "conversions": 31,
+   "days": 32,
+   "days_positive": 19,
+   "edge_bps_vs_fair": {
+    "ask": 0.93,
+    "bid": 6.27
+   },
+   "end_state_usd": {
+    "coin": 1346,
+    "gbp_in_usd": 51,
+    "usd": 235
+   },
+   "fills_a_day": {
+    "ask": 12.8,
+    "bid": 11.8
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -1.936,
+   "orders_a_day_max": 507,
+   "orders_a_day_mean": 212.6,
+   "usd_a_day": 0.693,
+   "usd_a_day_halves": [
+    0.362,
+    1.024
+   ],
+   "usd_filled_a_day": {
+    "ask": 855,
+    "bid": 896
+   },
+   "waiting_for_app_max_usd": 1624,
+   "worst_day": -1.625
+  },
+  "USDC|reverse|improve|C1610|fx0|daily_weekdays": {
+   "best_day": 3.784,
+   "boot_all": [
+    0.094,
+    1.035,
+    0.0211
+   ],
+   "boot_first_half": [
+    -0.378,
+    0.45,
+    0.4202
+   ],
+   "boot_second_half": [
+    0.327,
+    1.77,
+    0.0062
+   ],
+   "bot_prints_at_our_price": 19,
+   "coin_held_max_usd": 1585,
+   "conversion_days": 23,
+   "conversion_usd_median": 1200,
+   "conversions": 23,
+   "days": 32,
+   "days_positive": 19,
+   "edge_bps_vs_fair": {
+    "ask": 0.99,
+    "bid": 6.21
+   },
+   "end_state_usd": {
+    "coin": 1350,
+    "gbp_in_usd": 42,
+    "usd": 235
+   },
+   "fills_a_day": {
+    "ask": 11.5,
+    "bid": 10.7
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -3.584,
+   "orders_a_day_max": 507,
+   "orders_a_day_mean": 196.4,
+   "usd_a_day": 0.539,
+   "usd_a_day_halves": [
+    0.048,
+    1.031
+   ],
+   "usd_filled_a_day": {
+    "ask": 763,
+    "bid": 805
+   },
+   "waiting_for_app_max_usd": 1582,
+   "worst_day": -2.73
+  },
+  "USDC|reverse|improve|C1610|fx0|mb2": {
+   "best_day": 3.966,
+   "boot_all": [
+    0.128,
+    1.062,
+    0.0139
+   ],
+   "boot_first_half": [
+    -0.39,
+    0.489,
+    0.3901
+   ],
+   "boot_second_half": [
+    0.402,
+    1.795,
+    0.0026
+   ],
+   "bot_prints_at_our_price": 17,
+   "coin_held_max_usd": 1548,
+   "conversion_days": 23,
+   "conversion_usd_median": 1200,
+   "conversions": 23,
+   "days": 32,
+   "days_positive": 19,
+   "edge_bps_vs_fair": {
+    "ask": 0.99,
+    "bid": 6.66
+   },
+   "end_state_usd": {
+    "coin": 1112,
+    "gbp_in_usd": 281,
+    "usd": 235
+   },
+   "fills_a_day": {
+    "ask": 11.5,
+    "bid": 10.2
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -3.669,
+   "orders_a_day_max": 551,
+   "orders_a_day_mean": 210.2,
+   "usd_a_day": 0.574,
+   "usd_a_day_halves": [
+    0.066,
+    1.081
+   ],
+   "usd_filled_a_day": {
+    "ask": 764,
+    "bid": 798
+   },
+   "waiting_for_app_max_usd": 1579,
+   "worst_day": -2.974
+  },
+  "USDC|reverse|improve|C1610|fx0|twice_weekdays": {
+   "best_day": 4.571,
+   "boot_all": [
+    0.192,
+    1.072,
+    0.0064
+   ],
+   "boot_first_half": [
+    -0.255,
+    0.569,
+    0.2231
+   ],
+   "boot_second_half": [
+    0.358,
+    1.746,
+    0.0053
+   ],
+   "bot_prints_at_our_price": 20,
+   "coin_held_max_usd": 1624,
+   "conversion_days": 23,
+   "conversion_usd_median": 505,
+   "conversions": 46,
+   "days": 32,
+   "days_positive": 22,
+   "edge_bps_vs_fair": {
+    "ask": 0.96,
+    "bid": 5.96
+   },
+   "end_state_usd": {
+    "coin": 1389,
+    "gbp_in_usd": 62,
+    "usd": 178
+   },
+   "fills_a_day": {
+    "ask": 12.0,
+    "bid": 11.3
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -2.755,
+   "orders_a_day_max": 588,
+   "orders_a_day_mean": 226.1,
+   "usd_a_day": 0.615,
+   "usd_a_day_halves": [
+    0.184,
+    1.046
+   ],
+   "usd_filled_a_day": {
+    "ask": 806,
+    "bid": 848
+   },
+   "waiting_for_app_max_usd": 1576,
+   "worst_day": -2.755
+  },
+  "USDC|reverse|improve|C1610|fx0|weekly": {
+   "best_day": 3.45,
+   "boot_all": [
+    -0.196,
+    0.317,
+    0.3971
+   ],
+   "boot_first_half": [
+    -0.444,
+    0.105,
+    0.7962
+   ],
+   "boot_second_half": [
+    -0.1,
+    0.646,
+    0.1669
+   ],
+   "bot_prints_at_our_price": 4,
+   "coin_held_max_usd": 1333,
+   "conversion_days": 5,
+   "conversion_usd_median": 1525,
+   "conversions": 5,
+   "days": 32,
+   "days_positive": 17,
+   "edge_bps_vs_fair": {
+    "ask": 0.41,
+    "bid": 6.32
+   },
+   "end_state_usd": {
+    "coin": 449,
+    "gbp_in_usd": 15,
+    "usd": 1148
+   },
+   "fills_a_day": {
+    "ask": 3.8,
+    "bid": 3.3
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -3.433,
+   "orders_a_day_max": 388,
+   "orders_a_day_mean": 56.1,
+   "usd_a_day": 0.045,
+   "usd_a_day_halves": [
+    -0.146,
+    0.236
+   ],
+   "usd_filled_a_day": {
+    "ask": 246,
+    "bid": 260
+   },
+   "waiting_for_app_max_usd": 1549,
+   "worst_day": -2.738
+  },
+  "USDC|reverse|improve|C1610|fx10|daily_weekdays": {
+   "best_day": 3.261,
+   "boot_all": [
+    -0.657,
+    0.252,
+    0.7921
+   ],
+   "boot_first_half": [
+    -1.153,
+    -0.432,
+    1.0
+   ],
+   "boot_second_half": [
+    -0.294,
+    0.987,
+    0.2031
+   ],
+   "bot_prints_at_our_price": 19,
+   "coin_held_max_usd": 1585,
+   "conversion_days": 23,
+   "conversion_usd_median": 1200,
+   "conversions": 23,
+   "days": 32,
+   "days_positive": 16,
+   "edge_bps_vs_fair": {
+    "ask": 0.99,
+    "bid": 6.16
+   },
+   "end_state_usd": {
+    "coin": 1350,
+    "gbp_in_usd": 18,
+    "usd": 235
+   },
+   "fills_a_day": {
+    "ask": 11.5,
+    "bid": 10.5
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -12.998,
+   "orders_a_day_max": 507,
+   "orders_a_day_mean": 197.0,
+   "usd_a_day": -0.224,
+   "usd_a_day_halves": [
+    -0.788,
+    0.34
+   ],
+   "usd_filled_a_day": {
+    "ask": 763,
+    "bid": 805
+   },
+   "waiting_for_app_max_usd": 1582,
+   "worst_day": -4.204
+  },
+  "USDC|reverse|improve|C1610|fx25|daily_weekdays": {
+   "best_day": 1.588,
+   "boot_all": [
+    -1.824,
+    -0.863,
+    1.0
+   ],
+   "boot_first_half": [
+    -2.458,
+    -1.502,
+    1.0
+   ],
+   "boot_second_half": [
+    -1.325,
+    -0.175,
+    0.9876
+   ],
+   "bot_prints_at_our_price": 19,
+   "coin_held_max_usd": 1560,
+   "conversion_days": 23,
+   "conversion_usd_median": 1200,
+   "conversions": 23,
+   "days": 32,
+   "days_positive": 6,
+   "edge_bps_vs_fair": {
+    "ask": 0.99,
+    "bid": 6.14
+   },
+   "end_state_usd": {
+    "coin": 1250,
+    "gbp_in_usd": 82,
+    "usd": 235
+   },
+   "fills_a_day": {
+    "ask": 11.4,
+    "bid": 10.5
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -43.249,
+   "orders_a_day_max": 507,
+   "orders_a_day_mean": 195.2,
+   "usd_a_day": -1.352,
+   "usd_a_day_halves": [
+    -1.971,
+    -0.732
+   ],
+   "usd_filled_a_day": {
+    "ask": 761,
+    "bid": 799
+   },
+   "waiting_for_app_max_usd": 1587,
+   "worst_day": -6.419
+  },
+  "USDC|reverse|improve|C1610|fx5|daily_weekdays": {
+   "best_day": 3.823,
+   "boot_all": [
+    -0.266,
+    0.66,
+    0.2798
+   ],
+   "boot_first_half": [
+    -0.74,
+    0.027,
+    0.9366
+   ],
+   "boot_second_half": [
+    0.023,
+    1.403,
+    0.0441
+   ],
+   "bot_prints_at_our_price": 19,
+   "coin_held_max_usd": 1585,
+   "conversion_days": 23,
+   "conversion_usd_median": 1200,
+   "conversions": 23,
+   "days": 32,
+   "days_positive": 19,
+   "edge_bps_vs_fair": {
+    "ask": 0.99,
+    "bid": 6.19
+   },
+   "end_state_usd": {
+    "coin": 1350,
+    "gbp_in_usd": 31,
+    "usd": 235
+   },
+   "fills_a_day": {
+    "ask": 11.5,
+    "bid": 10.6
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -6.314,
+   "orders_a_day_max": 507,
+   "orders_a_day_mean": 196.5,
+   "usd_a_day": 0.173,
+   "usd_a_day_halves": [
+    -0.351,
+    0.698
+   ],
+   "usd_filled_a_day": {
+    "ask": 763,
+    "bid": 805
+   },
+   "waiting_for_app_max_usd": 1582,
+   "worst_day": -3.466
+  },
+  "USDC|reverse|improve|C161|fx0|ask_live_exit_plus1": {
+   "best_day": 0.626,
+   "boot_all": [
+    0.029,
+    0.15,
+    0.0027
+   ],
+   "boot_first_half": [
+    0.005,
+    0.06,
+    0.0281
+   ],
+   "boot_second_half": [
+    0.039,
+    0.243,
+    0.0052
+   ],
+   "bot_prints_at_our_price": 5,
+   "coin_held_max_usd": 160,
+   "conversion_days": 20,
+   "conversion_usd_median": 135,
+   "conversions": 20,
+   "days": 32,
+   "days_positive": 22,
+   "edge_bps_vs_fair": {
+    "ask": 2.7,
+    "bid": 6.89
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 39,
+    "usd": 124
+   },
+   "fills_a_day": {
+    "ask": 2.3,
+    "bid": 2.4
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -0.187,
+   "orders_a_day_max": 244,
+   "orders_a_day_mean": 53.6,
+   "usd_a_day": 0.086,
+   "usd_a_day_halves": [
+    0.033,
+    0.138
+   ],
+   "usd_filled_a_day": {
+    "ask": 75,
+    "bid": 75
+   },
+   "waiting_for_app_max_usd": 160,
+   "worst_day": -0.158
+  },
+  "USDC|reverse|improve|C161|fx0|daily_incl_weekend": {
+   "best_day": 0.614,
+   "boot_all": [
+    0.047,
+    0.175,
+    0.001
+   ],
+   "boot_first_half": [
+    0.008,
+    0.096,
+    0.0263
+   ],
+   "boot_second_half": [
+    0.061,
+    0.27,
+    0.0037
+   ],
+   "bot_prints_at_our_price": 11,
+   "coin_held_max_usd": 160,
+   "conversion_days": 31,
+   "conversion_usd_median": 160,
+   "conversions": 31,
+   "days": 32,
+   "days_positive": 25,
+   "edge_bps_vs_fair": {
+    "ask": 0.8,
+    "bid": 6.55
+   },
+   "end_state_usd": {
+    "coin": 24,
+    "gbp_in_usd": 4,
+    "usd": 136
+   },
+   "fills_a_day": {
+    "ask": 4.7,
+    "bid": 4.4
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -0.269,
+   "orders_a_day_max": 264,
+   "orders_a_day_mean": 98.8,
+   "usd_a_day": 0.109,
+   "usd_a_day_halves": [
+    0.054,
+    0.165
+   ],
+   "usd_filled_a_day": {
+    "ask": 146,
+    "bid": 147
+   },
+   "waiting_for_app_max_usd": 162,
+   "worst_day": -0.24
+  },
+  "USDC|reverse|improve|C161|fx0|daily_weekdays": {
+   "best_day": 0.611,
+   "boot_all": [
+    0.029,
+    0.15,
+    0.0029
+   ],
+   "boot_first_half": [
+    -0.013,
+    0.061,
+    0.1529
+   ],
+   "boot_second_half": [
+    0.055,
+    0.247,
+    0.0027
+   ],
+   "bot_prints_at_our_price": 9,
+   "coin_held_max_usd": 160,
+   "conversion_days": 23,
+   "conversion_usd_median": 160,
+   "conversions": 23,
+   "days": 32,
+   "days_positive": 22,
+   "edge_bps_vs_fair": {
+    "ask": 0.7,
+    "bid": 6.6
+   },
+   "end_state_usd": {
+    "coin": 24,
+    "gbp_in_usd": 4,
+    "usd": 136
+   },
+   "fills_a_day": {
+    "ask": 3.6,
+    "bid": 3.5
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -0.246,
+   "orders_a_day_max": 264,
+   "orders_a_day_mean": 83.8,
+   "usd_a_day": 0.086,
+   "usd_a_day_halves": [
+    0.023,
+    0.149
+   ],
+   "usd_filled_a_day": {
+    "ask": 113,
+    "bid": 114
+   },
+   "waiting_for_app_max_usd": 162,
+   "worst_day": -0.239
+  },
+  "USDC|reverse|improve|C161|fx0|mb2": {
+   "best_day": 0.593,
+   "boot_all": [
+    0.033,
+    0.152,
+    0.0025
+   ],
+   "boot_first_half": [
+    -0.019,
+    0.061,
+    0.2128
+   ],
+   "boot_second_half": [
+    0.068,
+    0.251,
+    0.0004
+   ],
+   "bot_prints_at_our_price": 8,
+   "coin_held_max_usd": 160,
+   "conversion_days": 23,
+   "conversion_usd_median": 160,
+   "conversions": 23,
+   "days": 32,
+   "days_positive": 22,
+   "edge_bps_vs_fair": {
+    "ask": 0.74,
+    "bid": 7.08
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 44,
+    "usd": 120
+   },
+   "fills_a_day": {
+    "ask": 3.6,
+    "bid": 3.3
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -0.351,
+   "orders_a_day_max": 477,
+   "orders_a_day_mean": 95.1,
+   "usd_a_day": 0.089,
+   "usd_a_day_halves": [
+    0.02,
+    0.158
+   ],
+   "usd_filled_a_day": {
+    "ask": 112,
+    "bid": 112
+   },
+   "waiting_for_app_max_usd": 162,
+   "worst_day": -0.234
+  },
+  "USDC|reverse|improve|C161|fx0|twice_weekdays": {
+   "best_day": 0.569,
+   "boot_all": [
+    0.073,
+    0.214,
+    0.0
+   ],
+   "boot_first_half": [
+    0.019,
+    0.1,
+    0.0058
+   ],
+   "boot_second_half": [
+    0.112,
+    0.333,
+    0.0
+   ],
+   "bot_prints_at_our_price": 12,
+   "coin_held_max_usd": 164,
+   "conversion_days": 23,
+   "conversion_usd_median": 144,
+   "conversions": 46,
+   "days": 32,
+   "days_positive": 22,
+   "edge_bps_vs_fair": {
+    "ask": 0.69,
+    "bid": 6.14
+   },
+   "end_state_usd": {
+    "coin": 24,
+    "gbp_in_usd": 45,
+    "usd": 96
+   },
+   "fills_a_day": {
+    "ask": 5.6,
+    "bid": 5.3
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -0.125,
+   "orders_a_day_max": 427,
+   "orders_a_day_mean": 110.8,
+   "usd_a_day": 0.14,
+   "usd_a_day_halves": [
+    0.058,
+    0.221
+   ],
+   "usd_filled_a_day": {
+    "ask": 182,
+    "bid": 183
+   },
+   "waiting_for_app_max_usd": 164,
+   "worst_day": -0.125
+  },
+  "USDC|reverse|improve|C161|fx0|weekly": {
+   "best_day": 0.336,
+   "boot_all": [
+    0.005,
+    0.051,
+    0.0181
+   ],
+   "boot_first_half": [
+    -0.007,
+    0.038,
+    0.146
+   ],
+   "boot_second_half": [
+    0.012,
+    0.072,
+    0.0005
+   ],
+   "bot_prints_at_our_price": 0,
+   "coin_held_max_usd": 160,
+   "conversion_days": 5,
+   "conversion_usd_median": 160,
+   "conversions": 5,
+   "days": 32,
+   "days_positive": 20,
+   "edge_bps_vs_fair": {
+    "ask": 0.49,
+    "bid": 6.91
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 2,
+    "usd": 160
+   },
+   "fills_a_day": {
+    "ask": 0.9,
+    "bid": 0.9
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -0.161,
+   "orders_a_day_max": 144,
+   "orders_a_day_mean": 14.8,
+   "usd_a_day": 0.027,
+   "usd_a_day_halves": [
+    0.014,
+    0.039
+   ],
+   "usd_filled_a_day": {
+    "ask": 29,
+    "bid": 29
+   },
+   "waiting_for_app_max_usd": 160,
+   "worst_day": -0.158
+  },
+  "USDC|reverse|improve|C161|fx10|daily_weekdays": {
+   "best_day": 0.439,
+   "boot_all": [
+    -0.086,
+    0.037,
+    0.7687
+   ],
+   "boot_first_half": [
+    -0.139,
+    -0.039,
+    0.9999
+   ],
+   "boot_second_half": [
+    -0.057,
+    0.127,
+    0.2841
+   ],
+   "bot_prints_at_our_price": 7,
+   "coin_held_max_usd": 160,
+   "conversion_days": 23,
+   "conversion_usd_median": 149,
+   "conversions": 23,
+   "days": 32,
+   "days_positive": 12,
+   "edge_bps_vs_fair": {
+    "ask": 0.72,
+    "bid": 6.58
+   },
+   "end_state_usd": {
+    "coin": 24,
+    "gbp_in_usd": 0,
+    "usd": 136
+   },
+   "fills_a_day": {
+    "ask": 3.4,
+    "bid": 3.3
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -1.597,
+   "orders_a_day_max": 217,
+   "orders_a_day_mean": 76.9,
+   "usd_a_day": -0.026,
+   "usd_a_day_halves": [
+    -0.086,
+    0.034
+   ],
+   "usd_filled_a_day": {
+    "ask": 107,
+    "bid": 107
+   },
+   "waiting_for_app_max_usd": 160,
+   "worst_day": -0.398
+  },
+  "USDC|reverse|improve|C161|fx25|daily_weekdays": {
+   "best_day": 0.32,
+   "boot_all": [
+    -0.225,
+    -0.097,
+    1.0
+   ],
+   "boot_first_half": [
+    -0.291,
+    -0.133,
+    1.0
+   ],
+   "boot_second_half": [
+    -0.203,
+    -0.025,
+    0.9849
+   ],
+   "bot_prints_at_our_price": 7,
+   "coin_held_max_usd": 160,
+   "conversion_days": 23,
+   "conversion_usd_median": 120,
+   "conversions": 23,
+   "days": 32,
+   "days_positive": 7,
+   "edge_bps_vs_fair": {
+    "ask": 0.75,
+    "bid": 6.48
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 36,
+    "usd": 120
+   },
+   "fills_a_day": {
+    "ask": 3.1,
+    "bid": 2.9
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -5.363,
+   "orders_a_day_max": 217,
+   "orders_a_day_mean": 69.7,
+   "usd_a_day": -0.161,
+   "usd_a_day_halves": [
+    -0.21,
+    -0.112
+   ],
+   "usd_filled_a_day": {
+    "ask": 95,
+    "bid": 95
+   },
+   "waiting_for_app_max_usd": 160,
+   "worst_day": -0.616
+  },
+  "USDC|reverse|improve|C161|fx5|daily_weekdays": {
+   "best_day": 0.524,
+   "boot_all": [
+    -0.031,
+    0.09,
+    0.2451
+   ],
+   "boot_first_half": [
+    -0.079,
+    -0.004,
+    0.9643
+   ],
+   "boot_second_half": [
+    0.002,
+    0.188,
+    0.0457
+   ],
+   "bot_prints_at_our_price": 8,
+   "coin_held_max_usd": 160,
+   "conversion_days": 23,
+   "conversion_usd_median": 160,
+   "conversions": 23,
+   "days": 32,
+   "days_positive": 16,
+   "edge_bps_vs_fair": {
+    "ask": 0.7,
+    "bid": 6.65
+   },
+   "end_state_usd": {
+    "coin": 24,
+    "gbp_in_usd": 2,
+    "usd": 136
+   },
+   "fills_a_day": {
+    "ask": 3.6,
+    "bid": 3.4
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -0.916,
+   "orders_a_day_max": 264,
+   "orders_a_day_mean": 82.9,
+   "usd_a_day": 0.027,
+   "usd_a_day_halves": [
+    -0.04,
+    0.093
+   ],
+   "usd_filled_a_day": {
+    "ask": 112,
+    "bid": 112
+   },
+   "waiting_for_app_max_usd": 160,
+   "worst_day": -0.316
+  },
+  "USDC|reverse|improve|C805|fx0|ask_live_exit_plus1": {
+   "best_day": 2.671,
+   "boot_all": [
+    0.03,
+    0.571,
+    0.0286
+   ],
+   "boot_first_half": [
+    -0.082,
+    0.159,
+    0.2327
+   ],
+   "boot_second_half": [
+    0.073,
+    0.979,
+    0.0226
+   ],
+   "bot_prints_at_our_price": 5,
+   "coin_held_max_usd": 805,
+   "conversion_days": 20,
+   "conversion_usd_median": 445,
+   "conversions": 20,
+   "days": 32,
+   "days_positive": 19,
+   "edge_bps_vs_fair": {
+    "ask": 3.05,
+    "bid": 7.03
+   },
+   "end_state_usd": {
+    "coin": 626,
+    "gbp_in_usd": 9,
+    "usd": 178
+   },
+   "fills_a_day": {
+    "ask": 4.1,
+    "bid": 3.9
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -1.192,
+   "orders_a_day_max": 299,
+   "orders_a_day_mean": 73.1,
+   "usd_a_day": 0.28,
+   "usd_a_day_halves": [
+    0.049,
+    0.511
+   ],
+   "usd_filled_a_day": {
+    "ask": 262,
+    "bid": 281
+   },
+   "waiting_for_app_max_usd": 798,
+   "worst_day": -1.192
+  },
+  "USDC|reverse|improve|C805|fx0|daily_incl_weekend": {
+   "best_day": 2.901,
+   "boot_all": [
+    0.233,
+    0.793,
+    0.0002
+   ],
+   "boot_first_half": [
+    0.077,
+    0.467,
+    0.0075
+   ],
+   "boot_second_half": [
+    0.277,
+    1.206,
+    0.0035
+   ],
+   "bot_prints_at_our_price": 18,
+   "coin_held_max_usd": 788,
+   "conversion_days": 31,
+   "conversion_usd_median": 725,
+   "conversions": 31,
+   "days": 32,
+   "days_positive": 24,
+   "edge_bps_vs_fair": {
+    "ask": 0.89,
+    "bid": 6.72
+   },
+   "end_state_usd": {
+    "coin": 553,
+    "gbp_in_usd": 33,
+    "usd": 235
+   },
+   "fills_a_day": {
+    "ask": 9.9,
+    "bid": 8.2
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -1.085,
+   "orders_a_day_max": 360,
+   "orders_a_day_mean": 149.1,
+   "usd_a_day": 0.502,
+   "usd_a_day_halves": [
+    0.264,
+    0.739
+   ],
+   "usd_filled_a_day": {
+    "ask": 622,
+    "bid": 639
+   },
+   "waiting_for_app_max_usd": 806,
+   "worst_day": -0.849
+  },
+  "USDC|reverse|improve|C805|fx0|daily_weekdays": {
+   "best_day": 3.072,
+   "boot_all": [
+    0.105,
+    0.692,
+    0.0084
+   ],
+   "boot_first_half": [
+    -0.109,
+    0.219,
+    0.3034
+   ],
+   "boot_second_half": [
+    0.243,
+    1.183,
+    0.0039
+   ],
+   "bot_prints_at_our_price": 12,
+   "coin_held_max_usd": 788,
+   "conversion_days": 23,
+   "conversion_usd_median": 728,
+   "conversions": 23,
+   "days": 32,
+   "days_positive": 19,
+   "edge_bps_vs_fair": {
+    "ask": 0.78,
+    "bid": 6.45
+   },
+   "end_state_usd": {
+    "coin": 553,
+    "gbp_in_usd": 29,
+    "usd": 235
+   },
+   "fills_a_day": {
+    "ask": 7.7,
+    "bid": 6.6
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -1.631,
+   "orders_a_day_max": 360,
+   "orders_a_day_mean": 131.8,
+   "usd_a_day": 0.377,
+   "usd_a_day_halves": [
+    0.053,
+    0.701
+   ],
+   "usd_filled_a_day": {
+    "ask": 490,
+    "bid": 507
+   },
+   "waiting_for_app_max_usd": 806,
+   "worst_day": -1.157
+  },
+  "USDC|reverse|improve|C805|fx0|mb2": {
+   "best_day": 3.053,
+   "boot_all": [
+    0.126,
+    0.708,
+    0.005
+   ],
+   "boot_first_half": [
+    -0.132,
+    0.209,
+    0.3483
+   ],
+   "boot_second_half": [
+    0.314,
+    1.214,
+    0.0012
+   ],
+   "bot_prints_at_our_price": 11,
+   "coin_held_max_usd": 745,
+   "conversion_days": 23,
+   "conversion_usd_median": 727,
+   "conversions": 23,
+   "days": 32,
+   "days_positive": 19,
+   "edge_bps_vs_fair": {
+    "ask": 0.82,
+    "bid": 6.93
+   },
+   "end_state_usd": {
+    "coin": 270,
+    "gbp_in_usd": 313,
+    "usd": 235
+   },
+   "fills_a_day": {
+    "ask": 7.8,
+    "bid": 6.4
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -1.844,
+   "orders_a_day_max": 551,
+   "orders_a_day_mean": 144.3,
+   "usd_a_day": 0.398,
+   "usd_a_day_halves": [
+    0.04,
+    0.757
+   ],
+   "usd_filled_a_day": {
+    "ask": 492,
+    "bid": 500
+   },
+   "waiting_for_app_max_usd": 806,
+   "worst_day": -1.304
+  },
+  "USDC|reverse|improve|C805|fx0|twice_weekdays": {
+   "best_day": 3.168,
+   "boot_all": [
+    0.235,
+    0.883,
+    0.0004
+   ],
+   "boot_first_half": [
+    -0.024,
+    0.396,
+    0.071
+   ],
+   "boot_second_half": [
+    0.391,
+    1.426,
+    0.0011
+   ],
+   "bot_prints_at_our_price": 16,
+   "coin_held_max_usd": 804,
+   "conversion_days": 23,
+   "conversion_usd_median": 495,
+   "conversions": 46,
+   "days": 32,
+   "days_positive": 22,
+   "edge_bps_vs_fair": {
+    "ask": 0.87,
+    "bid": 5.87
+   },
+   "end_state_usd": {
+    "coin": 508,
+    "gbp_in_usd": 136,
+    "usd": 178
+   },
+   "fills_a_day": {
+    "ask": 10.0,
+    "bid": 8.8
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -1.084,
+   "orders_a_day_max": 487,
+   "orders_a_day_mean": 182.0,
+   "usd_a_day": 0.543,
+   "usd_a_day_halves": [
+    0.185,
+    0.901
+   ],
+   "usd_filled_a_day": {
+    "ask": 654,
+    "bid": 669
+   },
+   "waiting_for_app_max_usd": 813,
+   "worst_day": -1.084
+  },
+  "USDC|reverse|improve|C805|fx0|weekly": {
+   "best_day": 1.81,
+   "boot_all": [
+    -0.065,
+    0.198,
+    0.2453
+   ],
+   "boot_first_half": [
+    -0.134,
+    0.062,
+    0.6797
+   ],
+   "boot_second_half": [
+    -0.044,
+    0.365,
+    0.1313
+   ],
+   "bot_prints_at_our_price": 1,
+   "coin_held_max_usd": 686,
+   "conversion_days": 5,
+   "conversion_usd_median": 725,
+   "conversions": 5,
+   "days": 32,
+   "days_positive": 18,
+   "edge_bps_vs_fair": {
+    "ask": 0.33,
+    "bid": 6.25
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 7,
+    "usd": 800
+   },
+   "fills_a_day": {
+    "ask": 2.1,
+    "bid": 1.8
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -1.423,
+   "orders_a_day_max": 212,
+   "orders_a_day_mean": 29.4,
+   "usd_a_day": 0.057,
+   "usd_a_day_halves": [
+    -0.029,
+    0.143
+   ],
+   "usd_filled_a_day": {
+    "ask": 136,
+    "bid": 136
+   },
+   "waiting_for_app_max_usd": 779,
+   "worst_day": -1.18
+  },
+  "USDC|reverse|improve|C805|fx10|daily_weekdays": {
+   "best_day": 2.285,
+   "boot_all": [
+    -0.364,
+    0.18,
+    0.7517
+   ],
+   "boot_first_half": [
+    -0.571,
+    -0.3,
+    1.0
+   ],
+   "boot_second_half": [
+    -0.209,
+    0.635,
+    0.2231
+   ],
+   "bot_prints_at_our_price": 12,
+   "coin_held_max_usd": 788,
+   "conversion_days": 23,
+   "conversion_usd_median": 727,
+   "conversions": 23,
+   "days": 32,
+   "days_positive": 14,
+   "edge_bps_vs_fair": {
+    "ask": 0.79,
+    "bid": 6.49
+   },
+   "end_state_usd": {
+    "coin": 553,
+    "gbp_in_usd": 13,
+    "usd": 235
+   },
+   "fills_a_day": {
+    "ask": 7.7,
+    "bid": 6.6
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -7.499,
+   "orders_a_day_max": 360,
+   "orders_a_day_mean": 129.9,
+   "usd_a_day": -0.11,
+   "usd_a_day_halves": [
+    -0.428,
+    0.208
+   ],
+   "usd_filled_a_day": {
+    "ask": 487,
+    "bid": 504
+   },
+   "waiting_for_app_max_usd": 801,
+   "worst_day": -1.866
+  },
+  "USDC|reverse|improve|C805|fx25|daily_weekdays": {
+   "best_day": 1.294,
+   "boot_all": [
+    -1.108,
+    -0.519,
+    1.0
+   ],
+   "boot_first_half": [
+    -1.422,
+    -0.885,
+    1.0
+   ],
+   "boot_second_half": [
+    -0.909,
+    -0.093,
+    0.9788
+   ],
+   "bot_prints_at_our_price": 12,
+   "coin_held_max_usd": 759,
+   "conversion_days": 23,
+   "conversion_usd_median": 725,
+   "conversions": 23,
+   "days": 32,
+   "days_positive": 5,
+   "edge_bps_vs_fair": {
+    "ask": 0.77,
+    "bid": 6.51
+   },
+   "end_state_usd": {
+    "coin": 453,
+    "gbp_in_usd": 90,
+    "usd": 235
+   },
+   "fills_a_day": {
+    "ask": 7.6,
+    "bid": 6.5
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -26.92,
+   "orders_a_day_max": 360,
+   "orders_a_day_mean": 129.0,
+   "usd_a_day": -0.821,
+   "usd_a_day_halves": [
+    -1.149,
+    -0.493
+   ],
+   "usd_filled_a_day": {
+    "ask": 483,
+    "bid": 496
+   },
+   "waiting_for_app_max_usd": 800,
+   "worst_day": -2.927
+  },
+  "USDC|reverse|improve|C805|fx5|daily_weekdays": {
+   "best_day": 2.678,
+   "boot_all": [
+    -0.123,
+    0.433,
+    0.2232
+   ],
+   "boot_first_half": [
+    -0.325,
+    -0.057,
+    0.9938
+   ],
+   "boot_second_half": [
+    0.025,
+    0.907,
+    0.0406
+   ],
+   "bot_prints_at_our_price": 12,
+   "coin_held_max_usd": 788,
+   "conversion_days": 23,
+   "conversion_usd_median": 728,
+   "conversions": 23,
+   "days": 32,
+   "days_positive": 16,
+   "edge_bps_vs_fair": {
+    "ask": 0.78,
+    "bid": 6.45
+   },
+   "end_state_usd": {
+    "coin": 553,
+    "gbp_in_usd": 21,
+    "usd": 235
+   },
+   "fills_a_day": {
+    "ask": 7.7,
+    "bid": 6.6
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -3.753,
+   "orders_a_day_max": 360,
+   "orders_a_day_mean": 131.8,
+   "usd_a_day": 0.135,
+   "usd_a_day_halves": [
+    -0.188,
+    0.458
+   ],
+   "usd_filled_a_day": {
+    "ask": 490,
+    "bid": 507
+   },
+   "waiting_for_app_max_usd": 806,
+   "worst_day": -1.512
+  },
+  "USDC|reverse|join|C1610|fx0|daily_weekdays": {
+   "best_day": 3.5,
+   "boot_all": [
+    -0.072,
+    0.533,
+    0.1084
+   ],
+   "boot_first_half": [
+    -0.312,
+    0.425,
+    0.4112
+   ],
+   "boot_second_half": [
+    -0.077,
+    0.864,
+    0.0872
+   ],
+   "bot_prints_at_our_price": 20,
+   "coin_held_max_usd": 1544,
+   "conversion_days": 19,
+   "conversion_usd_median": 300,
+   "conversions": 19,
+   "days": 32,
+   "days_positive": 16,
+   "edge_bps_vs_fair": {
+    "ask": 1.19,
+    "bid": 5.63
+   },
+   "end_state_usd": {
+    "coin": 1542,
+    "gbp_in_usd": 75,
+    "usd": 0
+   },
+   "fills_a_day": {
+    "ask": 2.8,
+    "bid": 3.7
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -2.895,
+   "orders_a_day_max": 609,
+   "orders_a_day_mean": 223.7,
+   "usd_a_day": 0.227,
+   "usd_a_day_halves": [
+    0.054,
+    0.4
+   ],
+   "usd_filled_a_day": {
+    "ask": 236,
+    "bid": 285
+   },
+   "waiting_for_app_max_usd": 787,
+   "worst_day": -1.85
+  },
+  "USDC|reverse|join|C1610|fx10|daily_weekdays": {
+   "best_day": 3.401,
+   "boot_all": [
+    -0.277,
+    0.263,
+    0.5335
+   ],
+   "boot_first_half": [
+    -0.551,
+    0.185,
+    0.8166
+   ],
+   "boot_second_half": [
+    -0.236,
+    0.562,
+    0.2349
+   ],
+   "bot_prints_at_our_price": 20,
+   "coin_held_max_usd": 1544,
+   "conversion_days": 19,
+   "conversion_usd_median": 300,
+   "conversions": 19,
+   "days": 32,
+   "days_positive": 15,
+   "edge_bps_vs_fair": {
+    "ask": 1.19,
+    "bid": 5.63
+   },
+   "end_state_usd": {
+    "coin": 1542,
+    "gbp_in_usd": 68,
+    "usd": 0
+   },
+   "fills_a_day": {
+    "ask": 2.8,
+    "bid": 3.7
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -4.688,
+   "orders_a_day_max": 609,
+   "orders_a_day_mean": 223.7,
+   "usd_a_day": -0.01,
+   "usd_a_day_halves": [
+    -0.196,
+    0.176
+   ],
+   "usd_filled_a_day": {
+    "ask": 236,
+    "bid": 285
+   },
+   "waiting_for_app_max_usd": 787,
+   "worst_day": -2.3
+  },
+  "USDC|reverse|join|C1610|fx25|daily_weekdays": {
+   "best_day": 3.251,
+   "boot_all": [
+    -0.607,
+    -0.101,
+    0.9884
+   ],
+   "boot_first_half": [
+    -0.949,
+    -0.147,
+    0.9825
+   ],
+   "boot_second_half": [
+    -0.512,
+    0.187,
+    0.7723
+   ],
+   "bot_prints_at_our_price": 20,
+   "coin_held_max_usd": 1544,
+   "conversion_days": 19,
+   "conversion_usd_median": 300,
+   "conversions": 19,
+   "days": 32,
+   "days_positive": 10,
+   "edge_bps_vs_fair": {
+    "ask": 1.19,
+    "bid": 5.63
+   },
+   "end_state_usd": {
+    "coin": 1542,
+    "gbp_in_usd": 56,
+    "usd": 0
+   },
+   "fills_a_day": {
+    "ask": 2.8,
+    "bid": 3.7
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -13.471,
+   "orders_a_day_max": 609,
+   "orders_a_day_mean": 223.7,
+   "usd_a_day": -0.365,
+   "usd_a_day_halves": [
+    -0.57,
+    -0.159
+   ],
+   "usd_filled_a_day": {
+    "ask": 236,
+    "bid": 285
+   },
+   "waiting_for_app_max_usd": 787,
+   "worst_day": -3.221
+  },
+  "USDC|reverse|join|C1610|fx5|daily_weekdays": {
+   "best_day": 3.451,
+   "boot_all": [
+    -0.173,
+    0.396,
+    0.2688
+   ],
+   "boot_first_half": [
+    -0.429,
+    0.305,
+    0.6392
+   ],
+   "boot_second_half": [
+    -0.156,
+    0.706,
+    0.1421
+   ],
+   "bot_prints_at_our_price": 20,
+   "coin_held_max_usd": 1544,
+   "conversion_days": 19,
+   "conversion_usd_median": 300,
+   "conversions": 19,
+   "days": 32,
+   "days_positive": 16,
+   "edge_bps_vs_fair": {
+    "ask": 1.19,
+    "bid": 5.63
+   },
+   "end_state_usd": {
+    "coin": 1542,
+    "gbp_in_usd": 71,
+    "usd": 0
+   },
+   "fills_a_day": {
+    "ask": 2.8,
+    "bid": 3.7
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -3.168,
+   "orders_a_day_max": 609,
+   "orders_a_day_mean": 223.7,
+   "usd_a_day": 0.108,
+   "usd_a_day_halves": [
+    -0.071,
+    0.288
+   ],
+   "usd_filled_a_day": {
+    "ask": 236,
+    "bid": 285
+   },
+   "waiting_for_app_max_usd": 787,
+   "worst_day": -1.992
+  },
+  "USDC|reverse|join|C161|fx0|daily_weekdays": {
+   "best_day": 0.61,
+   "boot_all": [
+    -0.001,
+    0.123,
+    0.0544
+   ],
+   "boot_first_half": [
+    -0.053,
+    0.082,
+    0.4015
+   ],
+   "boot_second_half": [
+    0.008,
+    0.203,
+    0.037
+   ],
+   "bot_prints_at_our_price": 17,
+   "coin_held_max_usd": 160,
+   "conversion_days": 19,
+   "conversion_usd_median": 120,
+   "conversions": 19,
+   "days": 32,
+   "days_positive": 18,
+   "edge_bps_vs_fair": {
+    "ask": 1.27,
+    "bid": 5.61
+   },
+   "end_state_usd": {
+    "coin": 134,
+    "gbp_in_usd": 29,
+    "usd": 0
+   },
+   "fills_a_day": {
+    "ask": 2.0,
+    "bid": 2.1
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -0.465,
+   "orders_a_day_max": 471,
+   "orders_a_day_mean": 145.8,
+   "usd_a_day": 0.058,
+   "usd_a_day_halves": [
+    0.012,
+    0.104
+   ],
+   "usd_filled_a_day": {
+    "ask": 68,
+    "bid": 72
+   },
+   "waiting_for_app_max_usd": 160,
+   "worst_day": -0.319
+  },
+  "USDC|reverse|join|C161|fx10|daily_weekdays": {
+   "best_day": 0.448,
+   "boot_all": [
+    -0.061,
+    0.044,
+    0.6262
+   ],
+   "boot_first_half": [
+    -0.12,
+    0.001,
+    0.9484
+   ],
+   "boot_second_half": [
+    -0.036,
+    0.118,
+    0.1884
+   ],
+   "bot_prints_at_our_price": 17,
+   "coin_held_max_usd": 160,
+   "conversion_days": 19,
+   "conversion_usd_median": 120,
+   "conversions": 19,
+   "days": 32,
+   "days_positive": 14,
+   "edge_bps_vs_fair": {
+    "ask": 1.27,
+    "bid": 5.61
+   },
+   "end_state_usd": {
+    "coin": 134,
+    "gbp_in_usd": 26,
+    "usd": 0
+   },
+   "fills_a_day": {
+    "ask": 2.0,
+    "bid": 2.1
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -1.001,
+   "orders_a_day_max": 471,
+   "orders_a_day_mean": 145.8,
+   "usd_a_day": -0.01,
+   "usd_a_day_halves": [
+    -0.062,
+    0.042
+   ],
+   "usd_filled_a_day": {
+    "ask": 68,
+    "bid": 72
+   },
+   "waiting_for_app_max_usd": 160,
+   "worst_day": -0.476
+  },
+  "USDC|reverse|join|C161|fx25|daily_weekdays": {
+   "best_day": 0.314,
+   "boot_all": [
+    -0.134,
+    -0.036,
+    0.998
+   ],
+   "boot_first_half": [
+    -0.201,
+    -0.1,
+    1.0
+   ],
+   "boot_second_half": [
+    -0.094,
+    0.047,
+    0.6743
+   ],
+   "bot_prints_at_our_price": 18,
+   "coin_held_max_usd": 160,
+   "conversion_days": 19,
+   "conversion_usd_median": 120,
+   "conversions": 19,
+   "days": 32,
+   "days_positive": 13,
+   "edge_bps_vs_fair": {
+    "ask": 1.25,
+    "bid": 5.64
+   },
+   "end_state_usd": {
+    "coin": 134,
+    "gbp_in_usd": 24,
+    "usd": 0
+   },
+   "fills_a_day": {
+    "ask": 1.8,
+    "bid": 1.8
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -2.806,
+   "orders_a_day_max": 417,
+   "orders_a_day_mean": 130.4,
+   "usd_a_day": -0.086,
+   "usd_a_day_halves": [
+    -0.15,
+    -0.021
+   ],
+   "usd_filled_a_day": {
+    "ask": 58,
+    "bid": 63
+   },
+   "waiting_for_app_max_usd": 136,
+   "worst_day": -0.593
+  },
+  "USDC|reverse|join|C161|fx5|daily_weekdays": {
+   "best_day": 0.529,
+   "boot_all": [
+    -0.031,
+    0.083,
+    0.2549
+   ],
+   "boot_first_half": [
+    -0.086,
+    0.041,
+    0.7509
+   ],
+   "boot_second_half": [
+    -0.013,
+    0.16,
+    0.0873
+   ],
+   "bot_prints_at_our_price": 17,
+   "coin_held_max_usd": 160,
+   "conversion_days": 19,
+   "conversion_usd_median": 120,
+   "conversions": 19,
+   "days": 32,
+   "days_positive": 16,
+   "edge_bps_vs_fair": {
+    "ask": 1.27,
+    "bid": 5.61
+   },
+   "end_state_usd": {
+    "coin": 134,
+    "gbp_in_usd": 28,
+    "usd": 0
+   },
+   "fills_a_day": {
+    "ask": 2.0,
+    "bid": 2.1
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -0.624,
+   "orders_a_day_max": 471,
+   "orders_a_day_mean": 145.8,
+   "usd_a_day": 0.024,
+   "usd_a_day_halves": [
+    -0.025,
+    0.073
+   ],
+   "usd_filled_a_day": {
+    "ask": 68,
+    "bid": 72
+   },
+   "waiting_for_app_max_usd": 160,
+   "worst_day": -0.398
+  },
+  "USDC|reverse|join|C805|fx0|daily_weekdays": {
+   "best_day": 1.66,
+   "boot_all": [
+    -0.006,
+    0.415,
+    0.0566
+   ],
+   "boot_first_half": [
+    -0.19,
+    0.281,
+    0.3905
+   ],
+   "boot_second_half": [
+    0.024,
+    0.689,
+    0.0383
+   ],
+   "bot_prints_at_our_price": 20,
+   "coin_held_max_usd": 798,
+   "conversion_days": 19,
+   "conversion_usd_median": 300,
+   "conversions": 19,
+   "days": 32,
+   "days_positive": 18,
+   "edge_bps_vs_fair": {
+    "ask": 1.23,
+    "bid": 5.74
+   },
+   "end_state_usd": {
+    "coin": 797,
+    "gbp_in_usd": 14,
+    "usd": 0
+   },
+   "fills_a_day": {
+    "ask": 2.7,
+    "bid": 3.1
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -1.415,
+   "orders_a_day_max": 574,
+   "orders_a_day_mean": 188.9,
+   "usd_a_day": 0.199,
+   "usd_a_day_halves": [
+    0.043,
+    0.355
+   ],
+   "usd_filled_a_day": {
+    "ask": 215,
+    "bid": 239
+   },
+   "waiting_for_app_max_usd": 688,
+   "worst_day": -1.157
+  },
+  "USDC|reverse|join|C805|fx10|daily_weekdays": {
+   "best_day": 1.254,
+   "boot_all": [
+    -0.186,
+    0.176,
+    0.5384
+   ],
+   "boot_first_half": [
+    -0.424,
+    0.034,
+    0.9215
+   ],
+   "boot_second_half": [
+    -0.113,
+    0.45,
+    0.1602
+   ],
+   "bot_prints_at_our_price": 20,
+   "coin_held_max_usd": 798,
+   "conversion_days": 19,
+   "conversion_usd_median": 300,
+   "conversions": 19,
+   "days": 32,
+   "days_positive": 15,
+   "edge_bps_vs_fair": {
+    "ask": 1.23,
+    "bid": 5.83
+   },
+   "end_state_usd": {
+    "coin": 797,
+    "gbp_in_usd": 8,
+    "usd": 0
+   },
+   "fills_a_day": {
+    "ask": 2.7,
+    "bid": 3.1
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -3.513,
+   "orders_a_day_max": 574,
+   "orders_a_day_mean": 193.1,
+   "usd_a_day": -0.009,
+   "usd_a_day_halves": [
+    -0.194,
+    0.175
+   ],
+   "usd_filled_a_day": {
+    "ask": 215,
+    "bid": 239
+   },
+   "waiting_for_app_max_usd": 688,
+   "worst_day": -1.882
+  },
+  "USDC|reverse|join|C805|fx25|daily_weekdays": {
+   "best_day": 1.203,
+   "boot_all": [
+    -0.505,
+    -0.167,
+    0.9994
+   ],
+   "boot_first_half": [
+    -0.762,
+    -0.295,
+    0.9999
+   ],
+   "boot_second_half": [
+    -0.413,
+    0.124,
+    0.8125
+   ],
+   "bot_prints_at_our_price": 20,
+   "coin_held_max_usd": 763,
+   "conversion_days": 19,
+   "conversion_usd_median": 300,
+   "conversions": 19,
+   "days": 32,
+   "days_positive": 10,
+   "edge_bps_vs_fair": {
+    "ask": 1.23,
+    "bid": 5.88
+   },
+   "end_state_usd": {
+    "coin": 697,
+    "gbp_in_usd": 97,
+    "usd": 0
+   },
+   "fills_a_day": {
+    "ask": 2.7,
+    "bid": 3.1
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -11.411,
+   "orders_a_day_max": 574,
+   "orders_a_day_mean": 192.8,
+   "usd_a_day": -0.339,
+   "usd_a_day_halves": [
+    -0.533,
+    -0.146
+   ],
+   "usd_filled_a_day": {
+    "ask": 215,
+    "bid": 236
+   },
+   "waiting_for_app_max_usd": 688,
+   "worst_day": -2.655
+  },
+  "USDC|reverse|join|C805|fx5|daily_weekdays": {
+   "best_day": 1.457,
+   "boot_all": [
+    -0.097,
+    0.291,
+    0.221
+   ],
+   "boot_first_half": [
+    -0.294,
+    0.157,
+    0.7029
+   ],
+   "boot_second_half": [
+    -0.048,
+    0.549,
+    0.0823
+   ],
+   "bot_prints_at_our_price": 20,
+   "coin_held_max_usd": 798,
+   "conversion_days": 19,
+   "conversion_usd_median": 300,
+   "conversions": 19,
+   "days": 32,
+   "days_positive": 18,
+   "edge_bps_vs_fair": {
+    "ask": 1.23,
+    "bid": 5.74
+   },
+   "end_state_usd": {
+    "coin": 797,
+    "gbp_in_usd": 11,
+    "usd": 0
+   },
+   "fills_a_day": {
+    "ask": 2.7,
+    "bid": 3.1
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -1.926,
+   "orders_a_day_max": 574,
+   "orders_a_day_mean": 188.9,
+   "usd_a_day": 0.091,
+   "usd_a_day_halves": [
+    -0.07,
+    0.253
+   ],
+   "usd_filled_a_day": {
+    "ask": 215,
+    "bid": 239
+   },
+   "waiting_for_app_max_usd": 688,
+   "worst_day": -1.416
+  },
+  "USDT|forward|improve|C1610|fx0|ask_live_exit_plus1": {
+   "best_day": 4.159,
+   "boot_all": [
+    0.269,
+    1.171,
+    0.0043
+   ],
+   "boot_first_half": [
+    0.035,
+    1.123,
+    0.0403
+   ],
+   "boot_second_half": [
+    0.169,
+    1.533,
+    0.0187
+   ],
+   "bot_prints_at_our_price": 4437,
+   "coin_held_max_usd": 1394,
+   "conversion_days": 22,
+   "conversion_usd_median": 1219,
+   "conversions": 22,
+   "days": 32,
+   "days_positive": 23,
+   "edge_bps_vs_fair": {
+    "ask": 7.24,
+    "bid": 2.36
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 499,
+    "usd": 1134
+   },
+   "fills_a_day": {
+    "ask": 13.1,
+    "bid": 12.6
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 25,
+   "max_drawdown": -2.753,
+   "orders_a_day_max": 650,
+   "orders_a_day_mean": 219.4,
+   "usd_a_day": 0.725,
+   "usd_a_day_halves": [
+    0.598,
+    0.852
+   ],
+   "usd_filled_a_day": {
+    "ask": 801,
+    "bid": 800
+   },
+   "waiting_for_app_max_usd": 1609,
+   "worst_day": -2.753
+  },
+  "USDT|forward|improve|C1610|fx0|daily_incl_weekend": {
+   "best_day": 4.301,
+   "boot_all": [
+    0.538,
+    1.501,
+    0.0003
+   ],
+   "boot_first_half": [
+    0.255,
+    1.329,
+    0.0063
+   ],
+   "boot_second_half": [
+    0.49,
+    2.007,
+    0.0006
+   ],
+   "bot_prints_at_our_price": 5869,
+   "coin_held_max_usd": 1242,
+   "conversion_days": 31,
+   "conversion_usd_median": 920,
+   "conversions": 31,
+   "days": 32,
+   "days_positive": 22,
+   "edge_bps_vs_fair": {
+    "ask": 5.12,
+    "bid": 2.21
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 499,
+    "usd": 1144
+   },
+   "fills_a_day": {
+    "ask": 16.9,
+    "bid": 15.5
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 237,
+   "max_drawdown": -2.46,
+   "orders_a_day_max": 612,
+   "orders_a_day_mean": 210.8,
+   "usd_a_day": 1.014,
+   "usd_a_day_halves": [
+    0.793,
+    1.235
+   ],
+   "usd_filled_a_day": {
+    "ask": 981,
+    "bid": 981
+   },
+   "waiting_for_app_max_usd": 1605,
+   "worst_day": -2.46
+  },
+  "USDT|forward|improve|C1610|fx0|daily_weekdays": {
+   "best_day": 4.301,
+   "boot_all": [
+    0.359,
+    1.435,
+    0.0023
+   ],
+   "boot_first_half": [
+    0.14,
+    1.307,
+    0.0202
+   ],
+   "boot_second_half": [
+    0.203,
+    1.936,
+    0.0166
+   ],
+   "bot_prints_at_our_price": 4571,
+   "coin_held_max_usd": 1242,
+   "conversion_days": 22,
+   "conversion_usd_median": 1378,
+   "conversions": 22,
+   "days": 32,
+   "days_positive": 22,
+   "edge_bps_vs_fair": {
+    "ask": 5.62,
+    "bid": 2.28
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 499,
+    "usd": 1140
+   },
+   "fills_a_day": {
+    "ask": 14.4,
+    "bid": 13.1
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 182,
+   "max_drawdown": -2.887,
+   "orders_a_day_max": 587,
+   "orders_a_day_mean": 187.7,
+   "usd_a_day": 0.891,
+   "usd_a_day_halves": [
+    0.728,
+    1.055
+   ],
+   "usd_filled_a_day": {
+    "ask": 841,
+    "bid": 840
+   },
+   "waiting_for_app_max_usd": 1615,
+   "worst_day": -2.887
+  },
+  "USDT|forward|improve|C1610|fx0|mb2": {
+   "best_day": 4.047,
+   "boot_all": [
+    0.025,
+    0.933,
+    0.0422
+   ],
+   "boot_first_half": [
+    -0.292,
+    0.959,
+    0.183
+   ],
+   "boot_second_half": [
+    0.005,
+    1.207,
+    0.0475
+   ],
+   "bot_prints_at_our_price": 3324,
+   "coin_held_max_usd": 873,
+   "conversion_days": 22,
+   "conversion_usd_median": 677,
+   "conversions": 22,
+   "days": 32,
+   "days_positive": 21,
+   "edge_bps_vs_fair": {
+    "ask": 5.54,
+    "bid": 3.93
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 313,
+    "usd": 1312
+   },
+   "fills_a_day": {
+    "ask": 9.4,
+    "bid": 8.5
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 145,
+   "max_drawdown": -4.843,
+   "orders_a_day_max": 553,
+   "orders_a_day_mean": 153.6,
+   "usd_a_day": 0.484,
+   "usd_a_day_halves": [
+    0.349,
+    0.618
+   ],
+   "usd_filled_a_day": {
+    "ask": 570,
+    "bid": 570
+   },
+   "waiting_for_app_max_usd": 1614,
+   "worst_day": -3.054
+  },
+  "USDT|forward|improve|C1610|fx0|twice_weekdays": {
+   "best_day": 4.832,
+   "boot_all": [
+    0.487,
+    1.27,
+    0.0001
+   ],
+   "boot_first_half": [
+    0.32,
+    1.398,
+    0.002
+   ],
+   "boot_second_half": [
+    0.341,
+    1.473,
+    0.0025
+   ],
+   "bot_prints_at_our_price": 5513,
+   "coin_held_max_usd": 1242,
+   "conversion_days": 23,
+   "conversion_usd_median": 626,
+   "conversions": 42,
+   "days": 32,
+   "days_positive": 24,
+   "edge_bps_vs_fair": {
+    "ask": 5.23,
+    "bid": 2.23
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 213,
+    "usd": 1425
+   },
+   "fills_a_day": {
+    "ask": 16.2,
+    "bid": 14.8
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 218,
+   "max_drawdown": -2.915,
+   "orders_a_day_max": 587,
+   "orders_a_day_mean": 201.4,
+   "usd_a_day": 0.873,
+   "usd_a_day_halves": [
+    0.839,
+    0.908
+   ],
+   "usd_filled_a_day": {
+    "ask": 951,
+    "bid": 951
+   },
+   "waiting_for_app_max_usd": 1594,
+   "worst_day": -2.915
+  },
+  "USDT|forward|improve|C1610|fx0|weekly": {
+   "best_day": 6.93,
+   "boot_all": [
+    -0.257,
+    1.162,
+    0.1627
+   ],
+   "boot_first_half": [
+    -0.746,
+    0.899,
+    0.4139
+   ],
+   "boot_second_half": [
+    -0.32,
+    1.917,
+    0.1329
+   ],
+   "bot_prints_at_our_price": 1324,
+   "coin_held_max_usd": 843,
+   "conversion_days": 5,
+   "conversion_usd_median": 1539,
+   "conversions": 5,
+   "days": 32,
+   "days_positive": 17,
+   "edge_bps_vs_fair": {
+    "ask": 5.37,
+    "bid": 2.67
+   },
+   "end_state_usd": {
+    "coin": 1,
+    "gbp_in_usd": 1570,
+    "usd": 53
+   },
+   "fills_a_day": {
+    "ask": 4.6,
+    "bid": 4.1
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 69,
+   "max_drawdown": -7.947,
+   "orders_a_day_max": 523,
+   "orders_a_day_mean": 63.2,
+   "usd_a_day": 0.436,
+   "usd_a_day_halves": [
+    0.107,
+    0.764
+   ],
+   "usd_filled_a_day": {
+    "ask": 291,
+    "bid": 290
+   },
+   "waiting_for_app_max_usd": 1575,
+   "worst_day": -7.947
+  },
+  "USDT|forward|improve|C1610|fx10|daily_weekdays": {
+   "best_day": 3.524,
+   "boot_all": [
+    -0.497,
+    0.611,
+    0.4153
+   ],
+   "boot_first_half": [
+    -0.848,
+    0.449,
+    0.6742
+   ],
+   "boot_second_half": [
+    -0.561,
+    1.129,
+    0.2801
+   ],
+   "bot_prints_at_our_price": 4545,
+   "coin_held_max_usd": 1242,
+   "conversion_days": 22,
+   "conversion_usd_median": 1378,
+   "conversions": 22,
+   "days": 32,
+   "days_positive": 21,
+   "edge_bps_vs_fair": {
+    "ask": 5.63,
+    "bid": 2.29
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 499,
+    "usd": 1113
+   },
+   "fills_a_day": {
+    "ask": 14.3,
+    "bid": 13.0
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 182,
+   "max_drawdown": -8.462,
+   "orders_a_day_max": 587,
+   "orders_a_day_mean": 187.4,
+   "usd_a_day": 0.063,
+   "usd_a_day_halves": [
+    -0.181,
+    0.307
+   ],
+   "usd_filled_a_day": {
+    "ask": 836,
+    "bid": 835
+   },
+   "waiting_for_app_max_usd": 1605,
+   "worst_day": -4.468
+  },
+  "USDT|forward|improve|C1610|fx25|daily_weekdays": {
+   "best_day": 3.516,
+   "boot_all": [
+    -1.799,
+    -0.496,
+    0.999
+   ],
+   "boot_first_half": [
+    -2.392,
+    -0.632,
+    0.9987
+   ],
+   "boot_second_half": [
+    -1.734,
+    0.067,
+    0.9314
+   ],
+   "bot_prints_at_our_price": 4474,
+   "coin_held_max_usd": 1242,
+   "conversion_days": 22,
+   "conversion_usd_median": 1379,
+   "conversions": 22,
+   "days": 32,
+   "days_positive": 17,
+   "edge_bps_vs_fair": {
+    "ask": 5.67,
+    "bid": 2.31
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 499,
+    "usd": 1075
+   },
+   "fills_a_day": {
+    "ask": 14.1,
+    "bid": 12.8
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 179,
+   "max_drawdown": -36.187,
+   "orders_a_day_max": 587,
+   "orders_a_day_mean": 184.9,
+   "usd_a_day": -1.131,
+   "usd_a_day_halves": [
+    -1.485,
+    -0.777
+   ],
+   "usd_filled_a_day": {
+    "ask": 823,
+    "bid": 823
+   },
+   "waiting_for_app_max_usd": 1573,
+   "worst_day": -6.422
+  },
+  "USDT|forward|improve|C1610|fx5|daily_weekdays": {
+   "best_day": 3.611,
+   "boot_all": [
+    -0.071,
+    1.011,
+    0.0754
+   ],
+   "boot_first_half": [
+    -0.345,
+    0.854,
+    0.2361
+   ],
+   "boot_second_half": [
+    -0.177,
+    1.53,
+    0.0972
+   ],
+   "bot_prints_at_our_price": 4559,
+   "coin_held_max_usd": 1242,
+   "conversion_days": 22,
+   "conversion_usd_median": 1378,
+   "conversions": 22,
+   "days": 32,
+   "days_positive": 21,
+   "edge_bps_vs_fair": {
+    "ask": 5.63,
+    "bid": 2.29
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 499,
+    "usd": 1126
+   },
+   "fills_a_day": {
+    "ask": 14.3,
+    "bid": 13.0
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 182,
+   "max_drawdown": -3.9,
+   "orders_a_day_max": 587,
+   "orders_a_day_mean": 187.6,
+   "usd_a_day": 0.474,
+   "usd_a_day_halves": [
+    0.266,
+    0.681
+   ],
+   "usd_filled_a_day": {
+    "ask": 836,
+    "bid": 836
+   },
+   "waiting_for_app_max_usd": 1605,
+   "worst_day": -3.677
+  },
+  "USDT|forward|improve|C161|fx0|ask_live_exit_plus1": {
+   "best_day": 0.843,
+   "boot_all": [
+    0.066,
+    0.227,
+    0.0005
+   ],
+   "boot_first_half": [
+    -0.011,
+    0.143,
+    0.0842
+   ],
+   "boot_second_half": [
+    0.089,
+    0.356,
+    0.0016
+   ],
+   "bot_prints_at_our_price": 1034,
+   "coin_held_max_usd": 160,
+   "conversion_days": 22,
+   "conversion_usd_median": 160,
+   "conversions": 22,
+   "days": 32,
+   "days_positive": 19,
+   "edge_bps_vs_fair": {
+    "ask": 7.07,
+    "bid": 3.0
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 163,
+    "usd": 3
+   },
+   "fills_a_day": {
+    "ask": 3.8,
+    "bid": 3.6
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 12,
+   "max_drawdown": -0.333,
+   "orders_a_day_max": 353,
+   "orders_a_day_mean": 107.9,
+   "usd_a_day": 0.142,
+   "usd_a_day_halves": [
+    0.065,
+    0.22
+   ],
+   "usd_filled_a_day": {
+    "ask": 108,
+    "bid": 108
+   },
+   "waiting_for_app_max_usd": 163,
+   "worst_day": -0.333
+  },
+  "USDT|forward|improve|C161|fx0|daily_incl_weekend": {
+   "best_day": 0.843,
+   "boot_all": [
+    0.086,
+    0.239,
+    0.0
+   ],
+   "boot_first_half": [
+    -0.008,
+    0.145,
+    0.0721
+   ],
+   "boot_second_half": [
+    0.134,
+    0.366,
+    0.0
+   ],
+   "bot_prints_at_our_price": 1683,
+   "coin_held_max_usd": 160,
+   "conversion_days": 31,
+   "conversion_usd_median": 160,
+   "conversions": 31,
+   "days": 32,
+   "days_positive": 23,
+   "edge_bps_vs_fair": {
+    "ask": 5.46,
+    "bid": 2.49
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 163,
+    "usd": 3
+   },
+   "fills_a_day": {
+    "ask": 5.6,
+    "bid": 5.0
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 88,
+   "max_drawdown": -0.333,
+   "orders_a_day_max": 353,
+   "orders_a_day_mean": 93.4,
+   "usd_a_day": 0.159,
+   "usd_a_day_halves": [
+    0.068,
+    0.249
+   ],
+   "usd_filled_a_day": {
+    "ask": 148,
+    "bid": 148
+   },
+   "waiting_for_app_max_usd": 163,
+   "worst_day": -0.333
+  },
+  "USDT|forward|improve|C161|fx0|daily_weekdays": {
+   "best_day": 0.843,
+   "boot_all": [
+    0.055,
+    0.213,
+    0.0016
+   ],
+   "boot_first_half": [
+    -0.023,
+    0.13,
+    0.1356
+   ],
+   "boot_second_half": [
+    0.078,
+    0.341,
+    0.0021
+   ],
+   "bot_prints_at_our_price": 1043,
+   "coin_held_max_usd": 160,
+   "conversion_days": 22,
+   "conversion_usd_median": 160,
+   "conversions": 22,
+   "days": 32,
+   "days_positive": 19,
+   "edge_bps_vs_fair": {
+    "ask": 5.59,
+    "bid": 3.0
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 163,
+    "usd": 2
+   },
+   "fills_a_day": {
+    "ask": 4.0,
+    "bid": 3.6
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 66,
+   "max_drawdown": -0.333,
+   "orders_a_day_max": 353,
+   "orders_a_day_mean": 85.8,
+   "usd_a_day": 0.13,
+   "usd_a_day_halves": [
+    0.053,
+    0.207
+   ],
+   "usd_filled_a_day": {
+    "ask": 108,
+    "bid": 108
+   },
+   "waiting_for_app_max_usd": 163,
+   "worst_day": -0.333
+  },
+  "USDT|forward|improve|C161|fx0|mb2": {
+   "best_day": 0.728,
+   "boot_all": [
+    0.027,
+    0.173,
+    0.0096
+   ],
+   "boot_first_half": [
+    -0.048,
+    0.079,
+    0.3411
+   ],
+   "boot_second_half": [
+    0.072,
+    0.289,
+    0.0018
+   ],
+   "bot_prints_at_our_price": 1047,
+   "coin_held_max_usd": 151,
+   "conversion_days": 22,
+   "conversion_usd_median": 144,
+   "conversions": 22,
+   "days": 32,
+   "days_positive": 21,
+   "edge_bps_vs_fair": {
+    "ask": 5.93,
+    "bid": 3.87
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 137,
+    "usd": 27
+   },
+   "fills_a_day": {
+    "ask": 3.6,
+    "bid": 3.1
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 66,
+   "max_drawdown": -0.593,
+   "orders_a_day_max": 356,
+   "orders_a_day_mean": 86.8,
+   "usd_a_day": 0.098,
+   "usd_a_day_halves": [
+    0.016,
+    0.18
+   ],
+   "usd_filled_a_day": {
+    "ask": 95,
+    "bid": 95
+   },
+   "waiting_for_app_max_usd": 161,
+   "worst_day": -0.293
+  },
+  "USDT|forward|improve|C161|fx0|twice_weekdays": {
+   "best_day": 1.235,
+   "boot_all": [
+    0.081,
+    0.272,
+    0.0
+   ],
+   "boot_first_half": [
+    -0.011,
+    0.138,
+    0.0858
+   ],
+   "boot_second_half": [
+    0.141,
+    0.435,
+    0.0
+   ],
+   "bot_prints_at_our_price": 2338,
+   "coin_held_max_usd": 160,
+   "conversion_days": 23,
+   "conversion_usd_median": 147,
+   "conversions": 42,
+   "days": 32,
+   "days_positive": 23,
+   "edge_bps_vs_fair": {
+    "ask": 6.13,
+    "bid": 2.2
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 93,
+    "usd": 74
+   },
+   "fills_a_day": {
+    "ask": 6.9,
+    "bid": 6.0
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 99,
+   "max_drawdown": -0.363,
+   "orders_a_day_max": 360,
+   "orders_a_day_mean": 111.6,
+   "usd_a_day": 0.167,
+   "usd_a_day_halves": [
+    0.062,
+    0.272
+   ],
+   "usd_filled_a_day": {
+    "ask": 184,
+    "bid": 183
+   },
+   "waiting_for_app_max_usd": 161,
+   "worst_day": -0.363
+  },
+  "USDT|forward|improve|C161|fx0|weekly": {
+   "best_day": 0.754,
+   "boot_all": [
+    -0.026,
+    0.135,
+    0.1481
+   ],
+   "boot_first_half": [
+    -0.078,
+    0.068,
+    0.5535
+   ],
+   "boot_second_half": [
+    -0.027,
+    0.243,
+    0.0936
+   ],
+   "bot_prints_at_our_price": 224,
+   "coin_held_max_usd": 151,
+   "conversion_days": 5,
+   "conversion_usd_median": 147,
+   "conversions": 5,
+   "days": 32,
+   "days_positive": 17,
+   "edge_bps_vs_fair": {
+    "ask": 2.46,
+    "bid": 2.82
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 150,
+    "usd": 12
+   },
+   "fills_a_day": {
+    "ask": 0.9,
+    "bid": 0.8
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 19,
+   "max_drawdown": -0.939,
+   "orders_a_day_max": 211,
+   "orders_a_day_mean": 17.9,
+   "usd_a_day": 0.052,
+   "usd_a_day_halves": [
+    -0.005,
+    0.11
+   ],
+   "usd_filled_a_day": {
+    "ask": 27,
+    "bid": 27
+   },
+   "waiting_for_app_max_usd": 161,
+   "worst_day": -0.679
+  },
+  "USDT|forward|improve|C161|fx10|daily_weekdays": {
+   "best_day": 0.682,
+   "boot_all": [
+    -0.044,
+    0.105,
+    0.2763
+   ],
+   "boot_first_half": [
+    -0.12,
+    0.042,
+    0.7877
+   ],
+   "boot_second_half": [
+    -0.017,
+    0.208,
+    0.0887
+   ],
+   "bot_prints_at_our_price": 1006,
+   "coin_held_max_usd": 160,
+   "conversion_days": 22,
+   "conversion_usd_median": 156,
+   "conversions": 22,
+   "days": 32,
+   "days_positive": 17,
+   "edge_bps_vs_fair": {
+    "ask": 5.61,
+    "bid": 3.07
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 123,
+    "usd": 39
+   },
+   "fills_a_day": {
+    "ask": 3.9,
+    "bid": 3.5
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 64,
+   "max_drawdown": -0.801,
+   "orders_a_day_max": 353,
+   "orders_a_day_mean": 84.1,
+   "usd_a_day": 0.027,
+   "usd_a_day_halves": [
+    -0.038,
+    0.093
+   ],
+   "usd_filled_a_day": {
+    "ask": 105,
+    "bid": 105
+   },
+   "waiting_for_app_max_usd": 161,
+   "worst_day": -0.493
+  },
+  "USDT|forward|improve|C161|fx25|daily_weekdays": {
+   "best_day": 0.389,
+   "boot_all": [
+    -0.177,
+    -0.052,
+    0.9988
+   ],
+   "boot_first_half": [
+    -0.249,
+    -0.067,
+    0.9984
+   ],
+   "boot_second_half": [
+    -0.148,
+    0.006,
+    0.9358
+   ],
+   "bot_prints_at_our_price": 846,
+   "coin_held_max_usd": 160,
+   "conversion_days": 22,
+   "conversion_usd_median": 120,
+   "conversions": 22,
+   "days": 32,
+   "days_positive": 11,
+   "edge_bps_vs_fair": {
+    "ask": 5.23,
+    "bid": 3.12
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 120,
+    "usd": 37
+   },
+   "fills_a_day": {
+    "ask": 3.4,
+    "bid": 3.1
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 61,
+   "max_drawdown": -3.666,
+   "orders_a_day_max": 352,
+   "orders_a_day_mean": 78.5,
+   "usd_a_day": -0.115,
+   "usd_a_day_halves": [
+    -0.156,
+    -0.073
+   ],
+   "usd_filled_a_day": {
+    "ask": 93,
+    "bid": 93
+   },
+   "waiting_for_app_max_usd": 160,
+   "worst_day": -0.733
+  },
+  "USDT|forward|improve|C161|fx5|daily_weekdays": {
+   "best_day": 0.763,
+   "boot_all": [
+    0.008,
+    0.16,
+    0.0336
+   ],
+   "boot_first_half": [
+    -0.07,
+    0.086,
+    0.4451
+   ],
+   "boot_second_half": [
+    0.036,
+    0.277,
+    0.0187
+   ],
+   "bot_prints_at_our_price": 1026,
+   "coin_held_max_usd": 160,
+   "conversion_days": 22,
+   "conversion_usd_median": 156,
+   "conversions": 22,
+   "days": 32,
+   "days_positive": 18,
+   "edge_bps_vs_fair": {
+    "ask": 5.55,
+    "bid": 3.03
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 163,
+    "usd": 1
+   },
+   "fills_a_day": {
+    "ask": 4.0,
+    "bid": 3.6
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 66,
+   "max_drawdown": -0.523,
+   "orders_a_day_max": 353,
+   "orders_a_day_mean": 85.4,
+   "usd_a_day": 0.081,
+   "usd_a_day_halves": [
+    0.008,
+    0.154
+   ],
+   "usd_filled_a_day": {
+    "ask": 107,
+    "bid": 107
+   },
+   "waiting_for_app_max_usd": 161,
+   "worst_day": -0.413
+  },
+  "USDT|forward|improve|C805|fx0|ask_live_exit_plus1": {
+   "best_day": 3.307,
+   "boot_all": [
+    0.24,
+    0.998,
+    0.0021
+   ],
+   "boot_first_half": [
+    0.041,
+    0.712,
+    0.0312
+   ],
+   "boot_second_half": [
+    0.193,
+    1.487,
+    0.0126
+   ],
+   "bot_prints_at_our_price": 2740,
+   "coin_held_max_usd": 790,
+   "conversion_days": 22,
+   "conversion_usd_median": 750,
+   "conversions": 22,
+   "days": 32,
+   "days_positive": 19,
+   "edge_bps_vs_fair": {
+    "ask": 7.23,
+    "bid": 2.6
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 499,
+    "usd": 325
+   },
+   "fills_a_day": {
+    "ask": 8.4,
+    "bid": 8.0
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 18,
+   "max_drawdown": -1.5,
+   "orders_a_day_max": 539,
+   "orders_a_day_mean": 165.9,
+   "usd_a_day": 0.604,
+   "usd_a_day_halves": [
+    0.378,
+    0.83
+   ],
+   "usd_filled_a_day": {
+    "ask": 506,
+    "bid": 506
+   },
+   "waiting_for_app_max_usd": 802,
+   "worst_day": -1.454
+  },
+  "USDT|forward|improve|C805|fx0|daily_incl_weekend": {
+   "best_day": 3.191,
+   "boot_all": [
+    0.316,
+    1.039,
+    0.0006
+   ],
+   "boot_first_half": [
+    0.061,
+    0.731,
+    0.0233
+   ],
+   "boot_second_half": [
+    0.349,
+    1.53,
+    0.0014
+   ],
+   "bot_prints_at_our_price": 3971,
+   "coin_held_max_usd": 790,
+   "conversion_days": 31,
+   "conversion_usd_median": 750,
+   "conversions": 31,
+   "days": 32,
+   "days_positive": 22,
+   "edge_bps_vs_fair": {
+    "ask": 5.22,
+    "bid": 2.3
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 499,
+    "usd": 328
+   },
+   "fills_a_day": {
+    "ask": 12.1,
+    "bid": 10.9
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 179,
+   "max_drawdown": -1.453,
+   "orders_a_day_max": 439,
+   "orders_a_day_mean": 157.2,
+   "usd_a_day": 0.668,
+   "usd_a_day_halves": [
+    0.397,
+    0.939
+   ],
+   "usd_filled_a_day": {
+    "ask": 694,
+    "bid": 694
+   },
+   "waiting_for_app_max_usd": 802,
+   "worst_day": -1.453
+  },
+  "USDT|forward|improve|C805|fx0|daily_weekdays": {
+   "best_day": 3.191,
+   "boot_all": [
+    0.195,
+    0.953,
+    0.0041
+   ],
+   "boot_first_half": [
+    -0.013,
+    0.664,
+    0.0564
+   ],
+   "boot_second_half": [
+    0.165,
+    1.444,
+    0.0159
+   ],
+   "bot_prints_at_our_price": 2659,
+   "coin_held_max_usd": 790,
+   "conversion_days": 22,
+   "conversion_usd_median": 750,
+   "conversions": 22,
+   "days": 32,
+   "days_positive": 19,
+   "edge_bps_vs_fair": {
+    "ask": 5.6,
+    "bid": 2.6
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 499,
+    "usd": 324
+   },
+   "fills_a_day": {
+    "ask": 8.9,
+    "bid": 8.0
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 126,
+   "max_drawdown": -1.641,
+   "orders_a_day_max": 439,
+   "orders_a_day_mean": 137.5,
+   "usd_a_day": 0.56,
+   "usd_a_day_halves": [
+    0.324,
+    0.795
+   ],
+   "usd_filled_a_day": {
+    "ask": 506,
+    "bid": 506
+   },
+   "waiting_for_app_max_usd": 802,
+   "worst_day": -1.453
+  },
+  "USDT|forward|improve|C805|fx0|mb2": {
+   "best_day": 2.177,
+   "boot_all": [
+    -0.0,
+    0.659,
+    0.0501
+   ],
+   "boot_first_half": [
+    -0.257,
+    0.433,
+    0.3084
+   ],
+   "boot_second_half": [
+    0.078,
+    1.022,
+    0.0266
+   ],
+   "bot_prints_at_our_price": 1943,
+   "coin_held_max_usd": 748,
+   "conversion_days": 22,
+   "conversion_usd_median": 677,
+   "conversions": 22,
+   "days": 32,
+   "days_positive": 19,
+   "edge_bps_vs_fair": {
+    "ask": 5.09,
+    "bid": 3.76
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 313,
+    "usd": 502
+   },
+   "fills_a_day": {
+    "ask": 6.6,
+    "bid": 5.6
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 111,
+   "max_drawdown": -3.289,
+   "orders_a_day_max": 542,
+   "orders_a_day_mean": 129.9,
+   "usd_a_day": 0.328,
+   "usd_a_day_halves": [
+    0.103,
+    0.553
+   ],
+   "usd_filled_a_day": {
+    "ask": 381,
+    "bid": 380
+   },
+   "waiting_for_app_max_usd": 802,
+   "worst_day": -1.613
+  },
+  "USDT|forward|improve|C805|fx0|twice_weekdays": {
+   "best_day": 2.739,
+   "boot_all": [
+    0.392,
+    0.939,
+    0.0
+   ],
+   "boot_first_half": [
+    0.118,
+    0.718,
+    0.0078
+   ],
+   "boot_second_half": [
+    0.456,
+    1.336,
+    0.0
+   ],
+   "bot_prints_at_our_price": 4444,
+   "coin_held_max_usd": 769,
+   "conversion_days": 23,
+   "conversion_usd_median": 611,
+   "conversions": 42,
+   "days": 32,
+   "days_positive": 23,
+   "edge_bps_vs_fair": {
+    "ask": 5.69,
+    "bid": 2.07
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 213,
+    "usd": 613
+   },
+   "fills_a_day": {
+    "ask": 12.6,
+    "bid": 11.0
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 164,
+   "max_drawdown": -1.226,
+   "orders_a_day_max": 570,
+   "orders_a_day_mean": 170.8,
+   "usd_a_day": 0.649,
+   "usd_a_day_halves": [
+    0.414,
+    0.885
+   ],
+   "usd_filled_a_day": {
+    "ask": 706,
+    "bid": 706
+   },
+   "waiting_for_app_max_usd": 805,
+   "worst_day": -1.226
+  },
+  "USDT|forward|improve|C805|fx0|weekly": {
+   "best_day": 3.244,
+   "boot_all": [
+    -0.138,
+    0.617,
+    0.1656
+   ],
+   "boot_first_half": [
+    -0.394,
+    0.399,
+    0.489
+   ],
+   "boot_second_half": [
+    -0.168,
+    1.062,
+    0.1149
+   ],
+   "bot_prints_at_our_price": 510,
+   "coin_held_max_usd": 730,
+   "conversion_days": 5,
+   "conversion_usd_median": 740,
+   "conversions": 5,
+   "days": 32,
+   "days_positive": 16,
+   "edge_bps_vs_fair": {
+    "ask": 4.36,
+    "bid": 2.42
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 730,
+    "usd": 83
+   },
+   "fills_a_day": {
+    "ask": 2.0,
+    "bid": 2.0
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 35,
+   "max_drawdown": -4.573,
+   "orders_a_day_max": 349,
+   "orders_a_day_mean": 35.9,
+   "usd_a_day": 0.23,
+   "usd_a_day_halves": [
+    0.011,
+    0.449
+   ],
+   "usd_filled_a_day": {
+    "ask": 139,
+    "bid": 139
+   },
+   "waiting_for_app_max_usd": 770,
+   "worst_day": -3.855
+  },
+  "USDT|forward|improve|C805|fx10|daily_weekdays": {
+   "best_day": 2.457,
+   "boot_all": [
+    -0.275,
+    0.434,
+    0.3734
+   ],
+   "boot_first_half": [
+    -0.524,
+    0.225,
+    0.746
+   ],
+   "boot_second_half": [
+    -0.268,
+    0.858,
+    0.2057
+   ],
+   "bot_prints_at_our_price": 2619,
+   "coin_held_max_usd": 790,
+   "conversion_days": 22,
+   "conversion_usd_median": 745,
+   "conversions": 22,
+   "days": 32,
+   "days_positive": 18,
+   "edge_bps_vs_fair": {
+    "ask": 5.59,
+    "bid": 2.61
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 499,
+    "usd": 309
+   },
+   "fills_a_day": {
+    "ask": 8.8,
+    "bid": 7.9
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 126,
+   "max_drawdown": -4.324,
+   "orders_a_day_max": 439,
+   "orders_a_day_mean": 137.2,
+   "usd_a_day": 0.071,
+   "usd_a_day_halves": [
+    -0.148,
+    0.29
+   ],
+   "usd_filled_a_day": {
+    "ask": 504,
+    "bid": 504
+   },
+   "waiting_for_app_max_usd": 802,
+   "worst_day": -2.207
+  },
+  "USDT|forward|improve|C805|fx25|daily_weekdays": {
+   "best_day": 1.88,
+   "boot_all": [
+    -1.005,
+    -0.275,
+    0.9991
+   ],
+   "boot_first_half": [
+    -1.324,
+    -0.362,
+    0.9987
+   ],
+   "boot_second_half": [
+    -0.969,
+    0.052,
+    0.9266
+   ],
+   "bot_prints_at_our_price": 2322,
+   "coin_held_max_usd": 790,
+   "conversion_days": 22,
+   "conversion_usd_median": 727,
+   "conversions": 22,
+   "days": 32,
+   "days_positive": 14,
+   "edge_bps_vs_fair": {
+    "ask": 5.55,
+    "bid": 2.64
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 499,
+    "usd": 286
+   },
+   "fills_a_day": {
+    "ask": 8.5,
+    "bid": 7.7
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 126,
+   "max_drawdown": -20.346,
+   "orders_a_day_max": 439,
+   "orders_a_day_mean": 135.0,
+   "usd_a_day": -0.636,
+   "usd_a_day_halves": [
+    -0.837,
+    -0.434
+   ],
+   "usd_filled_a_day": {
+    "ask": 492,
+    "bid": 492
+   },
+   "waiting_for_app_max_usd": 793,
+   "worst_day": -3.338
+  },
+  "USDT|forward|improve|C805|fx5|daily_weekdays": {
+   "best_day": 2.824,
+   "boot_all": [
+    -0.04,
+    0.694,
+    0.0722
+   ],
+   "boot_first_half": [
+    -0.261,
+    0.435,
+    0.3461
+   ],
+   "boot_second_half": [
+    -0.055,
+    1.15,
+    0.0709
+   ],
+   "bot_prints_at_our_price": 2659,
+   "coin_held_max_usd": 790,
+   "conversion_days": 22,
+   "conversion_usd_median": 750,
+   "conversions": 22,
+   "days": 32,
+   "days_positive": 18,
+   "edge_bps_vs_fair": {
+    "ask": 5.6,
+    "bid": 2.6
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 499,
+    "usd": 316
+   },
+   "fills_a_day": {
+    "ask": 8.9,
+    "bid": 8.0
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 126,
+   "max_drawdown": -2.908,
+   "orders_a_day_max": 439,
+   "orders_a_day_mean": 137.5,
+   "usd_a_day": 0.314,
+   "usd_a_day_halves": [
+    0.088,
+    0.54
+   ],
+   "usd_filled_a_day": {
+    "ask": 506,
+    "bid": 506
+   },
+   "waiting_for_app_max_usd": 802,
+   "worst_day": -1.83
+  },
+  "USDT|forward|join|C1610|fx0|daily_weekdays": {
+   "best_day": 1.58,
+   "boot_all": [
+    0.081,
+    0.349,
+    0.0037
+   ],
+   "boot_first_half": [
+    0.025,
+    0.424,
+    0.0314
+   ],
+   "boot_second_half": [
+    0.039,
+    0.375,
+    0.0199
+   ],
+   "bot_prints_at_our_price": 6246,
+   "coin_held_max_usd": 514,
+   "conversion_days": 21,
+   "conversion_usd_median": 299,
+   "conversions": 21,
+   "days": 32,
+   "days_positive": 23,
+   "edge_bps_vs_fair": {
+    "ask": 5.25,
+    "bid": 2.37
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 115,
+    "usd": 1502
+   },
+   "fills_a_day": {
+    "ask": 3.3,
+    "bid": 2.8
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 49,
+   "max_drawdown": -0.711,
+   "orders_a_day_max": 652,
+   "orders_a_day_mean": 188.8,
+   "usd_a_day": 0.217,
+   "usd_a_day_halves": [
+    0.226,
+    0.208
+   ],
+   "usd_filled_a_day": {
+    "ask": 238,
+    "bid": 238
+   },
+   "waiting_for_app_max_usd": 795,
+   "worst_day": -0.711
+  },
+  "USDT|forward|join|C1610|fx10|daily_weekdays": {
+   "best_day": 1.069,
+   "boot_all": [
+    -0.16,
+    0.116,
+    0.5678
+   ],
+   "boot_first_half": [
+    -0.269,
+    0.148,
+    0.6525
+   ],
+   "boot_second_half": [
+    -0.164,
+    0.177,
+    0.4238
+   ],
+   "bot_prints_at_our_price": 6246,
+   "coin_held_max_usd": 514,
+   "conversion_days": 21,
+   "conversion_usd_median": 299,
+   "conversions": 21,
+   "days": 32,
+   "days_positive": 22,
+   "edge_bps_vs_fair": {
+    "ask": 5.25,
+    "bid": 2.37
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 115,
+    "usd": 1494
+   },
+   "fills_a_day": {
+    "ask": 3.3,
+    "bid": 2.8
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 49,
+   "max_drawdown": -3.04,
+   "orders_a_day_max": 652,
+   "orders_a_day_mean": 188.8,
+   "usd_a_day": -0.018,
+   "usd_a_day_halves": [
+    -0.052,
+    0.017
+   ],
+   "usd_filled_a_day": {
+    "ask": 238,
+    "bid": 238
+   },
+   "waiting_for_app_max_usd": 795,
+   "worst_day": -1.433
+  },
+  "USDT|forward|join|C1610|fx25|daily_weekdays": {
+   "best_day": 1.069,
+   "boot_all": [
+    -0.56,
+    -0.186,
+    0.9998
+   ],
+   "boot_first_half": [
+    -0.769,
+    -0.192,
+    0.9996
+   ],
+   "boot_second_half": [
+    -0.503,
+    -0.062,
+    0.9891
+   ],
+   "bot_prints_at_our_price": 6246,
+   "coin_held_max_usd": 514,
+   "conversion_days": 21,
+   "conversion_usd_median": 299,
+   "conversions": 21,
+   "days": 32,
+   "days_positive": 13,
+   "edge_bps_vs_fair": {
+    "ask": 5.25,
+    "bid": 2.37
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 115,
+    "usd": 1483
+   },
+   "fills_a_day": {
+    "ask": 3.3,
+    "bid": 2.8
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 49,
+   "max_drawdown": -11.865,
+   "orders_a_day_max": 652,
+   "orders_a_day_mean": 188.8,
+   "usd_a_day": -0.369,
+   "usd_a_day_halves": [
+    -0.47,
+    -0.269
+   ],
+   "usd_filled_a_day": {
+    "ask": 238,
+    "bid": 238
+   },
+   "waiting_for_app_max_usd": 795,
+   "worst_day": -2.517
+  },
+  "USDT|forward|join|C1610|fx5|daily_weekdays": {
+   "best_day": 1.234,
+   "boot_all": [
+    -0.036,
+    0.228,
+    0.1118
+   ],
+   "boot_first_half": [
+    -0.117,
+    0.28,
+    0.2375
+   ],
+   "boot_second_half": [
+    -0.061,
+    0.274,
+    0.1441
+   ],
+   "bot_prints_at_our_price": 6246,
+   "coin_held_max_usd": 514,
+   "conversion_days": 21,
+   "conversion_usd_median": 299,
+   "conversions": 21,
+   "days": 32,
+   "days_positive": 22,
+   "edge_bps_vs_fair": {
+    "ask": 5.25,
+    "bid": 2.37
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 115,
+    "usd": 1498
+   },
+   "fills_a_day": {
+    "ask": 3.3,
+    "bid": 2.8
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 49,
+   "max_drawdown": -1.759,
+   "orders_a_day_max": 652,
+   "orders_a_day_mean": 188.8,
+   "usd_a_day": 0.099,
+   "usd_a_day_halves": [
+    0.087,
+    0.112
+   ],
+   "usd_filled_a_day": {
+    "ask": 238,
+    "bid": 238
+   },
+   "waiting_for_app_max_usd": 795,
+   "worst_day": -1.072
+  },
+  "USDT|forward|join|C161|fx0|daily_weekdays": {
+   "best_day": 0.409,
+   "boot_all": [
+    0.027,
+    0.118,
+    0.0034
+   ],
+   "boot_first_half": [
+    0.006,
+    0.116,
+    0.0361
+   ],
+   "boot_second_half": [
+    0.016,
+    0.152,
+    0.017
+   ],
+   "bot_prints_at_our_price": 4651,
+   "coin_held_max_usd": 161,
+   "conversion_days": 21,
+   "conversion_usd_median": 120,
+   "conversions": 21,
+   "days": 32,
+   "days_positive": 22,
+   "edge_bps_vs_fair": {
+    "ask": 5.04,
+    "bid": 2.36
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 55,
+    "usd": 108
+   },
+   "fills_a_day": {
+    "ask": 2.4,
+    "bid": 2.1
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 38,
+   "max_drawdown": -0.267,
+   "orders_a_day_max": 505,
+   "orders_a_day_mean": 143.3,
+   "usd_a_day": 0.073,
+   "usd_a_day_halves": [
+    0.062,
+    0.084
+   ],
+   "usd_filled_a_day": {
+    "ask": 79,
+    "bid": 79
+   },
+   "waiting_for_app_max_usd": 161,
+   "worst_day": -0.267
+  },
+  "USDT|forward|join|C161|fx10|daily_weekdays": {
+   "best_day": 0.279,
+   "boot_all": [
+    -0.057,
+    0.035,
+    0.6237
+   ],
+   "boot_first_half": [
+    -0.09,
+    0.026,
+    0.799
+   ],
+   "boot_second_half": [
+    -0.061,
+    0.073,
+    0.3969
+   ],
+   "bot_prints_at_our_price": 4528,
+   "coin_held_max_usd": 121,
+   "conversion_days": 21,
+   "conversion_usd_median": 120,
+   "conversions": 21,
+   "days": 32,
+   "days_positive": 21,
+   "edge_bps_vs_fair": {
+    "ask": 5.24,
+    "bid": 2.1
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 55,
+    "usd": 105
+   },
+   "fills_a_day": {
+    "ask": 2.2,
+    "bid": 2.0
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 34,
+   "max_drawdown": -0.979,
+   "orders_a_day_max": 505,
+   "orders_a_day_mean": 139.8,
+   "usd_a_day": -0.01,
+   "usd_a_day_halves": [
+    -0.03,
+    0.01
+   ],
+   "usd_filled_a_day": {
+    "ask": 76,
+    "bid": 75
+   },
+   "waiting_for_app_max_usd": 160,
+   "worst_day": -0.427
+  },
+  "USDT|forward|join|C161|fx25|daily_weekdays": {
+   "best_day": 0.303,
+   "boot_all": [
+    -0.164,
+    -0.052,
+    0.9996
+   ],
+   "boot_first_half": [
+    -0.226,
+    -0.066,
+    0.9992
+   ],
+   "boot_second_half": [
+    -0.145,
+    -0.004,
+    0.9624
+   ],
+   "bot_prints_at_our_price": 3998,
+   "coin_held_max_usd": 121,
+   "conversion_days": 21,
+   "conversion_usd_median": 120,
+   "conversions": 21,
+   "days": 32,
+   "days_positive": 11,
+   "edge_bps_vs_fair": {
+    "ask": 5.39,
+    "bid": 2.19
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 55,
+    "usd": 102
+   },
+   "fills_a_day": {
+    "ask": 2.1,
+    "bid": 1.8
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 32,
+   "max_drawdown": -3.407,
+   "orders_a_day_max": 505,
+   "orders_a_day_mean": 124.7,
+   "usd_a_day": -0.106,
+   "usd_a_day_halves": [
+    -0.143,
+    -0.07
+   ],
+   "usd_filled_a_day": {
+    "ask": 71,
+    "bid": 70
+   },
+   "waiting_for_app_max_usd": 160,
+   "worst_day": -0.565
+  },
+  "USDT|forward|join|C161|fx5|daily_weekdays": {
+   "best_day": 0.369,
+   "boot_all": [
+    -0.012,
+    0.079,
+    0.1151
+   ],
+   "boot_first_half": [
+    -0.04,
+    0.076,
+    0.2901
+   ],
+   "boot_second_half": [
+    -0.021,
+    0.115,
+    0.1248
+   ],
+   "bot_prints_at_our_price": 4651,
+   "coin_held_max_usd": 161,
+   "conversion_days": 21,
+   "conversion_usd_median": 120,
+   "conversions": 21,
+   "days": 32,
+   "days_positive": 21,
+   "edge_bps_vs_fair": {
+    "ask": 5.04,
+    "bid": 2.36
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 55,
+    "usd": 107
+   },
+   "fills_a_day": {
+    "ask": 2.4,
+    "bid": 2.1
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 38,
+   "max_drawdown": -0.539,
+   "orders_a_day_max": 505,
+   "orders_a_day_mean": 143.3,
+   "usd_a_day": 0.034,
+   "usd_a_day_halves": [
+    0.019,
+    0.049
+   ],
+   "usd_filled_a_day": {
+    "ask": 79,
+    "bid": 79
+   },
+   "waiting_for_app_max_usd": 161,
+   "worst_day": -0.347
+  },
+  "USDT|forward|join|C805|fx0|daily_weekdays": {
+   "best_day": 1.713,
+   "boot_all": [
+    0.093,
+    0.367,
+    0.0026
+   ],
+   "boot_first_half": [
+    0.047,
+    0.457,
+    0.0207
+   ],
+   "boot_second_half": [
+    0.039,
+    0.375,
+    0.0199
+   ],
+   "bot_prints_at_our_price": 6181,
+   "coin_held_max_usd": 514,
+   "conversion_days": 21,
+   "conversion_usd_median": 299,
+   "conversions": 21,
+   "days": 32,
+   "days_positive": 23,
+   "edge_bps_vs_fair": {
+    "ask": 5.32,
+    "bid": 2.38
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 115,
+    "usd": 697
+   },
+   "fills_a_day": {
+    "ask": 3.2,
+    "bid": 2.7
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 48,
+   "max_drawdown": -0.704,
+   "orders_a_day_max": 598,
+   "orders_a_day_mean": 183.5,
+   "usd_a_day": 0.231,
+   "usd_a_day_halves": [
+    0.254,
+    0.208
+   ],
+   "usd_filled_a_day": {
+    "ask": 232,
+    "bid": 231
+   },
+   "waiting_for_app_max_usd": 795,
+   "worst_day": -0.665
+  },
+  "USDT|forward|join|C805|fx10|daily_weekdays": {
+   "best_day": 1.069,
+   "boot_all": [
+    -0.135,
+    0.131,
+    0.4704
+   ],
+   "boot_first_half": [
+    -0.215,
+    0.176,
+    0.5251
+   ],
+   "boot_second_half": [
+    -0.164,
+    0.177,
+    0.4238
+   ],
+   "bot_prints_at_our_price": 6181,
+   "coin_held_max_usd": 514,
+   "conversion_days": 21,
+   "conversion_usd_median": 299,
+   "conversions": 21,
+   "days": 32,
+   "days_positive": 22,
+   "edge_bps_vs_fair": {
+    "ask": 5.32,
+    "bid": 2.38
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 115,
+    "usd": 690
+   },
+   "fills_a_day": {
+    "ask": 3.2,
+    "bid": 2.7
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 48,
+   "max_drawdown": -2.51,
+   "orders_a_day_max": 598,
+   "orders_a_day_mean": 183.5,
+   "usd_a_day": 0.003,
+   "usd_a_day_halves": [
+    -0.012,
+    0.017
+   ],
+   "usd_filled_a_day": {
+    "ask": 232,
+    "bid": 231
+   },
+   "waiting_for_app_max_usd": 795,
+   "worst_day": -1.205
+  },
+  "USDT|forward|join|C805|fx25|daily_weekdays": {
+   "best_day": 1.069,
+   "boot_all": [
+    -0.51,
+    -0.176,
+    0.9997
+   ],
+   "boot_first_half": [
+    -0.658,
+    -0.18,
+    0.9996
+   ],
+   "boot_second_half": [
+    -0.503,
+    -0.062,
+    0.9891
+   ],
+   "bot_prints_at_our_price": 6181,
+   "coin_held_max_usd": 514,
+   "conversion_days": 21,
+   "conversion_usd_median": 299,
+   "conversions": 21,
+   "days": 32,
+   "days_positive": 13,
+   "edge_bps_vs_fair": {
+    "ask": 5.32,
+    "bid": 2.38
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 115,
+    "usd": 679
+   },
+   "fills_a_day": {
+    "ask": 3.2,
+    "bid": 2.7
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 48,
+   "max_drawdown": -10.89,
+   "orders_a_day_max": 598,
+   "orders_a_day_mean": 183.5,
+   "usd_a_day": -0.339,
+   "usd_a_day_halves": [
+    -0.409,
+    -0.269
+   ],
+   "usd_filled_a_day": {
+    "ask": 232,
+    "bid": 231
+   },
+   "waiting_for_app_max_usd": 795,
+   "worst_day": -2.044
+  },
+  "USDT|forward|join|C805|fx5|daily_weekdays": {
+   "best_day": 1.367,
+   "boot_all": [
+    -0.019,
+    0.246,
+    0.0773
+   ],
+   "boot_first_half": [
+    -0.082,
+    0.312,
+    0.1631
+   ],
+   "boot_second_half": [
+    -0.061,
+    0.274,
+    0.1441
+   ],
+   "bot_prints_at_our_price": 6181,
+   "coin_held_max_usd": 514,
+   "conversion_days": 21,
+   "conversion_usd_median": 299,
+   "conversions": 21,
+   "days": 32,
+   "days_positive": 22,
+   "edge_bps_vs_fair": {
+    "ask": 5.32,
+    "bid": 2.38
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 115,
+    "usd": 693
+   },
+   "fills_a_day": {
+    "ask": 3.2,
+    "bid": 2.7
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 48,
+   "max_drawdown": -1.333,
+   "orders_a_day_max": 598,
+   "orders_a_day_mean": 183.5,
+   "usd_a_day": 0.117,
+   "usd_a_day_halves": [
+    0.121,
+    0.112
+   ],
+   "usd_filled_a_day": {
+    "ask": 232,
+    "bid": 231
+   },
+   "waiting_for_app_max_usd": 795,
+   "worst_day": -0.925
+  },
+  "USDT|reverse|improve|C1610|fx0|ask_live_exit_plus1": {
+   "best_day": 5.719,
+   "boot_all": [
+    0.278,
+    1.141,
+    0.0004
+   ],
+   "boot_first_half": [
+    -0.034,
+    1.031,
+    0.0702
+   ],
+   "boot_second_half": [
+    0.516,
+    1.294,
+    0.0
+   ],
+   "bot_prints_at_our_price": 2678,
+   "coin_held_max_usd": 1602,
+   "conversion_days": 17,
+   "conversion_usd_median": 817,
+   "conversions": 17,
+   "days": 32,
+   "days_positive": 21,
+   "edge_bps_vs_fair": {
+    "ask": 3.98,
+    "bid": 8.88
+   },
+   "end_state_usd": {
+    "coin": 137,
+    "gbp_in_usd": 623,
+    "usd": 873
+   },
+   "fills_a_day": {
+    "ask": 7.1,
+    "bid": 7.0
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -1.559,
+   "orders_a_day_max": 433,
+   "orders_a_day_mean": 94.2,
+   "usd_a_day": 0.685,
+   "usd_a_day_halves": [
+    0.469,
+    0.901
+   ],
+   "usd_filled_a_day": {
+    "ask": 478,
+    "bid": 482
+   },
+   "waiting_for_app_max_usd": 1603,
+   "worst_day": -0.697
+  },
+  "USDT|reverse|improve|C1610|fx0|daily_incl_weekend": {
+   "best_day": 8.027,
+   "boot_all": [
+    0.582,
+    1.613,
+    0.0
+   ],
+   "boot_first_half": [
+    0.551,
+    1.932,
+    0.0
+   ],
+   "boot_second_half": [
+    0.408,
+    1.435,
+    0.0014
+   ],
+   "bot_prints_at_our_price": 5840,
+   "coin_held_max_usd": 1610,
+   "conversion_days": 32,
+   "conversion_usd_median": 921,
+   "conversions": 32,
+   "days": 32,
+   "days_positive": 25,
+   "edge_bps_vs_fair": {
+    "ask": 1.59,
+    "bid": 8.5
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 630,
+    "usd": 1014
+   },
+   "fills_a_day": {
+    "ask": 17.5,
+    "bid": 15.5
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -1.91,
+   "orders_a_day_max": 506,
+   "orders_a_day_mean": 180.1,
+   "usd_a_day": 1.071,
+   "usd_a_day_halves": [
+    1.194,
+    0.948
+   ],
+   "usd_filled_a_day": {
+    "ask": 1088,
+    "bid": 1087
+   },
+   "waiting_for_app_max_usd": 1609,
+   "worst_day": -1.253
+  },
+  "USDT|reverse|improve|C1610|fx0|daily_weekdays": {
+   "best_day": 5.926,
+   "boot_all": [
+    0.248,
+    1.282,
+    0.0044
+   ],
+   "boot_first_half": [
+    0.138,
+    1.313,
+    0.0185
+   ],
+   "boot_second_half": [
+    0.228,
+    1.337,
+    0.0102
+   ],
+   "bot_prints_at_our_price": 4455,
+   "coin_held_max_usd": 1546,
+   "conversion_days": 23,
+   "conversion_usd_median": 1307,
+   "conversions": 23,
+   "days": 32,
+   "days_positive": 23,
+   "edge_bps_vs_fair": {
+    "ask": 1.56,
+    "bid": 8.43
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 625,
+    "usd": 1009
+   },
+   "fills_a_day": {
+    "ask": 14.5,
+    "bid": 13.0
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -2.62,
+   "orders_a_day_max": 506,
+   "orders_a_day_mean": 173.2,
+   "usd_a_day": 0.758,
+   "usd_a_day_halves": [
+    0.71,
+    0.806
+   ],
+   "usd_filled_a_day": {
+    "ask": 911,
+    "bid": 910
+   },
+   "waiting_for_app_max_usd": 1601,
+   "worst_day": -2.151
+  },
+  "USDT|reverse|improve|C1610|fx0|mb2": {
+   "best_day": 5.926,
+   "boot_all": [
+    0.287,
+    1.407,
+    0.0041
+   ],
+   "boot_first_half": [
+    0.15,
+    1.351,
+    0.0177
+   ],
+   "boot_second_half": [
+    0.232,
+    1.583,
+    0.0145
+   ],
+   "bot_prints_at_our_price": 4233,
+   "coin_held_max_usd": 1546,
+   "conversion_days": 23,
+   "conversion_usd_median": 1164,
+   "conversions": 23,
+   "days": 32,
+   "days_positive": 23,
+   "edge_bps_vs_fair": {
+    "ask": 1.54,
+    "bid": 9.86
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 828,
+    "usd": 809
+   },
+   "fills_a_day": {
+    "ask": 14.0,
+    "bid": 12.2
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -3.295,
+   "orders_a_day_max": 524,
+   "orders_a_day_mean": 213.5,
+   "usd_a_day": 0.843,
+   "usd_a_day_halves": [
+    0.746,
+    0.94
+   ],
+   "usd_filled_a_day": {
+    "ask": 875,
+    "bid": 874
+   },
+   "waiting_for_app_max_usd": 1613,
+   "worst_day": -2.402
+  },
+  "USDT|reverse|improve|C1610|fx0|twice_weekdays": {
+   "best_day": 5.926,
+   "boot_all": [
+    0.399,
+    1.602,
+    0.0024
+   ],
+   "boot_first_half": [
+    0.409,
+    1.666,
+    0.0028
+   ],
+   "boot_second_half": [
+    0.097,
+    1.811,
+    0.0345
+   ],
+   "bot_prints_at_our_price": 5185,
+   "coin_held_max_usd": 1578,
+   "conversion_days": 23,
+   "conversion_usd_median": 692,
+   "conversions": 44,
+   "days": 32,
+   "days_positive": 26,
+   "edge_bps_vs_fair": {
+    "ask": 1.56,
+    "bid": 7.96
+   },
+   "end_state_usd": {
+    "coin": 275,
+    "gbp_in_usd": 764,
+    "usd": 603
+   },
+   "fills_a_day": {
+    "ask": 16.3,
+    "bid": 15.0
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -3.567,
+   "orders_a_day_max": 508,
+   "orders_a_day_mean": 200.2,
+   "usd_a_day": 1.014,
+   "usd_a_day_halves": [
+    1.026,
+    1.001
+   ],
+   "usd_filled_a_day": {
+    "ask": 1043,
+    "bid": 1051
+   },
+   "waiting_for_app_max_usd": 1619,
+   "worst_day": -3.198
+  },
+  "USDT|reverse|improve|C1610|fx0|weekly": {
+   "best_day": 5.926,
+   "boot_all": [
+    -0.055,
+    0.654,
+    0.1101
+   ],
+   "boot_first_half": [
+    -0.148,
+    0.925,
+    0.2093
+   ],
+   "boot_second_half": [
+    0.057,
+    0.369,
+    0.0031
+   ],
+   "bot_prints_at_our_price": 1461,
+   "coin_held_max_usd": 1546,
+   "conversion_days": 5,
+   "conversion_usd_median": 1529,
+   "conversions": 5,
+   "days": 32,
+   "days_positive": 21,
+   "edge_bps_vs_fair": {
+    "ask": 1.14,
+    "bid": 13.93
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 16,
+    "usd": 1602
+   },
+   "fills_a_day": {
+    "ask": 4.5,
+    "bid": 4.3
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -2.445,
+   "orders_a_day_max": 335,
+   "orders_a_day_mean": 37.5,
+   "usd_a_day": 0.257,
+   "usd_a_day_halves": [
+    0.313,
+    0.201
+   ],
+   "usd_filled_a_day": {
+    "ask": 288,
+    "bid": 288
+   },
+   "waiting_for_app_max_usd": 1561,
+   "worst_day": -2.154
+  },
+  "USDT|reverse|improve|C1610|fx10|daily_weekdays": {
+   "best_day": 5.926,
+   "boot_all": [
+    -0.575,
+    0.387,
+    0.653
+   ],
+   "boot_first_half": [
+    -0.761,
+    0.385,
+    0.7581
+   ],
+   "boot_second_half": [
+    -0.478,
+    0.455,
+    0.4753
+   ],
+   "bot_prints_at_our_price": 4426,
+   "coin_held_max_usd": 1546,
+   "conversion_days": 23,
+   "conversion_usd_median": 1307,
+   "conversions": 23,
+   "days": 32,
+   "days_positive": 14,
+   "edge_bps_vs_fair": {
+    "ask": 1.56,
+    "bid": 8.45
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 598,
+    "usd": 1009
+   },
+   "fills_a_day": {
+    "ask": 14.5,
+    "bid": 13.0
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -10.932,
+   "orders_a_day_max": 505,
+   "orders_a_day_mean": 171.6,
+   "usd_a_day": -0.108,
+   "usd_a_day_halves": [
+    -0.225,
+    0.01
+   ],
+   "usd_filled_a_day": {
+    "ask": 908,
+    "bid": 907
+   },
+   "waiting_for_app_max_usd": 1601,
+   "worst_day": -3.642
+  },
+  "USDT|reverse|improve|C1610|fx25|daily_weekdays": {
+   "best_day": 5.926,
+   "boot_all": [
+    -1.938,
+    -0.877,
+    1.0
+   ],
+   "boot_first_half": [
+    -2.366,
+    -0.837,
+    0.9995
+   ],
+   "boot_second_half": [
+    -1.672,
+    -0.774,
+    1.0
+   ],
+   "bot_prints_at_our_price": 4443,
+   "coin_held_max_usd": 1546,
+   "conversion_days": 23,
+   "conversion_usd_median": 1307,
+   "conversions": 23,
+   "days": 32,
+   "days_positive": 9,
+   "edge_bps_vs_fair": {
+    "ask": 1.56,
+    "bid": 8.39
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 556,
+    "usd": 1009
+   },
+   "fills_a_day": {
+    "ask": 14.5,
+    "bid": 13.0
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -51.171,
+   "orders_a_day_max": 505,
+   "orders_a_day_mean": 172.3,
+   "usd_a_day": -1.414,
+   "usd_a_day_halves": [
+    -1.624,
+    -1.204
+   ],
+   "usd_filled_a_day": {
+    "ask": 908,
+    "bid": 907
+   },
+   "waiting_for_app_max_usd": 1601,
+   "worst_day": -5.874
+  },
+  "USDT|reverse|improve|C1610|fx5|daily_weekdays": {
+   "best_day": 5.926,
+   "boot_all": [
+    -0.155,
+    0.841,
+    0.1406
+   ],
+   "boot_first_half": [
+    -0.288,
+    0.834,
+    0.2537
+   ],
+   "boot_second_half": [
+    -0.116,
+    0.907,
+    0.0943
+   ],
+   "bot_prints_at_our_price": 4426,
+   "coin_held_max_usd": 1546,
+   "conversion_days": 23,
+   "conversion_usd_median": 1307,
+   "conversions": 23,
+   "days": 32,
+   "days_positive": 17,
+   "edge_bps_vs_fair": {
+    "ask": 1.56,
+    "bid": 8.44
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 612,
+    "usd": 1009
+   },
+   "fills_a_day": {
+    "ask": 14.5,
+    "bid": 13.0
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -5.023,
+   "orders_a_day_max": 506,
+   "orders_a_day_mean": 171.8,
+   "usd_a_day": 0.331,
+   "usd_a_day_halves": [
+    0.242,
+    0.419
+   ],
+   "usd_filled_a_day": {
+    "ask": 911,
+    "bid": 910
+   },
+   "waiting_for_app_max_usd": 1601,
+   "worst_day": -2.897
+  },
+  "USDT|reverse|improve|C161|fx0|ask_live_exit_plus1": {
+   "best_day": 0.555,
+   "boot_all": [
+    0.052,
+    0.158,
+    0.0
+   ],
+   "boot_first_half": [
+    0.004,
+    0.131,
+    0.0383
+   ],
+   "boot_second_half": [
+    0.079,
+    0.206,
+    0.0
+   ],
+   "bot_prints_at_our_price": 974,
+   "coin_held_max_usd": 161,
+   "conversion_days": 17,
+   "conversion_usd_median": 145,
+   "conversions": 17,
+   "days": 32,
+   "days_positive": 21,
+   "edge_bps_vs_fair": {
+    "ask": 3.34,
+    "bid": 7.51
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 36,
+    "usd": 128
+   },
+   "fills_a_day": {
+    "ask": 2.8,
+    "bid": 2.3
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -0.164,
+   "orders_a_day_max": 257,
+   "orders_a_day_mean": 37.7,
+   "usd_a_day": 0.104,
+   "usd_a_day_halves": [
+    0.065,
+    0.143
+   ],
+   "usd_filled_a_day": {
+    "ask": 74,
+    "bid": 74
+   },
+   "waiting_for_app_max_usd": 162,
+   "worst_day": -0.078
+  },
+  "USDT|reverse|improve|C161|fx0|daily_incl_weekend": {
+   "best_day": 1.168,
+   "boot_all": [
+    0.075,
+    0.217,
+    0.0
+   ],
+   "boot_first_half": [
+    0.056,
+    0.259,
+    0.0007
+   ],
+   "boot_second_half": [
+    0.066,
+    0.21,
+    0.0002
+   ],
+   "bot_prints_at_our_price": 1818,
+   "coin_held_max_usd": 161,
+   "conversion_days": 31,
+   "conversion_usd_median": 160,
+   "conversions": 31,
+   "days": 32,
+   "days_positive": 27,
+   "edge_bps_vs_fair": {
+    "ask": 1.04,
+    "bid": 6.92
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 37,
+    "usd": 128
+   },
+   "fills_a_day": {
+    "ask": 5.6,
+    "bid": 5.0
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -0.202,
+   "orders_a_day_max": 258,
+   "orders_a_day_mean": 67.0,
+   "usd_a_day": 0.144,
+   "usd_a_day_halves": [
+    0.15,
+    0.138
+   ],
+   "usd_filled_a_day": {
+    "ask": 151,
+    "bid": 151
+   },
+   "waiting_for_app_max_usd": 163,
+   "worst_day": -0.202
+  },
+  "USDT|reverse|improve|C161|fx0|daily_weekdays": {
+   "best_day": 0.604,
+   "boot_all": [
+    0.055,
+    0.167,
+    0.0002
+   ],
+   "boot_first_half": [
+    0.041,
+    0.171,
+    0.0021
+   ],
+   "boot_second_half": [
+    0.038,
+    0.193,
+    0.0035
+   ],
+   "bot_prints_at_our_price": 1044,
+   "coin_held_max_usd": 160,
+   "conversion_days": 23,
+   "conversion_usd_median": 160,
+   "conversions": 23,
+   "days": 32,
+   "days_positive": 23,
+   "edge_bps_vs_fair": {
+    "ask": 0.94,
+    "bid": 6.99
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 36,
+    "usd": 128
+   },
+   "fills_a_day": {
+    "ask": 4.1,
+    "bid": 3.6
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -0.202,
+   "orders_a_day_max": 258,
+   "orders_a_day_mean": 57.6,
+   "usd_a_day": 0.111,
+   "usd_a_day_halves": [
+    0.107,
+    0.116
+   ],
+   "usd_filled_a_day": {
+    "ask": 112,
+    "bid": 111
+   },
+   "waiting_for_app_max_usd": 162,
+   "worst_day": -0.202
+  },
+  "USDT|reverse|improve|C161|fx0|mb2": {
+   "best_day": 0.64,
+   "boot_all": [
+    0.049,
+    0.167,
+    0.0003
+   ],
+   "boot_first_half": [
+    0.034,
+    0.166,
+    0.0047
+   ],
+   "boot_second_half": [
+    0.033,
+    0.2,
+    0.0089
+   ],
+   "bot_prints_at_our_price": 920,
+   "coin_held_max_usd": 160,
+   "conversion_days": 23,
+   "conversion_usd_median": 150,
+   "conversions": 23,
+   "days": 32,
+   "days_positive": 21,
+   "edge_bps_vs_fair": {
+    "ask": 0.91,
+    "bid": 8.02
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 36,
+    "usd": 128
+   },
+   "fills_a_day": {
+    "ask": 3.9,
+    "bid": 3.5
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -0.265,
+   "orders_a_day_max": 519,
+   "orders_a_day_mean": 91.7,
+   "usd_a_day": 0.109,
+   "usd_a_day_halves": [
+    0.1,
+    0.118
+   ],
+   "usd_filled_a_day": {
+    "ask": 108,
+    "bid": 108
+   },
+   "waiting_for_app_max_usd": 160,
+   "worst_day": -0.238
+  },
+  "USDT|reverse|improve|C161|fx0|twice_weekdays": {
+   "best_day": 0.661,
+   "boot_all": [
+    0.091,
+    0.256,
+    0.0002
+   ],
+   "boot_first_half": [
+    0.086,
+    0.266,
+    0.0001
+   ],
+   "boot_second_half": [
+    0.037,
+    0.313,
+    0.0154
+   ],
+   "bot_prints_at_our_price": 2058,
+   "coin_held_max_usd": 160,
+   "conversion_days": 23,
+   "conversion_usd_median": 145,
+   "conversions": 43,
+   "days": 32,
+   "days_positive": 26,
+   "edge_bps_vs_fair": {
+    "ask": 1.45,
+    "bid": 5.68
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 127,
+    "usd": 40
+   },
+   "fills_a_day": {
+    "ask": 6.5,
+    "bid": 5.8
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -0.373,
+   "orders_a_day_max": 352,
+   "orders_a_day_mean": 103.1,
+   "usd_a_day": 0.174,
+   "usd_a_day_halves": [
+    0.176,
+    0.173
+   ],
+   "usd_filled_a_day": {
+    "ask": 181,
+    "bid": 181
+   },
+   "waiting_for_app_max_usd": 163,
+   "worst_day": -0.271
+  },
+  "USDT|reverse|improve|C161|fx0|weekly": {
+   "best_day": 0.561,
+   "boot_all": [
+    0.003,
+    0.071,
+    0.0314
+   ],
+   "boot_first_half": [
+    -0.011,
+    0.096,
+    0.1338
+   ],
+   "boot_second_half": [
+    0.011,
+    0.053,
+    0.0009
+   ],
+   "bot_prints_at_our_price": 282,
+   "coin_held_max_usd": 161,
+   "conversion_days": 5,
+   "conversion_usd_median": 140,
+   "conversions": 5,
+   "days": 32,
+   "days_positive": 21,
+   "edge_bps_vs_fair": {
+    "ask": 0.32,
+    "bid": 11.34
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 1,
+    "usd": 161
+   },
+   "fills_a_day": {
+    "ask": 1.0,
+    "bid": 1.0
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -0.261,
+   "orders_a_day_max": 213,
+   "orders_a_day_mean": 12.5,
+   "usd_a_day": 0.034,
+   "usd_a_day_halves": [
+    0.037,
+    0.031
+   ],
+   "usd_filled_a_day": {
+    "ask": 27,
+    "bid": 27
+   },
+   "waiting_for_app_max_usd": 160,
+   "worst_day": -0.195
+  },
+  "USDT|reverse|improve|C161|fx10|daily_weekdays": {
+   "best_day": 0.561,
+   "boot_all": [
+    -0.049,
+    0.052,
+    0.4882
+   ],
+   "boot_first_half": [
+    -0.053,
+    0.055,
+    0.4931
+   ],
+   "boot_second_half": [
+    -0.067,
+    0.068,
+    0.4815
+   ],
+   "bot_prints_at_our_price": 1004,
+   "coin_held_max_usd": 161,
+   "conversion_days": 23,
+   "conversion_usd_median": 150,
+   "conversions": 23,
+   "days": 32,
+   "days_positive": 13,
+   "edge_bps_vs_fair": {
+    "ask": 0.84,
+    "bid": 7.01
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 33,
+    "usd": 128
+   },
+   "fills_a_day": {
+    "ask": 4.0,
+    "bid": 3.5
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -0.868,
+   "orders_a_day_max": 258,
+   "orders_a_day_mean": 56.9,
+   "usd_a_day": 0.001,
+   "usd_a_day_halves": [
+    0.001,
+    0.001
+   ],
+   "usd_filled_a_day": {
+    "ask": 109,
+    "bid": 109
+   },
+   "waiting_for_app_max_usd": 161,
+   "worst_day": -0.368
+  },
+  "USDT|reverse|improve|C161|fx25|daily_weekdays": {
+   "best_day": 0.561,
+   "boot_all": [
+    -0.19,
+    -0.074,
+    0.9999
+   ],
+   "boot_first_half": [
+    -0.215,
+    -0.077,
+    0.9995
+   ],
+   "boot_second_half": [
+    -0.199,
+    -0.035,
+    0.9912
+   ],
+   "bot_prints_at_our_price": 846,
+   "coin_held_max_usd": 140,
+   "conversion_days": 23,
+   "conversion_usd_median": 122,
+   "conversions": 23,
+   "days": 32,
+   "days_positive": 8,
+   "edge_bps_vs_fair": {
+    "ask": 0.86,
+    "bid": 7.1
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 28,
+    "usd": 128
+   },
+   "fills_a_day": {
+    "ask": 3.6,
+    "bid": 3.2
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -4.816,
+   "orders_a_day_max": 258,
+   "orders_a_day_mean": 54.3,
+   "usd_a_day": -0.133,
+   "usd_a_day_halves": [
+    -0.147,
+    -0.119
+   ],
+   "usd_filled_a_day": {
+    "ask": 100,
+    "bid": 100
+   },
+   "waiting_for_app_max_usd": 160,
+   "worst_day": -0.482
+  },
+  "USDT|reverse|improve|C161|fx5|daily_weekdays": {
+   "best_day": 0.561,
+   "boot_all": [
+    0.004,
+    0.111,
+    0.0358
+   ],
+   "boot_first_half": [
+    -0.006,
+    0.11,
+    0.0718
+   ],
+   "boot_second_half": [
+    -0.01,
+    0.137,
+    0.0797
+   ],
+   "bot_prints_at_our_price": 1022,
+   "coin_held_max_usd": 160,
+   "conversion_days": 23,
+   "conversion_usd_median": 160,
+   "conversions": 23,
+   "days": 32,
+   "days_positive": 14,
+   "edge_bps_vs_fair": {
+    "ask": 0.94,
+    "bid": 6.96
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 35,
+    "usd": 128
+   },
+   "fills_a_day": {
+    "ask": 4.0,
+    "bid": 3.6
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -0.496,
+   "orders_a_day_max": 258,
+   "orders_a_day_mean": 57.5,
+   "usd_a_day": 0.058,
+   "usd_a_day_halves": [
+    0.052,
+    0.063
+   ],
+   "usd_filled_a_day": {
+    "ask": 111,
+    "bid": 111
+   },
+   "waiting_for_app_max_usd": 162,
+   "worst_day": -0.29
+  },
+  "USDT|reverse|improve|C805|fx0|ask_live_exit_plus1": {
+   "best_day": 2.911,
+   "boot_all": [
+    0.233,
+    0.699,
+    0.0
+   ],
+   "boot_first_half": [
+    0.024,
+    0.65,
+    0.0354
+   ],
+   "boot_second_half": [
+    0.36,
+    0.851,
+    0.0
+   ],
+   "bot_prints_at_our_price": 1907,
+   "coin_held_max_usd": 812,
+   "conversion_days": 17,
+   "conversion_usd_median": 700,
+   "conversions": 17,
+   "days": 32,
+   "days_positive": 22,
+   "edge_bps_vs_fair": {
+    "ask": 3.67,
+    "bid": 7.39
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 11,
+    "usd": 809
+   },
+   "fills_a_day": {
+    "ask": 5.1,
+    "bid": 4.8
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -0.779,
+   "orders_a_day_max": 299,
+   "orders_a_day_mean": 73.7,
+   "usd_a_day": 0.463,
+   "usd_a_day_halves": [
+    0.325,
+    0.601
+   ],
+   "usd_filled_a_day": {
+    "ask": 317,
+    "bid": 317
+   },
+   "waiting_for_app_max_usd": 801,
+   "worst_day": -0.397
+  },
+  "USDT|reverse|improve|C805|fx0|daily_incl_weekend": {
+   "best_day": 5.083,
+   "boot_all": [
+    0.303,
+    0.956,
+    0.0
+   ],
+   "boot_first_half": [
+    0.244,
+    1.159,
+    0.001
+   ],
+   "boot_second_half": [
+    0.231,
+    0.897,
+    0.0018
+   ],
+   "bot_prints_at_our_price": 3963,
+   "coin_held_max_usd": 810,
+   "conversion_days": 31,
+   "conversion_usd_median": 744,
+   "conversions": 31,
+   "days": 32,
+   "days_positive": 26,
+   "edge_bps_vs_fair": {
+    "ask": 1.12,
+    "bid": 7.71
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 16,
+    "usd": 809
+   },
+   "fills_a_day": {
+    "ask": 12.2,
+    "bid": 10.2
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -1.096,
+   "orders_a_day_max": 500,
+   "orders_a_day_mean": 133.8,
+   "usd_a_day": 0.619,
+   "usd_a_day_halves": [
+    0.672,
+    0.567
+   ],
+   "usd_filled_a_day": {
+    "ask": 721,
+    "bid": 720
+   },
+   "waiting_for_app_max_usd": 810,
+   "worst_day": -0.783
+  },
+  "USDT|reverse|improve|C805|fx0|daily_weekdays": {
+   "best_day": 3.072,
+   "boot_all": [
+    0.218,
+    0.79,
+    0.0004
+   ],
+   "boot_first_half": [
+    0.16,
+    0.82,
+    0.005
+   ],
+   "boot_second_half": [
+    0.138,
+    0.901,
+    0.0097
+   ],
+   "bot_prints_at_our_price": 2878,
+   "coin_held_max_usd": 810,
+   "conversion_days": 23,
+   "conversion_usd_median": 768,
+   "conversions": 23,
+   "days": 32,
+   "days_positive": 23,
+   "edge_bps_vs_fair": {
+    "ask": 1.13,
+    "bid": 8.03
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 12,
+    "usd": 809
+   },
+   "fills_a_day": {
+    "ask": 9.4,
+    "bid": 8.1
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -1.091,
+   "orders_a_day_max": 500,
+   "orders_a_day_mean": 124.7,
+   "usd_a_day": 0.502,
+   "usd_a_day_halves": [
+    0.488,
+    0.517
+   ],
+   "usd_filled_a_day": {
+    "ask": 561,
+    "bid": 561
+   },
+   "waiting_for_app_max_usd": 816,
+   "worst_day": -0.784
+  },
+  "USDT|reverse|improve|C805|fx0|mb2": {
+   "best_day": 3.072,
+   "boot_all": [
+    0.216,
+    0.795,
+    0.0005
+   ],
+   "boot_first_half": [
+    0.132,
+    0.797,
+    0.0104
+   ],
+   "boot_second_half": [
+    0.159,
+    0.934,
+    0.007
+   ],
+   "bot_prints_at_our_price": 2660,
+   "coin_held_max_usd": 801,
+   "conversion_days": 23,
+   "conversion_usd_median": 760,
+   "conversions": 23,
+   "days": 32,
+   "days_positive": 22,
+   "edge_bps_vs_fair": {
+    "ask": 1.16,
+    "bid": 9.42
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 12,
+    "usd": 809
+   },
+   "fills_a_day": {
+    "ask": 9.0,
+    "bid": 7.6
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -1.422,
+   "orders_a_day_max": 519,
+   "orders_a_day_mean": 146.0,
+   "usd_a_day": 0.506,
+   "usd_a_day_halves": [
+    0.464,
+    0.549
+   ],
+   "usd_filled_a_day": {
+    "ask": 538,
+    "bid": 537
+   },
+   "waiting_for_app_max_usd": 805,
+   "worst_day": -0.838
+  },
+  "USDT|reverse|improve|C805|fx0|twice_weekdays": {
+   "best_day": 3.072,
+   "boot_all": [
+    0.365,
+    1.12,
+    0.0004
+   ],
+   "boot_first_half": [
+    0.375,
+    1.213,
+    0.0002
+   ],
+   "boot_second_half": [
+    0.125,
+    1.276,
+    0.0212
+   ],
+   "bot_prints_at_our_price": 4027,
+   "coin_held_max_usd": 814,
+   "conversion_days": 23,
+   "conversion_usd_median": 633,
+   "conversions": 44,
+   "days": 32,
+   "days_positive": 27,
+   "edge_bps_vs_fair": {
+    "ask": 1.49,
+    "bid": 6.79
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 729,
+    "usd": 100
+   },
+   "fills_a_day": {
+    "ask": 12.2,
+    "bid": 11.0
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -1.821,
+   "orders_a_day_max": 500,
+   "orders_a_day_mean": 165.4,
+   "usd_a_day": 0.745,
+   "usd_a_day_halves": [
+    0.792,
+    0.698
+   ],
+   "usd_filled_a_day": {
+    "ask": 753,
+    "bid": 752
+   },
+   "waiting_for_app_max_usd": 811,
+   "worst_day": -1.366
+  },
+  "USDT|reverse|improve|C805|fx0|weekly": {
+   "best_day": 3.072,
+   "boot_all": [
+    -0.002,
+    0.372,
+    0.0543
+   ],
+   "boot_first_half": [
+    -0.035,
+    0.542,
+    0.1191
+   ],
+   "boot_second_half": [
+    0.004,
+    0.289,
+    0.0387
+   ],
+   "bot_prints_at_our_price": 692,
+   "coin_held_max_usd": 801,
+   "conversion_days": 5,
+   "conversion_usd_median": 760,
+   "conversions": 5,
+   "days": 32,
+   "days_positive": 20,
+   "edge_bps_vs_fair": {
+    "ask": 0.58,
+    "bid": 14.47
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 9,
+    "usd": 801
+   },
+   "fills_a_day": {
+    "ask": 2.2,
+    "bid": 2.4
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -0.938,
+   "orders_a_day_max": 246,
+   "orders_a_day_mean": 22.1,
+   "usd_a_day": 0.167,
+   "usd_a_day_halves": [
+    0.208,
+    0.126
+   ],
+   "usd_filled_a_day": {
+    "ask": 143,
+    "bid": 143
+   },
+   "waiting_for_app_max_usd": 805,
+   "worst_day": -0.732
+  },
+  "USDT|reverse|improve|C805|fx10|daily_weekdays": {
+   "best_day": 3.072,
+   "boot_all": [
+    -0.279,
+    0.253,
+    0.5503
+   ],
+   "boot_first_half": [
+    -0.322,
+    0.277,
+    0.577
+   ],
+   "boot_second_half": [
+    -0.345,
+    0.352,
+    0.517
+   ],
+   "bot_prints_at_our_price": 2827,
+   "coin_held_max_usd": 801,
+   "conversion_days": 23,
+   "conversion_usd_median": 753,
+   "conversions": 23,
+   "days": 32,
+   "days_positive": 14,
+   "edge_bps_vs_fair": {
+    "ask": 1.07,
+    "bid": 8.14
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 95,
+    "usd": 709
+   },
+   "fills_a_day": {
+    "ask": 9.2,
+    "bid": 7.9
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -4.744,
+   "orders_a_day_max": 500,
+   "orders_a_day_mean": 120.0,
+   "usd_a_day": -0.016,
+   "usd_a_day_halves": [
+    -0.029,
+    -0.003
+   ],
+   "usd_filled_a_day": {
+    "ask": 549,
+    "bid": 548
+   },
+   "waiting_for_app_max_usd": 805,
+   "worst_day": -1.559
+  },
+  "USDT|reverse|improve|C805|fx25|daily_weekdays": {
+   "best_day": 3.072,
+   "boot_all": [
+    -1.068,
+    -0.495,
+    1.0
+   ],
+   "boot_first_half": [
+    -1.176,
+    -0.421,
+    0.9995
+   ],
+   "boot_second_half": [
+    -1.147,
+    -0.377,
+    1.0
+   ],
+   "bot_prints_at_our_price": 2689,
+   "coin_held_max_usd": 781,
+   "conversion_days": 23,
+   "conversion_usd_median": 712,
+   "conversions": 23,
+   "days": 32,
+   "days_positive": 9,
+   "edge_bps_vs_fair": {
+    "ask": 1.03,
+    "bid": 8.02
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 71,
+    "usd": 709
+   },
+   "fills_a_day": {
+    "ask": 8.9,
+    "bid": 7.8
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -28.222,
+   "orders_a_day_max": 500,
+   "orders_a_day_mean": 118.1,
+   "usd_a_day": -0.786,
+   "usd_a_day_halves": [
+    -0.807,
+    -0.765
+   ],
+   "usd_filled_a_day": {
+    "ask": 532,
+    "bid": 532
+   },
+   "waiting_for_app_max_usd": 805,
+   "worst_day": -2.563
+  },
+  "USDT|reverse|improve|C805|fx5|daily_weekdays": {
+   "best_day": 3.072,
+   "boot_all": [
+    -0.033,
+    0.504,
+    0.0776
+   ],
+   "boot_first_half": [
+    -0.073,
+    0.547,
+    0.1115
+   ],
+   "boot_second_half": [
+    -0.103,
+    0.587,
+    0.1376
+   ],
+   "bot_prints_at_our_price": 2842,
+   "coin_held_max_usd": 801,
+   "conversion_days": 23,
+   "conversion_usd_median": 760,
+   "conversions": 23,
+   "days": 32,
+   "days_positive": 16,
+   "edge_bps_vs_fair": {
+    "ask": 1.11,
+    "bid": 8.11
+   },
+   "end_state_usd": {
+    "coin": 0,
+    "gbp_in_usd": 3,
+    "usd": 809
+   },
+   "fills_a_day": {
+    "ask": 9.2,
+    "bid": 8.0
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -2.582,
+   "orders_a_day_max": 500,
+   "orders_a_day_mean": 124.3,
+   "usd_a_day": 0.234,
+   "usd_a_day_halves": [
+    0.232,
+    0.235
+   ],
+   "usd_filled_a_day": {
+    "ask": 555,
+    "bid": 555
+   },
+   "waiting_for_app_max_usd": 812,
+   "worst_day": -1.172
+  },
+  "USDT|reverse|join|C1610|fx0|daily_weekdays": {
+   "best_day": 3.256,
+   "boot_all": [
+    -0.007,
+    0.459,
+    0.0577
+   ],
+   "boot_first_half": [
+    -0.133,
+    0.552,
+    0.2103
+   ],
+   "boot_second_half": [
+    0.097,
+    0.377,
+    0.0033
+   ],
+   "bot_prints_at_our_price": 5738,
+   "coin_held_max_usd": 1589,
+   "conversion_days": 22,
+   "conversion_usd_median": 250,
+   "conversions": 22,
+   "days": 32,
+   "days_positive": 20,
+   "edge_bps_vs_fair": {
+    "ask": 2.29,
+    "bid": 8.29
+   },
+   "end_state_usd": {
+    "coin": 1329,
+    "gbp_in_usd": 33,
+    "usd": 255
+   },
+   "fills_a_day": {
+    "ask": 2.5,
+    "bid": 3.4
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -2.737,
+   "orders_a_day_max": 360,
+   "orders_a_day_mean": 103.0,
+   "usd_a_day": 0.208,
+   "usd_a_day_halves": [
+    0.181,
+    0.236
+   ],
+   "usd_filled_a_day": {
+    "ask": 216,
+    "bid": 257
+   },
+   "waiting_for_app_max_usd": 1071,
+   "worst_day": -1.041
+  },
+  "USDT|reverse|join|C1610|fx10|daily_weekdays": {
+   "best_day": 3.256,
+   "boot_all": [
+    -0.224,
+    0.261,
+    0.5322
+   ],
+   "boot_first_half": [
+    -0.319,
+    0.418,
+    0.5013
+   ],
+   "boot_second_half": [
+    -0.195,
+    0.147,
+    0.5543
+   ],
+   "bot_prints_at_our_price": 5738,
+   "coin_held_max_usd": 1589,
+   "conversion_days": 22,
+   "conversion_usd_median": 250,
+   "conversions": 22,
+   "days": 32,
+   "days_positive": 17,
+   "edge_bps_vs_fair": {
+    "ask": 2.29,
+    "bid": 8.29
+   },
+   "end_state_usd": {
+    "coin": 1329,
+    "gbp_in_usd": 26,
+    "usd": 255
+   },
+   "fills_a_day": {
+    "ask": 2.5,
+    "bid": 3.4
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -4.597,
+   "orders_a_day_max": 360,
+   "orders_a_day_mean": 103.0,
+   "usd_a_day": -0.0,
+   "usd_a_day_halves": [
+    0.017,
+    -0.017
+   ],
+   "usd_filled_a_day": {
+    "ask": 216,
+    "bid": 257
+   },
+   "waiting_for_app_max_usd": 1071,
+   "worst_day": -1.933
+  },
+  "USDT|reverse|join|C1610|fx25|daily_weekdays": {
+   "best_day": 3.256,
+   "boot_all": [
+    -0.574,
+    -0.019,
+    0.96
+   ],
+   "boot_first_half": [
+    -0.62,
+    0.214,
+    0.8175
+   ],
+   "boot_second_half": [
+    -0.669,
+    -0.166,
+    1.0
+   ],
+   "bot_prints_at_our_price": 5738,
+   "coin_held_max_usd": 1589,
+   "conversion_days": 22,
+   "conversion_usd_median": 250,
+   "conversions": 22,
+   "days": 32,
+   "days_positive": 11,
+   "edge_bps_vs_fair": {
+    "ask": 2.29,
+    "bid": 8.29
+   },
+   "end_state_usd": {
+    "coin": 1329,
+    "gbp_in_usd": 16,
+    "usd": 255
+   },
+   "fills_a_day": {
+    "ask": 2.5,
+    "bid": 3.4
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -13.77,
+   "orders_a_day_max": 360,
+   "orders_a_day_mean": 103.0,
+   "usd_a_day": -0.312,
+   "usd_a_day_halves": [
+    -0.229,
+    -0.395
+   ],
+   "usd_filled_a_day": {
+    "ask": 216,
+    "bid": 257
+   },
+   "waiting_for_app_max_usd": 1071,
+   "worst_day": -3.516
+  },
+  "USDT|reverse|join|C1610|fx5|daily_weekdays": {
+   "best_day": 3.256,
+   "boot_all": [
+    -0.112,
+    0.359,
+    0.2643
+   ],
+   "boot_first_half": [
+    -0.223,
+    0.486,
+    0.3605
+   ],
+   "boot_second_half": [
+    -0.047,
+    0.258,
+    0.1238
+   ],
+   "bot_prints_at_our_price": 5738,
+   "coin_held_max_usd": 1589,
+   "conversion_days": 22,
+   "conversion_usd_median": 250,
+   "conversions": 22,
+   "days": 32,
+   "days_positive": 19,
+   "edge_bps_vs_fair": {
+    "ask": 2.29,
+    "bid": 8.29
+   },
+   "end_state_usd": {
+    "coin": 1329,
+    "gbp_in_usd": 29,
+    "usd": 255
+   },
+   "fills_a_day": {
+    "ask": 2.5,
+    "bid": 3.4
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -3.444,
+   "orders_a_day_max": 360,
+   "orders_a_day_mean": 103.0,
+   "usd_a_day": 0.104,
+   "usd_a_day_halves": [
+    0.099,
+    0.109
+   ],
+   "usd_filled_a_day": {
+    "ask": 216,
+    "bid": 257
+   },
+   "waiting_for_app_max_usd": 1071,
+   "worst_day": -1.405
+  },
+  "USDT|reverse|join|C161|fx0|daily_weekdays": {
+   "best_day": 0.598,
+   "boot_all": [
+    0.009,
+    0.108,
+    0.0229
+   ],
+   "boot_first_half": [
+    -0.027,
+    0.091,
+    0.22
+   ],
+   "boot_second_half": [
+    0.034,
+    0.136,
+    0.0013
+   ],
+   "bot_prints_at_our_price": 4196,
+   "coin_held_max_usd": 161,
+   "conversion_days": 22,
+   "conversion_usd_median": 80,
+   "conversions": 22,
+   "days": 32,
+   "days_positive": 20,
+   "edge_bps_vs_fair": {
+    "ask": 1.82,
+    "bid": 6.89
+   },
+   "end_state_usd": {
+    "coin": 3,
+    "gbp_in_usd": 40,
+    "usd": 120
+   },
+   "fills_a_day": {
+    "ask": 1.8,
+    "bid": 2.1
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -0.532,
+   "orders_a_day_max": 266,
+   "orders_a_day_mean": 67.6,
+   "usd_a_day": 0.057,
+   "usd_a_day_halves": [
+    0.029,
+    0.085
+   ],
+   "usd_filled_a_day": {
+    "ask": 64,
+    "bid": 64
+   },
+   "waiting_for_app_max_usd": 160,
+   "worst_day": -0.288
+  },
+  "USDT|reverse|join|C161|fx10|daily_weekdays": {
+   "best_day": 0.598,
+   "boot_all": [
+    -0.05,
+    0.046,
+    0.5596
+   ],
+   "boot_first_half": [
+    -0.083,
+    0.042,
+    0.7433
+   ],
+   "boot_second_half": [
+    -0.029,
+    0.065,
+    0.2781
+   ],
+   "bot_prints_at_our_price": 4196,
+   "coin_held_max_usd": 161,
+   "conversion_days": 22,
+   "conversion_usd_median": 80,
+   "conversions": 22,
+   "days": 32,
+   "days_positive": 15,
+   "edge_bps_vs_fair": {
+    "ask": 1.82,
+    "bid": 6.89
+   },
+   "end_state_usd": {
+    "coin": 3,
+    "gbp_in_usd": 38,
+    "usd": 120
+   },
+   "fills_a_day": {
+    "ask": 1.8,
+    "bid": 2.1
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -1.178,
+   "orders_a_day_max": 266,
+   "orders_a_day_mean": 67.6,
+   "usd_a_day": -0.003,
+   "usd_a_day_halves": [
+    -0.024,
+    0.017
+   ],
+   "usd_filled_a_day": {
+    "ask": 64,
+    "bid": 64
+   },
+   "waiting_for_app_max_usd": 160,
+   "worst_day": -0.376
+  },
+  "USDT|reverse|join|C161|fx25|daily_weekdays": {
+   "best_day": 0.598,
+   "boot_all": [
+    -0.151,
+    -0.038,
+    0.9958
+   ],
+   "boot_first_half": [
+    -0.194,
+    -0.024,
+    0.9836
+   ],
+   "boot_second_half": [
+    -0.143,
+    -0.015,
+    0.9784
+   ],
+   "bot_prints_at_our_price": 4184,
+   "coin_held_max_usd": 161,
+   "conversion_days": 21,
+   "conversion_usd_median": 80,
+   "conversions": 21,
+   "days": 32,
+   "days_positive": 10,
+   "edge_bps_vs_fair": {
+    "ask": 1.62,
+    "bid": 7.21
+   },
+   "end_state_usd": {
+    "coin": 3,
+    "gbp_in_usd": 35,
+    "usd": 120
+   },
+   "fills_a_day": {
+    "ask": 1.8,
+    "bid": 2.0
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -3.647,
+   "orders_a_day_max": 248,
+   "orders_a_day_mean": 65.0,
+   "usd_a_day": -0.095,
+   "usd_a_day_halves": [
+    -0.11,
+    -0.08
+   ],
+   "usd_filled_a_day": {
+    "ask": 61,
+    "bid": 61
+   },
+   "waiting_for_app_max_usd": 160,
+   "worst_day": -0.687
+  },
+  "USDT|reverse|join|C161|fx5|daily_weekdays": {
+   "best_day": 0.598,
+   "boot_all": [
+    -0.02,
+    0.077,
+    0.1901
+   ],
+   "boot_first_half": [
+    -0.054,
+    0.066,
+    0.498
+   ],
+   "boot_second_half": [
+    0.002,
+    0.1,
+    0.0406
+   ],
+   "bot_prints_at_our_price": 4196,
+   "coin_held_max_usd": 161,
+   "conversion_days": 22,
+   "conversion_usd_median": 80,
+   "conversions": 22,
+   "days": 32,
+   "days_positive": 16,
+   "edge_bps_vs_fair": {
+    "ask": 1.82,
+    "bid": 6.89
+   },
+   "end_state_usd": {
+    "coin": 3,
+    "gbp_in_usd": 39,
+    "usd": 120
+   },
+   "fills_a_day": {
+    "ask": 1.8,
+    "bid": 2.1
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -0.709,
+   "orders_a_day_max": 266,
+   "orders_a_day_mean": 67.6,
+   "usd_a_day": 0.027,
+   "usd_a_day_halves": [
+    0.003,
+    0.051
+   ],
+   "usd_filled_a_day": {
+    "ask": 64,
+    "bid": 64
+   },
+   "waiting_for_app_max_usd": 160,
+   "worst_day": -0.332
+  },
+  "USDT|reverse|join|C805|fx0|daily_weekdays": {
+   "best_day": 2.73,
+   "boot_all": [
+    0.037,
+    0.38,
+    0.0156
+   ],
+   "boot_first_half": [
+    -0.077,
+    0.423,
+    0.1902
+   ],
+   "boot_second_half": [
+    0.122,
+    0.378,
+    0.0002
+   ],
+   "bot_prints_at_our_price": 5504,
+   "coin_held_max_usd": 807,
+   "conversion_days": 22,
+   "conversion_usd_median": 246,
+   "conversions": 22,
+   "days": 32,
+   "days_positive": 21,
+   "edge_bps_vs_fair": {
+    "ask": 2.31,
+    "bid": 7.73
+   },
+   "end_state_usd": {
+    "coin": 530,
+    "gbp_in_usd": 27,
+    "usd": 255
+   },
+   "fills_a_day": {
+    "ask": 2.4,
+    "bid": 3.0
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -1.515,
+   "orders_a_day_max": 360,
+   "orders_a_day_mean": 92.2,
+   "usd_a_day": 0.198,
+   "usd_a_day_halves": [
+    0.144,
+    0.252
+   ],
+   "usd_filled_a_day": {
+    "ask": 207,
+    "bid": 223
+   },
+   "waiting_for_app_max_usd": 786,
+   "worst_day": -1.099
+  },
+  "USDT|reverse|join|C805|fx10|daily_weekdays": {
+   "best_day": 2.73,
+   "boot_all": [
+    -0.164,
+    0.192,
+    0.5217
+   ],
+   "boot_first_half": [
+    -0.264,
+    0.286,
+    0.5687
+   ],
+   "boot_second_half": [
+    -0.114,
+    0.163,
+    0.3961
+   ],
+   "bot_prints_at_our_price": 5473,
+   "coin_held_max_usd": 807,
+   "conversion_days": 22,
+   "conversion_usd_median": 246,
+   "conversions": 22,
+   "days": 32,
+   "days_positive": 17,
+   "edge_bps_vs_fair": {
+    "ask": 2.28,
+    "bid": 7.77
+   },
+   "end_state_usd": {
+    "coin": 530,
+    "gbp_in_usd": 20,
+    "usd": 255
+   },
+   "fills_a_day": {
+    "ask": 2.3,
+    "bid": 3.0
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -3.686,
+   "orders_a_day_max": 360,
+   "orders_a_day_mean": 93.9,
+   "usd_a_day": 0.003,
+   "usd_a_day_halves": [
+    -0.017,
+    0.023
+   ],
+   "usd_filled_a_day": {
+    "ask": 205,
+    "bid": 221
+   },
+   "waiting_for_app_max_usd": 728,
+   "worst_day": -1.534
+  },
+  "USDT|reverse|join|C805|fx25|daily_weekdays": {
+   "best_day": 2.73,
+   "boot_all": [
+    -0.467,
+    -0.072,
+    0.984
+   ],
+   "boot_first_half": [
+    -0.546,
+    0.107,
+    0.8708
+   ],
+   "boot_second_half": [
+    -0.499,
+    -0.157,
+    0.9997
+   ],
+   "bot_prints_at_our_price": 5473,
+   "coin_held_max_usd": 791,
+   "conversion_days": 22,
+   "conversion_usd_median": 246,
+   "conversions": 22,
+   "days": 32,
+   "days_positive": 11,
+   "edge_bps_vs_fair": {
+    "ask": 2.28,
+    "bid": 7.68
+   },
+   "end_state_usd": {
+    "coin": 530,
+    "gbp_in_usd": 11,
+    "usd": 255
+   },
+   "fills_a_day": {
+    "ask": 2.3,
+    "bid": 3.0
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -11.593,
+   "orders_a_day_max": 360,
+   "orders_a_day_mean": 91.8,
+   "usd_a_day": -0.277,
+   "usd_a_day_halves": [
+    -0.231,
+    -0.323
+   ],
+   "usd_filled_a_day": {
+    "ask": 205,
+    "bid": 221
+   },
+   "waiting_for_app_max_usd": 728,
+   "worst_day": -2.188
+  },
+  "USDT|reverse|join|C805|fx5|daily_weekdays": {
+   "best_day": 2.73,
+   "boot_all": [
+    -0.063,
+    0.287,
+    0.1834
+   ],
+   "boot_first_half": [
+    -0.169,
+    0.355,
+    0.3807
+   ],
+   "boot_second_half": [
+    0.006,
+    0.277,
+    0.0435
+   ],
+   "bot_prints_at_our_price": 5473,
+   "coin_held_max_usd": 807,
+   "conversion_days": 22,
+   "conversion_usd_median": 246,
+   "conversions": 22,
+   "days": 32,
+   "days_positive": 20,
+   "edge_bps_vs_fair": {
+    "ask": 2.28,
+    "bid": 7.74
+   },
+   "end_state_usd": {
+    "coin": 530,
+    "gbp_in_usd": 24,
+    "usd": 255
+   },
+   "fills_a_day": {
+    "ask": 2.3,
+    "bid": 3.0
+   },
+   "gbp_ask_fills_at_or_under_live_exit": 0,
+   "max_drawdown": -2.295,
+   "orders_a_day_max": 360,
+   "orders_a_day_mean": 91.7,
+   "usd_a_day": 0.101,
+   "usd_a_day_halves": [
+    0.063,
+    0.139
+   ],
+   "usd_filled_a_day": {
+    "ask": 205,
+    "bid": 221
+   },
+   "waiting_for_app_max_usd": 728,
+   "worst_day": -1.317
+  }
+ },
+ "window": "2026-09-27 -> 2026-10-29 UTC"
+}
