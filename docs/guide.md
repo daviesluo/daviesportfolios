@@ -522,6 +522,17 @@ places stay when the number is not whole.
   each Revolut X fill with its Coinbase trade. Each is a 28-day paper test from
   the first midnight after it went up, its rule for judging it written down
   first.
+- **Crypto quotes XRP/GBP.** After the hedge rows, on Revolut X: a pretend
+  £600 that buys and sells XRP for pounds, a little either side of XRP's price
+  on Binance turned into pounds, and earns the gap when other people's trades
+  go through its price. It starts with pounds only and only sells coin it has
+  bought. It records the prices it needs itself every minute and replays each
+  minute second by second. FUNDED is its £600; DEPLOYED is the XRP it holds and
+  the pounds in its resting buy; TODAY is what today's round trips made, the
+  same as DAYS' today; UNREALIZED is the XRP it holds against what it paid.
+  Its 28-day test starts at the first midnight (UTC) from 1 November with three
+  hours of its own record before it, its rule for judging it written down
+  first; until then the row says it is recording.
 - **Stablecoin quotes USDG/EUR and Stablecoin quotes EURC/USDC.** After Coinbase's rows, on
   OKX (its own badge and venue card): the live rules on paper on OKX's two
   euro-against-dollar stablecoin books, USDG against euros and EURC against

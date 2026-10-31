@@ -1490,6 +1490,41 @@ export function quotesXhedgeOf(selected, dash) {
 /** The RX↔Coinbase hedge arms' TESTING rows, the inside arm first. @param {any} dash */
 export const quotesXhedgeRows = (dash) => (Array.isArray(dash?.quotesXhedge) ? dash.quotesXhedge : []).map(quotesXhedgeRow).filter(Boolean);
 
+/** "Crypto quotes XRP/GBP"'s id among TESTING's rows: this prefix and its arm's id (`xrpgbp`; mm_paper.ts, 0192). */
+export const QUOTES_CRYPTO_ROW_PREFIX = '__quotes_crypto_';
+
+/**
+ * "Crypto quotes XRP/GBP" as a row of TESTING (mm_paper.ts, mm_page.ts, 0192; Davies, 2026-10-31: "好 再研究下确保策略一切最优后就开做
+ * 然后上testing"): the XRP/GBP maker on paper on Revolut X, 14 bps either side of Binance's price in pounds, its £600 arm (the one its
+ * pre-registration judges), in the Stablecoin quotes pages' shape and in pounds, on Revolut X's card. `paperTestRows` puts it after
+ * Revolut X's other paper rows. null before it has decided a minute.
+ * @param {any} q  an element of the dashboard's `quotesCrypto`
+ */
+export function quotesCryptoRow(q) {
+  if (!q?.twin) return null;
+  const started = q.twin.startedAt != null && Date.parse(String(q.twin.startedAt)) <= Date.parse(String(q.twin.lastTurn ?? ''));
+  return {
+    id: `${QUOTES_CRYPTO_ROW_PREFIX}${q.twin.id}`,
+    name: String(q.twin.name),
+    venue: venueLabel('revx'),
+    venueId: 'revx',
+    mode: 'paper',
+    ...quoteBookCells(q),
+    status: q.running
+      ? { label: 'paper', running: true, tone: 'running', detail: `${started ? "quoting XRP/GBP around Binance's price" : 'recording; it quotes from its start'}, from Revolut X's recorded prints · last minute ${Number(q.lagMinutes) || 0} min ago` }
+      : { label: 'paper', running: false, tone: 'stale', detail: `its last decided minute was ${q.lagMinutes ?? '?'} min ago` },
+  };
+}
+
+/** The "Crypto quotes" arm a row opens, or null. @param {string | null} selected @param {any} dash */
+export function quotesCryptoOf(selected, dash) {
+  if (!selected || !selected.startsWith(QUOTES_CRYPTO_ROW_PREFIX)) return null;
+  return (Array.isArray(dash?.quotesCrypto) ? dash.quotesCrypto : []).find((/** @type {any} */ q) => q?.twin && `${QUOTES_CRYPTO_ROW_PREFIX}${q.twin.id}` === selected) ?? null;
+}
+
+/** The "Crypto quotes" rows of TESTING. @param {any} dash */
+export const quotesCryptoRows = (dash) => (Array.isArray(dash?.quotesCrypto) ? dash.quotesCrypto : []).map(quotesCryptoRow).filter(Boolean);
+
 /** The OKX twins' ids among TESTING's rows: this prefix and the twin's id (`okxusdg`, `okxeurc`; okx_quotes.ts, 0150). */
 export const QUOTES_OKX_ROW_PREFIX = '__quotes_okx_';
 
@@ -1693,7 +1728,8 @@ export function quotesLiveRow(q, as = { id: QUOTES_LIVE_ROW_ID, name: 'Stablecoi
  * @param {any} dash
  * LIVE's "Stablecoin quotes USDC/GBP" opens the same page on its own Coinbase book (`cblive`; Davies, 2026-10-29: "网页中live的
  * coinbase策略子页面打不开，点了没反应": it had no page).
- * @returns {'live' | 'cblive' | 'rxu' | 'twin' | 'coinbase' | 'okx' | 'xhedge' | null}
+ * "Crypto quotes XRP/GBP" (`crypto`, 0192) opens it as a twin's page.
+ * @returns {'live' | 'cblive' | 'rxu' | 'twin' | 'coinbase' | 'okx' | 'xhedge' | 'crypto' | null}
  */
 export function quotesPageFor(selected, dash) {
   if (selected === QUOTES_LIVE_ROW_ID) return quotesLiveRow(dash?.quotes?.live) ? 'live' : null;
@@ -1705,6 +1741,7 @@ export function quotesPageFor(selected, dash) {
   if (selected === QUOTES_COINBASE_NUDGE_ROW_ID) return quotesCoinbaseRow(dash?.quotesCoinbaseNudge) ? 'coinbase' : null;
   if (selected?.startsWith(QUOTES_OKX_ROW_PREFIX)) return quotesOkxRow(quotesOkxOf(selected, dash)) ? 'okx' : null;
   if (selected?.startsWith(QUOTES_XHEDGE_ROW_PREFIX)) return quotesXhedgeRow(quotesXhedgeOf(selected, dash)) ? 'xhedge' : null;
+  if (selected?.startsWith(QUOTES_CRYPTO_ROW_PREFIX)) return quotesCryptoRow(quotesCryptoOf(selected, dash)) ? 'crypto' : null;
   return quotesTwinRow(quotesTwinOf(selected, dash)) ? 'twin' : null;
 }
 
@@ -2524,7 +2561,7 @@ export function paperTestRows(dash) {
   const one = (/** @type {any} */ row) => (row ? [row] : []);
   return [
     // Coinbase's rows (Davies, 2026-10-30: "…放在coinbase里第一个…放在-1之后"): its LIVE twin first, then "with Euros - 1", then "- 2".
-    ...quotesTwinRows(dash), ...quotesXhedgeRows(dash), ...one(quotesCoinbaseRow(dash?.quotesCoinbase)), ...one(quotesCoinbaseRow(dash?.quotesCoinbaseNudge)), ...one(quotesCoinbaseRow(dash?.quotesCoinbaseUsdc)), ...one(quotesCoinbaseRow(dash?.quotesCoinbaseHold)),
+    ...quotesTwinRows(dash), ...quotesXhedgeRows(dash), ...quotesCryptoRows(dash), ...one(quotesCoinbaseRow(dash?.quotesCoinbase)), ...one(quotesCoinbaseRow(dash?.quotesCoinbaseNudge)), ...one(quotesCoinbaseRow(dash?.quotesCoinbaseUsdc)), ...one(quotesCoinbaseRow(dash?.quotesCoinbaseHold)),
     ...quotesOkxRows(dash), ...grokTestRows(dash), ...one(fxwAudRow(dash?.fxwAud)),
   ];
 }

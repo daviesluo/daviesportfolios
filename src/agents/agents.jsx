@@ -17,7 +17,7 @@ import { SurfaceBoundary } from '../app/surface_boundary.jsx';
 import { fmtDayMonth, maskDigits, pctColor } from '../app/formatters.js';
 import { ukTzAbbr } from '../prices/market_hours.js';
 import {
-  AGENT_TABS, venueParts, cbLiveRow, quotesRxuRow, makerWatchLine, MAKER_WATCH_BOOK, FXW_ROW_ID, fmtFx, fxwAudRow, fxwTiles, GROKPM_ROW_ID, GROKPM_ROW_NAME, grokPmRow, grokTestRow, grokTestOf, grokTestTiles, grokTestLayerCells, grokPmModeTag, grokPmTiles, grokPmStopText, grokPmMismatchText, grokPmDayCells, grokPmDaysAnnualPct, GROKPM_DAYS_ANNUAL_TITLE, GROKPM_JOURNAL_STEP, fetchGrokPmJournal, grokPmJournalView, fmtProb, LP_LIVE_ROW_ID, LP_R_TILE, lpStopRoomText, lpEstimateTexts, lpLiveDayCells, lpLiveStatus, liveExtraRows, lpLiveRow, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFeeGbp4, fmtFeeIn4, fmtGbp, fmtGbp4, fmtIn, fmtIn4, quotesDetailInCcy, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, glText, glTextIn, historyLimitOf, lastChangeText, liveStateRows, newestWins, quoteBookLabel, quoteLadderRows, quoteRungLabel, orderStateText, quotesLiveBooks, quotesLiveInventory, QUOTES_COINBASE_HOLD_ROW_ID, QUOTES_COINBASE_NUDGE_ROW_ID, QUOTES_COINBASE_USDC_ROW_ID, quotesPageFor, quotesShowBook, quoteConversionLine, INVENTORY_DUST, quotesOkxName, quotesOkxOf, quotesOkxRow, quotesXhedgeOf, quotesXhedgeRow, positionLines, readAgentsCache, readChartCache, quoteDaysAnnualPct, quoteDaysRecent, QUOTE_DAYS_ANNUAL_LABEL, QUOTE_DAYS_ANNUAL_TITLE, quotesLiveRow, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesCoinbaseRow, rowMoney, rwBarTileKeys, rwFillView, lpLiveQuoteRows, rwHeldOf, rwShareText, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, testedForText, venueHue, venueLabel, venueRows, paperTestRows,
+  AGENT_TABS, venueParts, cbLiveRow, quotesRxuRow, makerWatchLine, MAKER_WATCH_BOOK, FXW_ROW_ID, fmtFx, fxwAudRow, fxwTiles, GROKPM_ROW_ID, GROKPM_ROW_NAME, grokPmRow, grokTestRow, grokTestOf, grokTestTiles, grokTestLayerCells, grokPmModeTag, grokPmTiles, grokPmStopText, grokPmMismatchText, grokPmDayCells, grokPmDaysAnnualPct, GROKPM_DAYS_ANNUAL_TITLE, GROKPM_JOURNAL_STEP, fetchGrokPmJournal, grokPmJournalView, fmtProb, LP_LIVE_ROW_ID, LP_R_TILE, lpStopRoomText, lpEstimateTexts, lpLiveDayCells, lpLiveStatus, liveExtraRows, lpLiveRow, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFeeGbp4, fmtFeeIn4, fmtGbp, fmtGbp4, fmtIn, fmtIn4, quotesDetailInCcy, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, glText, glTextIn, historyLimitOf, lastChangeText, liveStateRows, newestWins, quoteBookLabel, quoteLadderRows, quoteRungLabel, orderStateText, quotesLiveBooks, quotesLiveInventory, QUOTES_COINBASE_HOLD_ROW_ID, QUOTES_COINBASE_NUDGE_ROW_ID, QUOTES_COINBASE_USDC_ROW_ID, quotesPageFor, quotesShowBook, quoteConversionLine, INVENTORY_DUST, quotesOkxName, quotesOkxOf, quotesOkxRow, quotesXhedgeOf, quotesXhedgeRow, quotesCryptoOf, quotesCryptoRow, positionLines, readAgentsCache, readChartCache, quoteDaysAnnualPct, quoteDaysRecent, QUOTE_DAYS_ANNUAL_LABEL, QUOTE_DAYS_ANNUAL_TITLE, quotesLiveRow, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesCoinbaseRow, rowMoney, rwBarTileKeys, rwFillView, lpLiveQuoteRows, rwHeldOf, rwShareText, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, testedForText, venueHue, venueLabel, venueRows, paperTestRows,
 } from './agents.js';
 import {
   CHART_PAD, CHART_PAD_SM, chartGeometry, fmtChartPrice, fmtChartStamp, hoverPoint, markPath, plotLabelY, tooltipBox, windowText,
@@ -612,15 +612,17 @@ function LiveOrdersTable({ title, cls, orders, m, empty, showBook = true }) {
  * LIVE's "Stablecoin quotes USDC/GBP" on Revolut X (`rxu`, 0180) opens it as LIVE's executor's page, under its own row
  * (`quotesRxuRow`): its name, not LIVE's (Davies, 2026-10-30: the page named "Stablecoin quotes USDT/GBP" under "running live").
  * "Stablecoin quotes RX↔Coinbase hedge" and "… - 1" (`xhedge`, 0184) open it as a twin's page, both venues' badges, INVENTORY its two accounts.
+ * "Crypto quotes XRP/GBP" (`crypto`, 0192) opens it as a twin's page on Revolut X: INVENTORY its pounds and its XRP at the fair, a
+ * line under the scoreboard for its start and its rule, and its stop's round trips marked "stop".
  * The two Revolut X live pages carry a line under the scoreboard about the other maker on their book (`maker`, the dashboard's
  * `makerWatch[book]`; Davies, 2026-10-30: "我们能不能对他加个监控，实时观察和记录他的行为"): present or absent, since when, how wide.
- * @param {{ q: any, m: (s: string) => string, at: any, nowMs: number, twin?: boolean, coinbase?: boolean, okx?: boolean, cbLive?: boolean, rxu?: boolean, xhedge?: boolean, maker?: any }} props
+ * @param {{ q: any, m: (s: string) => string, at: any, nowMs: number, twin?: boolean, coinbase?: boolean, okx?: boolean, cbLive?: boolean, rxu?: boolean, xhedge?: boolean, crypto?: boolean, maker?: any }} props
  */
-export function QuotesLiveDetail({ q, m, at, nowMs, twin: twinOnly = false, coinbase: cbOnly = false, okx = false, cbLive = false, rxu = false, xhedge = false, maker = null }) {
+export function QuotesLiveDetail({ q, m, at, nowMs, twin: twinOnly = false, coinbase: cbOnly = false, okx = false, cbLive = false, rxu = false, xhedge = false, crypto = false, maker = null }) {
   const coinbase = cbOnly || okx;
   // "Stablecoin quotes RX↔Coinbase hedge" (0184) opens as a twin's page: paper, its lines, and INVENTORY its two accounts.
-  const twin = twinOnly || xhedge;
-  const row = xhedge ? quotesXhedgeRow(q) : cbLive ? cbLiveRow(q) : okx ? quotesOkxRow(q) : coinbase ? quotesCoinbaseRow(q) : twin ? quotesTwinRow(q) : rxu ? quotesRxuRow(q) : quotesLiveRow(q);
+  const twin = twinOnly || xhedge || crypto;
+  const row = crypto ? quotesCryptoRow(q) : xhedge ? quotesXhedgeRow(q) : cbLive ? cbLiveRow(q) : okx ? quotesOkxRow(q) : coinbase ? quotesCoinbaseRow(q) : twin ? quotesTwinRow(q) : rxu ? quotesRxuRow(q) : quotesLiveRow(q);
   if (!row) return null;
   const lines = twin || coinbase ? quotesTwinLines(q, m) : null;
   const makerLine = maker ? makerWatchLine(maker, nowMs) : null;
@@ -638,7 +640,7 @@ export function QuotesLiveDetail({ q, m, at, nowMs, twin: twinOnly = false, coin
   const showBook = quotesShowBook(qc, [...trips, ...exitOrders, ...entryOrders]);
   const empty = d ? null : 'Not in this answer: the next refresh brings it.';
   return (
-    <div className={`ag-detail ${xhedge ? 'ag-quotes-xhedge-detail' : cbLive ? 'ag-quotes-cblive-detail' : okx ? 'ag-quotes-okx-detail' : coinbase ? 'ag-quotes-cb-detail' : twin ? 'ag-quotes-twin-detail' : 'ag-quotes-live-detail'}`}>
+    <div className={`ag-detail ${crypto ? 'ag-quotes-crypto-detail' : xhedge ? 'ag-quotes-xhedge-detail' : cbLive ? 'ag-quotes-cblive-detail' : okx ? 'ag-quotes-okx-detail' : coinbase ? 'ag-quotes-cb-detail' : twin ? 'ag-quotes-twin-detail' : 'ag-quotes-live-detail'}`}>
       <div className="ag-detail-head">
         <ModeBadge mode={twin || coinbase ? 'paper' : 'live'} />
         <VenueBadge id={okx ? 'okx' : coinbase || cbLive ? 'coinbase' : 'revx'} />
@@ -700,7 +702,7 @@ export function QuotesLiveDetail({ q, m, at, nowMs, twin: twinOnly = false, coin
               {trips.length === 0 && <tr><td className="hl-empty dim" colSpan={showBook ? 9 : 8}>{empty ?? 'No round trip yet.'}</td></tr>}
               {trips.map((t) => (
                 <tr key={`${t.book}|${t.side}|${t.k}|${t.tEntry}`} className={`txn-row txn-row-${t.side === 'bid' ? 'buy' : 'sell'}`}>
-                  <td className="dim"><Stamp iso={t.tExit} />{t.how === 'stop' ? <>{' '}<span className="hl-sub dim">24-hour stop</span></> : null}</td>
+                  <td className="dim"><Stamp iso={t.tExit} />{t.how === 'stop' ? <>{' '}<span className="hl-sub dim">{crypto ? 'stop' : '24-hour stop'}</span></> : null}</td>
                   {showBook && <td className="hl-strong"><BookName book={t.book} /></td>}
                   <td><RungSide side={t.side}>{t.side === 'bid' ? 'bought' : 'sold'}</RungSide></td>
                   <td className="ag-ph dim">{quoteRungLabel(t.k)}</td>
@@ -2056,6 +2058,7 @@ function AgentsModal({ hideValues, onClose }) {
     : null;
   const okxOpen = quotesPage === 'okx' ? quotesOkxOf(selected, dash) : null;
   const xhedgeOpen = quotesPage === 'xhedge' ? quotesXhedgeOf(selected, dash) : null;
+  const cryptoOpen = quotesPage === 'crypto' ? quotesCryptoOf(selected, dash) : null;
   const lpLiveOpen = selected === LP_LIVE_ROW_ID && !!lpLiveRow(dash?.lpLive);
   const grokPmOpen = selected === GROKPM_ROW_ID && !!grokPmRow(dash?.grokPm);
   const fxwOpen = selected === FXW_ROW_ID && !!fxwAudRow(dash?.fxwAud);
@@ -2231,6 +2234,19 @@ function AgentsModal({ hideValues, onClose }) {
         </header>
         <div className="modal-body ag-body">
           <PageGuard gen={gen}><QuotesLiveDetail q={xhedgeOpen} m={m} at={dash.at} nowMs={now} xhedge /></PageGuard>
+        </div>
+      </Modal>
+    )}
+    {cryptoOpen && (
+      <Modal onClose={() => setSelected(null)} size="lg">
+        <header className="modal-head">
+          <div>
+            <h2 className="modal-title mono"><NameText name={String(cryptoOpen.twin.name)} /></h2>
+          </div>
+          <PageActions onRefresh={() => load(true)} onClose={() => setSelected(null)} loading={loading} closeClass="ag-detail-close" />
+        </header>
+        <div className="modal-body ag-body">
+          <PageGuard gen={gen}><QuotesLiveDetail q={cryptoOpen} m={m} at={dash.at} nowMs={now} crypto /></PageGuard>
         </div>
       </Modal>
     )}
