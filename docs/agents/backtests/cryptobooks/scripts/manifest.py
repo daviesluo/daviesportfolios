@@ -4,7 +4,8 @@ import hashlib, json, os
 
 HERE = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 out = {
-    "study": "CRYPTOBOOKS, docs/agents/reviews/2026-10-31-crypto-books-deep.md; CRYPTOBOOKS-2, docs/agents/reviews/2026-10-31-xrp-gbp-strategy.md",
+    "study": "CRYPTOBOOKS, docs/agents/reviews/2026-10-31-crypto-books-deep.md; CRYPTOBOOKS-2, docs/agents/reviews/2026-10-31-xrp-gbp-strategy.md; "
+             "CRYPTOBOOKS-3, docs/agents/reviews/2026-10-31-xrp-gbp-paper-prereg.md",
     "written": "2026-10-31 UTC",
     "inputs_from_other_studies": [
         "docs/agents/backtests/fair_price/data/fx.txt.gz (Yahoo GBP/USD minutes to 2026-10-28 23:57)",

@@ -20,7 +20,14 @@
 #  - the regime gate (GATE w): quote only while the median of the last 20 public taker orders paid w bps or more over the
 #    fair (the fast inner layer away); its coin is still offered when the gate closes;
 #  - BUDGET: placements a UTC day (one main account's 1,000; a sub-account has no daily limit, reference §2);
-#  - FX_CONST: GBP/USD held at its first value (a test of how much the FX source matters: the basis absorbs it).
+#  - FX_CONST: GBP/USD held at its first value (a test of how much the FX source matters: the basis absorbs it);
+#  - TARGET t (final_opt.py, 2026-10-31): start holding t x CAP of coin, bought as a taker (fair + 9 bps), and lean the
+#    skew against the coin above that (k = KAPPA*d*(coin - t*CAP)/CAP): two-sided around a small inventory;
+#  - SIZE_GATE w, SIZE_TIGHT m (final_opt.py): each quote is m x Q while the median of the last 20 public taker orders paid
+#    less than w bps over the fair (the fast inner layer present), Q otherwise: the regime as a size modifier, not a stop;
+#  - REST_LAG L (final_opt.py): a quote placed or re-priced in second s is filled by public taker orders only from second s+L
+#    (L 1: never by the prints of the second it was placed in, which may have come before it reached the book); the
+#    arbitrageur is not held back.
 # Reported a UTC day and hour in pounds: P&L marked to the fair, fills, placements and cancels, inventory, stops.
 import collections, datetime as dt, math, os, statistics, sys
 
@@ -31,7 +38,8 @@ TICK_BPS = 1.0  # one tick of a competitor's improvement, about 1 bp on XRP-GBP 
 
 DEFAULT = dict(d_min=12.0, vol_k=0.0, theta=10.0, kappa=0.5, Q=200.0, cap=600.0, lat=1, U=1, arb=True, x_arb=10.0,
                ahead=0.0, react=None, react_size=200.0, stop=None, exit_slip=20.0, cooldown=3600, stale_guard=None,
-               gate=None, budget=None, penny=False, penny_n=5, penny_window=600, t_from=None, t_to=None)
+               gate=None, budget=None, penny=False, penny_n=5, penny_window=600, t_from=None, t_to=None,
+               target=0.0, size_gate=None, size_tight=1.0, rest_lag=0)
 
 
 def load_mask(fair, coin):
@@ -62,6 +70,10 @@ def sim(bk, fair, **kw):
     CAP, Q = p["cap"] * k0, p["Q"] * k0
     AHEAD, RSIZE = p["ahead"] * k0, p["react_size"] * k0
     cash, coin, cost = CAP, 0.0, 0.0  # cost: what the coin held cost, in quote currency
+    TGT = p["target"] * CAP
+    if TGT > 0:  # bought at the start as a taker
+        px0 = F[s0 - 1 - t0] * math.exp(c / 1e4) * (1 + 9.0 / 1e4)
+        coin, cost, cash = TGT / px0, TGT, CAP - TGT
     bid = ask = None
     bid_left = ask_left = 0.0
     bid_since = ask_since = None
@@ -143,7 +155,10 @@ def sim(bk, fair, **kw):
             ref = f_know
             sig60 = math.sqrt(max(0.0, r2sum) / max(1, len(r2)) * 60) * 1e4  # the running sum can dip a hair under 0
             d = max(p["d_min"], p["vol_k"] * sig60) / 1e4
-            k = p["kappa"] * d * (coin * f_know) / CAP
+            k = p["kappa"] * d * (coin * f_know - TGT) / CAP
+            Qe = Q
+            if p["size_gate"] is not None and len(paid) >= 10 and statistics.median(paid) < p["size_gate"]:
+                Qe = Q * p["size_tight"]
             db = da = d
             if p["penny"]:  # one tick inside the others' touch, estimated from their recent prints, never nearer than d
                 eb = [x for t_, x in touch_b if t_ >= s - p["penny_window"]][-p["penny_n"]:]
@@ -158,23 +173,23 @@ def sim(bk, fair, **kw):
             can_ask = coin * na >= 1.0
             new_bid = nb if can_bid else None
             new_ask = na if can_ask else None
-            if new_bid != bid or fb_flag(bid_left, bid, Q, cash):
+            if new_bid != bid or fb_flag(bid_left, bid, Qe, cash):
                 if bid is not None:
                     cancels += 1
                 placed += new_bid is not None
                 if new_bid is not None:
                     per_s[s] += 1
                 bid = new_bid
-                bid_left = min(Q, cash) / nb if bid else 0.0
+                bid_left = min(Qe, cash) / nb if bid else 0.0
                 bid_since = s
-            if new_ask != ask or (ask is not None and ask_left < min(Q / na, coin) - 1e-12):
+            if new_ask != ask or (ask is not None and ask_left < min(Qe / na, coin) - 1e-12):
                 if ask is not None:
                     cancels += 1
                 placed += new_ask is not None
                 if new_ask is not None:
                     per_s[s] += 1
                 ask = new_ask
-                ask_left = min(Q / na, coin) if ask else 0.0
+                ask_left = min(Qe / na, coin) if ask else 0.0
                 ask_since = s
             need = False
         elif stale and (bid is not None or ask is not None):
@@ -191,7 +206,7 @@ def sim(bk, fair, **kw):
             (touch_a if side > 0 else touch_b).append((s, side * 1e4 * math.log(prints[0][0] / fk)))
             if p["gate"] is not None and len(paid) >= 10:
                 gate_open = statistics.median(paid) >= p["gate"]
-            if side > 0 and ask and ask_left > 0:
+            if side > 0 and ask and ask_left > 0 and s - ask_since >= p["rest_lag"]:
                 q = sum(x[1] for x in prints) if ask < prints[0][0] else sum(x[1] for x in prints if x[0] > ask)
                 q -= AHEAD / ask
                 if p["react"] is not None and s - ask_since >= p["react"]:
@@ -204,7 +219,7 @@ def sim(bk, fair, **kw):
                     cash += q * ask
                     fills.append((s, -1, q, ask, f_true, "taker"))
                     need = True
-            elif side < 0 and bid and bid_left > 0:
+            elif side < 0 and bid and bid_left > 0 and s - bid_since >= p["rest_lag"]:
                 q = sum(x[1] for x in prints) if bid > prints[0][0] else sum(x[1] for x in prints if x[0] < bid)
                 q -= AHEAD / bid
                 if p["react"] is not None and s - bid_since >= p["react"]:
@@ -256,7 +271,9 @@ def sim(bk, fair, **kw):
             "inv_mean": round(statistics.mean(inv), 1) if inv else None, "inv_max": round(max(inv), 1) if inv else None,
             "worst_hour": round(min(hours.values()), 2) if hours else None, "worst_day": round(min(days.values()), 2) if days else None,
             "worst_week": round(min(weeks.values()), 2) if weeks else None,
-            "days": {k_: round(v, 3) for k_, v in days.items()}, "hours": list(hours.items())}
+            "days": {k_: round(v, 3) for k_, v in days.items()}, "hours": list(hours.items()),
+            # for parity_fixture.py: every fill as (second, side, coins, price, true fair, kind), and the books at the end
+            "fill_list": fills, "end": {"cash": cash, "coin": coin, "cost": cost, "placed": placed, "cancels": cancels, "stops": stops}}
 
 
 def fb_flag(left, bid, Q, cash):
