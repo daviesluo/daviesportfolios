@@ -107,6 +107,18 @@ Deno.test("a read-only client refuses a POST before any request; a GET carries a
   assertEquals(cbQuery({ product_ids: ["USDC-GBP", "USDT-GBP"], order_status: ["OPEN"], limit: 5, cursor: undefined }), "?product_ids=USDC-GBP&product_ids=USDT-GBP&order_status=OPEN&limit=5");
 });
 
+Deno.test("the product book (the take shadow's read, 0187): a GET a read-only client may send, its levels as numbers best first", async () => {
+  const urls: string[] = [];
+  const fetchImpl = ((url: string, init: RequestInit) => {
+    urls.push(`${init.method ?? "GET"} ${url}`);
+    return Promise.resolve(new Response(JSON.stringify({ pricebook: { product_id: "USDC-GBP", bids: [{ price: "0.7480", size: "40.5" }], asks: [{ price: "0.7485", size: "50" }, { price: "0.7490", size: "100" }], time: "2026-10-31T02:00:00Z" } }), { status: 200 }));
+  }) as unknown as typeof fetch;
+  const c = cbClient({ key: await importCbKey((await freshSec1()).pem), keyName: KEY_NAME, fetchImpl, now: () => NOW, post: false });
+  const b = await c.productBook("USDC-GBP", 50);
+  assertEquals(urls, ["GET https://api.coinbase.com/api/v3/brokerage/product_book?product_id=USDC-GBP&limit=50"]);
+  assertEquals(b, { bids: [[0.748, 40.5]], asks: [[0.7485, 50], [0.749, 100]], time: "2026-10-31T02:00:00Z" });
+});
+
 Deno.test("the secrets' forms say nothing of their values", async () => {
   const k = await freshSec1();
   assertEquals(cbKeyForm(KEY_NAME, k.pem), { name: "organizations-path", key: "pem-ec", escapedNewlines: false });

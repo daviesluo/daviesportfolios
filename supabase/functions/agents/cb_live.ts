@@ -69,7 +69,10 @@ import { cbFxCount, cbRatesAt, readCbFx, type CbFxPair, type CbFxReads } from ".
 import { CB_BOOK, CB_FAIR_KIND, cbCoinFair, cbInUsd, cbMinuteInputs } from "./cb_quotes.ts";
 import { cbInBlackout } from "./cb_releases.ts";
 import { compoundDay, compoundPlan, compoundRefusal, type CompoundSettings } from "./quotes_compound.ts";
-import { fairHours, median, QUOTE_FX_LOOKBACK_MS } from "./quotes.ts";
+import { fairHours, median, QUOTE_FX_LOOKBACK_MS, quoteTicks } from "./quotes.ts";
+import { readDepthThrough, readTouch, takeTriggered, type RecordedRead } from "./quotes_live.ts";
+import { inQuoteClosure } from "./quotes_weekend.ts";
+import type { CbProductBook } from "../_shared/coinbase.ts";
 
 const M = 60e3, H = 3600e3, DAY = 86400e3;
 const iso = (ms: number) => new Date(ms).toISOString();
@@ -140,8 +143,64 @@ export const CB_LIVE_PAPERS: Record<string, CbLivePaper> = {
 export type CbLiveDecide = "paper" | "self";
 export type CbLiveConfig = {
   id: number; paper: string; dry_run: boolean; armed_at: string | null; rung_gbp: number; capital_gbp: number; daily_loss_pct: number;
-  gov_entry_posts: number; gov_stops_only_posts: number; convert_max_gbp_day: number; decide?: CbLiveDecide;
+  gov_entry_posts: number; gov_stops_only_posts: number; convert_max_gbp_day: number; decide?: CbLiveDecide; take_mode?: CbLiveTakeMode;
 } & Partial<CbLiveCompoundCols>;
+
+/**
+ * TAKE SHADOW (migration 0187; Davies, 2026-10-31 ~02:00 UTC: "Coinbase USDC/GBP也做好加开 shadow记录"): Revolut X LIVE's take
+ * (`takeTurn` / `shadowTake` in quotes_live.ts) measured here, as RECORDS ONLY. The executor stays maker-only (its one taker
+ * order is the 24-hour stop) and 'live' is not a value the config allows. Each turn with `take_mode` 'shadow', for every rung
+ * the turn's decision source wants to enter (the entries `decideRungs` gives, the follower's or 'self''s, past every gate):
+ *   1. not inside an FX closure or a release blackout (`cbTakeClosed`: PR5-W's closures, `inQuoteClosure`, which the nudge
+ *      arm's own scope uses, at the turn or at the minute the fair was decided; `cbInBlackout`, which darkens the arm's fair);
+ *   2. the take's limit is k + this account's taker fee from the fair the entries are priced on (`cbTakeLimitTicks`); the fee
+ *      is Coinbase's `transaction_summary` answer for SPOT (`fee_tier.taker_fee_rate`), read once a day and kept in the state
+ *      (`cbTakeFeeOf`, `CB_LIVE_TAKE_FEE_MS`); unreadable, no shadow that turn, and why is an event once a reason;
+ *   3. the turn's touch (`best_bid_ask`, already read) through the limit is the trigger to read the book with its sizes, once
+ *      a turn at most (`GET …/product_book`, `CB_LIVE_TAKE_BOOK_LEVELS` a side); that read must be through the limit too, and
+ *      rest more coin through it than the rung's holding line (`cbTakeLine`: the executor's own, a remainder worth under
+ *      £1 at fair or under the product's minimum is carried, never exited, `isDust`);
+ *   4. then a `take_shadow` event (cb_live_events): the limit, side, size and pounds the IOC would carry, the fee used, the
+ *      funds check (the turn's free balance plus what the rung's resting entry holds, which a take would cancel first), the
+ *      read. Nothing is sent, cancelled or promised: the rung's entry goes on.
+ */
+export type CbLiveTakeMode = "off" | "shadow";
+/** The account's fee tier is read again after this. */
+export const CB_LIVE_TAKE_FEE_MS = DAY;
+/** The levels a side the take shadow's book read asks for. */
+export const CB_LIVE_TAKE_BOOK_LEVELS = 50;
+/** This account's fee tier as the take shadow uses it: rates as fractions (0.0012 is 0.12 %), when it was read, its scope. */
+export type CbTakeFee = { taker: number; maker: number | null; tier: string | null; at: string; scope: "SPOT transaction_summary" };
+/** Pure: the fee from Coinbase's `transaction_summary` answer, or null when its taker rate is not a number from 0 to under 1. */
+export function cbTakeFeeOf(t: { fee_tier?: { pricing_tier?: string; maker_fee_rate?: string; taker_fee_rate?: string } } | null | undefined, nowMs: number): CbTakeFee | null {
+  const f = t?.fee_tier, taker = f?.taker_fee_rate == null || f.taker_fee_rate === "" ? NaN : Number(f.taker_fee_rate);
+  if (!Number.isFinite(taker) || taker < 0 || taker >= 1) return null;
+  const maker = f?.maker_fee_rate == null || f.maker_fee_rate === "" ? NaN : Number(f.maker_fee_rate);
+  return { taker, maker: Number.isFinite(maker) ? maker : null, tier: f?.pricing_tier ?? null, at: iso(nowMs), scope: "SPOT transaction_summary" };
+}
+/** Pure: is the kept fee missing or a day old? */
+export const cbTakeFeeDue = (fee: CbTakeFee | null | undefined, nowMs: number) => !fee || !(nowMs - Date.parse(fee.at) < CB_LIVE_TAKE_FEE_MS);
+/** Pure: the take's limit in ticks: a bid rung buys at most k + the taker fee under fair, an ask rung sells at least k + it over. */
+export const cbTakeLimitTicks = (fair: number, k: number, taker: number, side: Side) => quoteTicks(fair, k + taker, side);
+/**
+ * Pure: the executor's holding line in coin at `fair`: a fill must pass it to be held, as `isDust` judges a remainder (worth
+ * under `CB_LIVE_DUST_GBP` or under the product's minimum: carried, never exited).
+ */
+export const cbTakeLine = (fair: number, minSize: number) => Math.max(minSize, CB_LIVE_DUST_GBP / fair);
+/** Pure: why no take is measured at `now` with a fair decided at `decided` (an FX closure, a release blackout), or null. */
+export function cbTakeClosed(now: number, decided: number | null): "closure" | "release" | null {
+  if (inQuoteClosure(now) || (decided != null && inQuoteClosure(decided))) return "closure";
+  if (cbInBlackout(now) || (decided != null && cbInBlackout(decided))) return "release";
+  return null;
+}
+/** Pure: Coinbase's book in the shape the Revolut X take reads (`RecordedRead`'s levels: [price, quantity, orders]). */
+export const cbBookLevels = (b: CbProductBook): Pick<RecordedRead, "bids" | "asks"> => ({
+  bids: b.bids.map(([p, q]) => [p, q, null]), asks: b.asks.map(([p, q]) => [p, q, null]),
+});
+/** Pure: a touch in pounds as ticks (`takeTriggered`'s units). */
+export const touchTicks = (t: { bid: number | null; ask: number | null }) => ({
+  bid: t.bid == null ? null : Math.round(t.bid / QUOTE_TICK), ask: t.ask == null ? null : Math.round(t.ask / QUOTE_TICK),
+});
 
 /**
  * Its compounding (0183; Davies, 2026-10-30: "另外再确认一下目前所有的live和testing的Stablecoin quotes都能有效做到盈利金额再利用吗？如果不能请
@@ -315,6 +374,8 @@ export type Trip = {
 export type CbLiveReport = {
   skipped?: string; mode: "dry_run" | "live" | "wind_down" | "paused"; armed: boolean; decide?: CbLiveDecide; self?: { minute: number; fair: number | null } | null;
   compound?: Record<string, unknown>;
+  /** The take shadow's turn (0187): its mode, the fee it used, the entries it tested, how many were through, shallow, recorded; or why none was. */
+  take?: { mode: CbLiveTakeMode; taker: number | null; tested: number; through: number; shallow: number; shadows: number; why: string | null };
   posts: number; placed: number; cancelled: number; would: Record<string, unknown>;
   held: Record<string, number>; gbpUsd: number | null; realisedTodayGbp: number; markedGbp: number; lossStopped: boolean; errors: string[]; events: string[]; report: boolean;
 };
@@ -423,7 +484,9 @@ export async function runCbLive(d: CbLiveDeps): Promise<CbLiveReport> {
   if (!held.length) return { ...rep, skipped: "another run holds the lease" };
   const evs: Array<{ at: string; kind: string; detail: Record<string, unknown> }> = [];
   const ev = (kind: string, detail: Record<string, unknown> = {}) => { evs.push({ at: iso(now), kind, detail }); rep.events.push(kind); };
-  let stateRow: { fault?: { key: string; at: number }; balances?: VenueBalances; self?: CbLiveSelf | null } = {};
+  let stateRow: { fault?: { key: string; at: number }; balances?: VenueBalances; self?: CbLiveSelf | null; takeFee?: CbTakeFee | null; takeFeeFault?: { why: string; at: string } | null } = {};
+  // The take shadow's fee and the last reason it could not be read: kept in the state across turns (0187).
+  let takeFee: CbTakeFee | null | undefined, takeFeeFault: { why: string; at: string } | null | undefined;
   let self: CbLiveSelf | null = null;
   let balances: VenueBalances | null = null;
   try {
@@ -632,6 +695,11 @@ export async function runCbLive(d: CbLiveDeps): Promise<CbLiveReport> {
     const wants = main.wants;
     for (const [k, w] of wants) rep.would[k] = w && { leg: w.leg, side: w.side, price: w.price, size: w.size };
 
+    // What rests on each rung's entry before this turn moves anything: the take shadow counts its funds as the take's (a take
+    // would cancel it first), as Revolut X's does.
+    const entryBefore = new Map(rungs.map((r) => [rungKey(r.side, r.k), orders.filter((o) => o.leg === "entry" && o.mode === "live" && o.rung_side === r.side && o.k === r.k
+      && (o.state === "open" || o.state === "pending")).at(-1) ?? null]));
+
     // 5. Each rung's resting order against what it should be: cancel what differs, then place what is missing.
     let freeGbp = gbp, freeUsdc = usdc;
     const covered = (w: Want) => {
@@ -759,6 +827,82 @@ export async function runCbLive(d: CbLiveDeps): Promise<CbLiveReport> {
         await place({ leg: "convert", rungSide: "bid", k: 0, side: "BUY", price: px, size, trip: "", paperKey: null, fair, ioc: false });
       } else ev("convert_skipped", { short: usdcShort, spent, cap: cfg.convert_max_gbp_day, freeGbp });
     }
+    // 6b. The take shadow (0187): records only, never an order. Its failure is an event, never the turn's error.
+    const takeMode: CbLiveTakeMode = cfg.take_mode === "shadow" ? "shadow" : "off";
+    if (takeMode === "shadow") {
+      const tk: NonNullable<CbLiveReport["take"]> = rep.take = { mode: takeMode, taker: null, tested: 0, through: 0, shallow: 0, shadows: 0, why: null };
+      try {
+        // The rungs the source would enter: its entry this turn, or one it refused before. A touch through the take's limit is
+        // through the entry's price too, so the post-only entry crossed and was refused; the follower then waits for the
+        // paper's next decision, but a take would go on that minute, so the shadow tests it all the same (`entryWhy`).
+        const entries = rungs.flatMap((r) => {
+          const why = main.why.get(rungKey(r.side, r.k)), pe = paperEntry(r);
+          return (why === "quote" || why === "refused_before") && pe ? [{ rungSide: r.side, k: r.k, side: sideOf(r.side), price: Number((pe.ticks * QUOTE_TICK).toFixed(4)), why }] : [];
+        });
+        const decided = decideSelf ? self?.lastMinute ?? null : lastMinute;
+        const closed = cbTakeClosed(now, decided);
+        if (!entries.length) tk.why = "no entry this turn";
+        else if (closed) tk.why = closed === "closure" ? "inside an FX closure" : "inside a release blackout";
+        else if (!client) tk.why = "no key";
+        else if (fair == null) tk.why = "no fair";
+        else {
+          // The account's taker fee, once a day; unreadable, no shadow this turn, and why is an event once a reason.
+          takeFee = stateRow.takeFee ?? null;
+          if (cbTakeFeeDue(takeFee, now)) {
+            let why: string | null = null;
+            try { takeFee = cbTakeFeeOf(await client.feeTier(), now); if (!takeFee) why = "transaction_summary gave no taker_fee_rate"; }
+            catch (e) { takeFee = null; why = `transaction_summary: ${msg(e)}`; }
+            if (why) {
+              tk.why = `taker fee unreadable: ${why}`;
+              if (stateRow.takeFeeFault?.why !== why) ev("take_fee_unreadable", { why });
+              takeFeeFault = { why, at: iso(now) };
+            } else takeFeeFault = null;
+          }
+          if (takeFee) {
+            const fee = takeFee, f = fair;
+            tk.taker = fee.taker;
+            const tt = touchTicks(touch);
+            const through = entries.map((w) => ({ w, limit: cbTakeLimitTicks(f, w.k, fee.taker, w.rungSide) })).filter((x) => takeTriggered(x.w.rungSide, x.limit, tt));
+            tk.tested = entries.length; tk.through = through.length;
+            if (!through.length) tk.why = "the touch is not through any limit";
+            else {
+              // The book with its sizes, once this turn, only because the touch is through a limit.
+              let book: CbProductBook | null = null;
+              try { book = await client.productBook(CB_LIVE_PRODUCT, CB_LIVE_TAKE_BOOK_LEVELS); }
+              catch (e) { tk.why = `product_book unreadable: ${msg(e)}`; ev("take_book_unreadable", { error: msg(e) }); }
+              if (book) {
+                const read = cbBookLevels(book), rt = readTouch(read), line = cbTakeLine(f, minSize);
+                const px = (t: number | null) => (t == null ? null : Number((t * QUOTE_TICK).toFixed(4)));
+                for (const { w, limit } of through) {
+                  const depth = readDepthThrough(read, w.rungSide, limit);
+                  if (!takeTriggered(w.rungSide, limit, rt) || !(depth > line)) { tk.shallow++; continue; }
+                  const price = Number((limit * QUOTE_TICK).toFixed(4)), size = rungQty(cfg.rung_gbp, price, step);
+                  const back = entryBefore.get(rungKey(w.rungSide, w.k)) ?? null;
+                  const backAmt = back && back.side === w.side ? Math.max(0, Number(back.base_size) - Number(back.filled_size)) * (w.side === "BUY" ? Number(back.price) : 1) : 0;
+                  const have = w.side === "BUY" ? (gbp == null ? null : gbp + backAmt) : (usdc == null ? null : usdc + backAmt);
+                  const need = w.side === "BUY" ? Math.round(size * price * (1 + fee.taker) * 1e6) / 1e6 : size;
+                  // The levels a side the read gave; when the last is still through the limit, the book may go deeper than it shows.
+                  const levels = w.rungSide === "bid" ? read.asks : read.bids, lastLv = levels.at(-1);
+                  const deeper = !!lastLv && (w.rungSide === "bid" ? Math.round(lastLv[0] / QUOTE_TICK) <= limit : Math.round(lastLv[0] / QUOTE_TICK) >= limit);
+                  ev("take_shadow", {
+                    rung: rungKey(w.rungSide, w.k), k: w.k, side: w.side, limit: price, base: size, gbp: Math.round(size * price * 1e4) / 1e4,
+                    fair: f, decide: rep.decide, mode: rep.mode, decidedMinute: decided == null ? null : iso(decided), entryPrice: w.price, entryWhy: w.why,
+                    fee: { taker: fee.taker, maker: fee.maker, tier: fee.tier, at: fee.at, scope: fee.scope },
+                    fundsOk: have == null ? null : have + 1e-9 >= need, need, have, replaces: back?.client_order_id ?? null,
+                    depth, line, lineFrom: line > minSize ? "£1 at fair (CB_LIVE_DUST_GBP)" : "the product's minimum size",
+                    read: { time: book.time, bestBid: px(rt.bid), bestAsk: px(rt.ask), levels: levels.length, depthAtLeast: deeper },
+                    touch: { bid: touch.bid, ask: touch.ask },
+                  });
+                  tk.shadows++;
+                }
+                if (!tk.shadows) tk.why = "the book had no more coin through any limit than the holding line";
+              }
+            }
+          }
+        }
+      } catch (e) { tk.why = `error: ${msg(e)}`; ev("take_shadow_error", { error: msg(e) }); }
+    }
+
     // 7. The shadow (0182), only while the follower decides: what 'self' would rest on each rung, beside what the follower
     // wanted and what rests after this turn, one row a rung a turn, so the two can be compared before the switch. It moves no
     // order; its failure is an event.
@@ -795,7 +939,10 @@ export async function runCbLive(d: CbLiveDeps): Promise<CbLiveReport> {
       const bal = balances ?? stateRow.balances ?? null;
       // 'self''s record, or the last one when this turn did not reach it.
       const keep = self ?? stateRow.self ?? null;
-      await d.db.upsert(CB_LIVE_TABLES.state, [{ id: 1, state: { fault, lastReport: { ...rep, events: rep.events.slice(0, 50) }, ...(bal ? { balances: bal } : {}), ...(keep ? { self: keep } : {}) }, updated_at: iso(now), last_error: rep.errors.length ? rep.errors.join(" | ").slice(0, 500) : null }], "id");
+      // The take shadow's fee and its last fault as this turn left them (undefined: not reached, the stored ones kept).
+      const fee = takeFee === undefined ? stateRow.takeFee ?? null : takeFee, feeFault = takeFeeFault === undefined ? stateRow.takeFeeFault ?? null : takeFeeFault;
+      await d.db.upsert(CB_LIVE_TABLES.state, [{ id: 1, state: { fault, lastReport: { ...rep, events: rep.events.slice(0, 50) }, ...(bal ? { balances: bal } : {}), ...(keep ? { self: keep } : {}),
+        ...(fee ? { takeFee: fee } : {}), ...(feeFault ? { takeFeeFault: feeFault } : {}) }, updated_at: iso(now), last_error: rep.errors.length ? rep.errors.join(" | ").slice(0, 500) : null }], "id");
     } catch { /* the lease still expires */ }
     try { await d.db.update("agent_locks", `name=eq.${CB_LIVE_LEASE}&holder=eq.${encodeURIComponent(d.holder)}`, { lease_until: iso(now), holder: null }); } catch { /* it expires */ }
   }

@@ -383,3 +383,46 @@ update public.cb_live_config set decide = 'self', updated_at = now() where id = 
 ```
 
 Its undo is the same statement with the two words swapped. Under 'self' no shadow row is written.
+
+## 11. The take shadow: records only (2026-10-31, `0187`)
+
+Davies, 2026-10-31 ~02:00 UTC, in the message that armed Revolut X LIVE's take and put the Revolut X USDC/GBP executor's take in
+shadow: "Coinbase USDC/GBP也做好加开 shadow记录". `cb_live_config.take_mode` is 'off' or 'shadow' ('live' is not allowed: a live
+taker entry on Coinbase needs a new migration and his word); `0187` sets it to 'shadow'. The executor stays maker-only. Nothing
+is sent, cancelled or promised for it.
+
+- **Which rungs.** Each turn, every rung the decision source ('paper' or 'self') would enter: its entry this turn, or one it
+  refused before (a touch through the take's limit is through the entry's price too, so the post-only entry crossed and was
+  refused; a take would go on that minute all the same). Every gate of an entry applies first: pause, dark or stale fair, loss
+  stop, governor, unarmed.
+- **Not in a closure.** No shadow inside PR5-W's FX closures (`inQuoteClosure`, the nudge arm's own scope) or a release blackout
+  (`cbInBlackout`), at the turn or at the minute the fair was decided (`cbTakeClosed`). The executor does quote in closures (its
+  arm holds the rates, up to 60 hours), so this is the take's rule, not the executor's.
+- **The limit** is k + this account's taker fee from the fair the entries are priced on (`cbTakeLimitTicks`). The fee is
+  Coinbase's `transaction_summary` for SPOT (`fee_tier.taker_fee_rate`), read once a day and kept in `cb_live_state.state.takeFee`.
+  If it cannot be read, no shadow that turn, and a `take_fee_unreadable` event once a reason. Caution: this is the account's
+  spot tier, and stable pairs may be priced apart (every maker fill of this executor so far paid 0 commission). Each event
+  carries the maker rate beside the taker, so a tier that is not this book's price shows.
+- **The depth.** `best_bid_ask` (already read every turn) gives no size. Only when that touch is through a rung's limit, the
+  book is read once that turn with the same key (`GET /api/v3/brokerage/product_book`, 50 levels a side, `productBook` in
+  `_shared/coinbase.ts`). That read must be through the limit too, with more coin through it than the executor's holding line
+  (`cbTakeLine`): a fill under £1 at fair, or under the product's minimum, is carried and never exited (`isDust`). Most minutes
+  this costs no call.
+- **The record**, a `take_shadow` row of `cb_live_events`: the rung, side, limit, size (the rung's pounds at the limit), the fee
+  (taker, maker, tier, when it was read), the funds check (the turn's free balance plus what the rung's resting live entry holds,
+  which a take would cancel first; a buy's need includes the fee), the depth and the line, the read (Coinbase's time, best bid
+  and ask, the levels and whether the book went deeper than they show) and the turn's touch. The turn's report says how many
+  entries it tested, how many the touch was through, how many were shallow, and why none was recorded.
+- **Pins** (`cb_live.test.ts`, the take shadow tests): an event through the limit with the orders sent the same as with the
+  shadow off; none for a shallow book, a closure, a blackout or an unreadable fee (said once); the book read only when the touch
+  is through, the fee once a day; an ask with no USDC says its funds do not cover it. On the code before `0187` all three fail.
+
+Read it (read-only):
+
+```sql
+select at, detail->>'rung' as rung, detail->>'limit' as lim, detail->>'base' as base, detail->>'depth' as depth,
+       detail->'fee'->>'taker' as taker, detail->>'fundsOk' as funds, detail->>'entryWhy' as why
+  from public.cb_live_events where kind = 'take_shadow' and at >= now() - interval '1 day' order by at desc;
+```
+
+Its undo: `update public.cb_live_config set take_mode = 'off', updated_at = now() where id = 1;`.

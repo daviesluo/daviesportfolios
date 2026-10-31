@@ -16,7 +16,7 @@
 import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { b64ToBytes } from "../_shared/bytes.ts";
 import { CB_KEY_NAME_SECRET, CB_PRIVATE_KEY_SECRET } from "../_shared/coinbase.ts";
-import { CB_LIVE_GTD_MS, CB_LIVE_NAME, convertSpentGbp, isDust, venueBalances, readCbLive, runCbLive, rungQty, tripPnl, tripsOf, type CbLiveSelf, type FillRow } from "./cb_live.ts";
+import { CB_LIVE_GTD_MS, CB_LIVE_NAME, cbTakeClosed, cbTakeFeeOf, cbTakeLimitTicks, cbTakeLine, convertSpentGbp, isDust, venueBalances, readCbLive, runCbLive, rungQty, tripPnl, tripsOf, type CbLiveSelf, type FillRow } from "./cb_live.ts";
 import { exitTicks, newBookState, quoteTicks, QUOTE_TICK, type BookState } from "./quotes.ts";
 import { CB_NUDGE_ARM, runCbNudge } from "./cb_nudge.ts";
 import { cbUsdcArmNewState } from "./cb_usdc.ts";
@@ -49,7 +49,8 @@ function paperBook(fair: number, live: number, oid0 = 1): BookState {
 
 type VOrder = { order_id: string; client_order_id: string; product_id: string; side: "BUY" | "SELL"; status: string; filled_size: string; average_filled_price: string; total_fees: string; created_time: string; cfg: Record<string, unknown> };
 /** An in-memory Coinbase: its orders, fills, balances and touch; `post` false fails on any POST. */
-function venue(o: { post: boolean; gbp?: number; usdc?: number; holdGbp?: number; holdUsdc?: number; accountsFail?: boolean; touch?: { bid: string; ask: string }; onCreate?: (b: Record<string, unknown>) => "ok" | "refuse" | "throw" | "403" | "503" }) {
+function venue(o: { post: boolean; gbp?: number; usdc?: number; holdGbp?: number; holdUsdc?: number; accountsFail?: boolean; touch?: { bid: string; ask: string }; onCreate?: (b: Record<string, unknown>) => "ok" | "refuse" | "throw" | "403" | "503";
+  book?: { bids: Array<[string, string]>; asks: Array<[string, string]> }; fee?: { taker_fee_rate?: string; maker_fee_rate?: string } | "fail" }) {
   const orders: VOrder[] = [], fills: Record<string, unknown>[] = [], calls: string[] = [];
   const bal = { GBP: o.gbp ?? 120, USDC: o.usdc ?? 100 };
   let n = 0, clock = T0;
@@ -61,6 +62,14 @@ function venue(o: { post: boolean; gbp?: number; usdc?: number; holdGbp?: number
     const ok = (b: unknown) => new Response(JSON.stringify(b), { status: 200 });
     if (p === "/products/USDC-GBP") return ok({ product_id: "USDC-GBP", base_increment: "0.01", quote_increment: "0.0001", base_min_size: "1" });
     if (p === "/best_bid_ask") return ok({ pricebooks: [{ product_id: "USDC-GBP", bids: [{ price: o.touch?.bid ?? "0.7499" }], asks: [{ price: o.touch?.ask ?? "0.7501" }] }] });
+    if (p === "/product_book") {
+      const lv = (xs: Array<[string, string]>) => xs.map(([price, size]) => ({ price, size }));
+      return ok({ pricebook: { product_id: u.searchParams.get("product_id"), bids: lv(o.book?.bids ?? []), asks: lv(o.book?.asks ?? []), time: iso(clock) } });
+    }
+    if (p === "/transaction_summary") {
+      if (o.fee === "fail") return new Response("upstream", { status: 503 });
+      return ok({ fee_tier: { pricing_tier: "Advanced 1", maker_fee_rate: "0", taker_fee_rate: "0.0005", ...o.fee } });
+    }
     if (p === "/accounts") {
       if (o.accountsFail) return new Response("upstream", { status: 503 });
       return ok({ accounts: [{ currency: "GBP", available_balance: { value: String(bal.GBP), currency: "GBP" }, hold: { value: String(o.holdGbp ?? 0), currency: "GBP" } },
@@ -629,4 +638,90 @@ Deno.test("compounding (0183): off, £20 rungs; on, the day's capital from the r
       assertEquals(Number(w.tables.cb_live_config[0].capital_gbp), 126);
     }
   }
+});
+
+// ------------------------------------------------------------------------------------- the take shadow (0187), records only
+// Davies, 2026-10-31 ~02:00 UTC: "Coinbase USDC/GBP也做好加开 shadow记录". Pins: (17) a rung it would enter whose touch and book
+// are through k + the taker fee from fair, deeper than the £1 line, is a `take_shadow` event with the limit, size, fee, funds
+// and the read, and the orders it sends are exactly those it sends with the shadow off; (18) a book no deeper than the line,
+// a closure, a release blackout or an unreadable fee records none (the last once a reason); (19) the book is read only when
+// the touch is through a limit, the fee once a day; (20) an ask rung's take with no USDC says its funds do not cover it.
+
+const evsOf = (w: ReturnType<typeof world>, kind: string) => (w.tables.cb_live_events as Row[]).filter((e) => e.kind === kind).map((e) => e.detail as Record<string, unknown>);
+const callsOf = (v: ReturnType<typeof venue>, p: string) => v.calls.filter((c) => c === `GET ${p}`).length;
+
+Deno.test("take shadow: a rung through k + the taker fee, deeper than the £1 line, is a take_shadow event; the orders sent are the shadow-off ones", async () => {
+  const touch = { bid: "0.7480", ask: "0.7485" }, book = { bids: [["0.7480", "40"]] as Array<[string, string]>, asks: [["0.7485", "50"], ["0.7490", "100"]] as Array<[string, string]> };
+  const off = world({ dry: false, armed: true }), vOff = venue({ post: true, touch, book });
+  const on = world({ dry: false, armed: true, cfg: { take_mode: "shadow" } }), vOn = venue({ post: true, touch, book });
+  const rOff = await turn(off, vOff, T0 + 10e3), rOn = await turn(on, vOn, T0 + 10e3);
+  assertEquals([rOff.errors, rOn.errors, rOff.take], [[], [], undefined]);
+  // Nothing it sends changes: the same POSTs, the same order rows.
+  assertEquals(vOn.calls.filter((c) => !c.startsWith("GET ")), vOff.calls.filter((c) => !c.startsWith("GET ")));
+  assertEquals(rows(on).map((x) => `${x.leg}|${x.side}|${x.price}|${x.base_size}|${x.state}`), rows(off).map((x) => `${x.leg}|${x.side}|${x.price}|${x.base_size}|${x.state}`));
+  assertEquals([callsOf(vOff, "/product_book"), callsOf(vOff, "/transaction_summary")], [0, 0]);
+  assertEquals([callsOf(vOn, "/product_book"), callsOf(vOn, "/transaction_summary")], [1, 1]);
+  // bid 0.1 %: limit floor(0.75 × (1 − 0.0015)) = 0.7488, the ask 0.7485 is at or under it with 50 coins through; 0.2 % (0.7481)
+  // and 0.3 % are not through, nor any ask rung (the bid 0.7480 is under 0.7512).
+  const s = evsOf(on, "take_shadow");
+  assertEquals(s.length, 1);
+  assertEquals([s[0].rung, s[0].side, s[0].limit, s[0].base, s[0].depth, s[0].fundsOk, s[0].decide, s[0].mode], ["bid|0.001", "BUY", 0.7488, rungQty(20, 0.7488, 0.01), 50, true, "paper", "live"]);
+  assertEquals(cbTakeLimitTicks(FAIR, 0.001, 0.0005, "bid"), 7488);
+  assertAlmostEquals(Number(s[0].line), 1 / FAIR, 1e-12);
+  assertEquals((s[0].fee as Record<string, unknown>).taker, 0.0005);
+  assertEquals((s[0].read as Record<string, unknown>).bestAsk, 0.7485);
+  assertEquals([rOn.take?.tested, rOn.take?.through, rOn.take?.shadows, rOn.take?.taker], [6, 1, 1, 0.0005]);
+  // The fee is kept a day: the next turn does not ask again; the book is read again because the touch is still through.
+  const st = on.tables.cb_live_state[0].state as { takeFee?: { taker: number } };
+  assertEquals(st.takeFee?.taker, 0.0005);
+  on.tables.cb_nudge_state[0].last_minute = iso(T0);
+  on.tables.cb_nudge_minutes.push({ book: "USDC-GBP", minute: iso(T0), fair: FAIR });
+  await turn(on, vOn, T0 + 70e3);
+  assertEquals([callsOf(vOn, "/transaction_summary"), callsOf(vOn, "/product_book")], [1, 2]);
+  // The entry crossed the touch and was refused, post-only, on the first turn; the follower waits for the paper's next decision,
+  // but a take would go: the shadow tests that rung again and says so.
+  assertEquals(evsOf(on, "take_shadow").map((e) => [e.rung, e.entryWhy]), [["bid|0.001", "quote"], ["bid|0.001", "refused_before"]]);
+});
+
+Deno.test("take shadow: no event for a book no deeper than the line, inside a closure or a blackout, or with the fee unreadable (said once)", async () => {
+  const touch = { bid: "0.7480", ask: "0.7485" };
+  // 1.2 coins through the limit, under £1 at fair (1.333 coins): shallow, no event.
+  const sh = world({ dry: false, armed: true, cfg: { take_mode: "shadow" } }), vSh = venue({ post: true, touch, book: { bids: [], asks: [["0.7485", "1.2"], ["0.7495", "500"]] } });
+  const r = await turn(sh, vSh, T0 + 10e3);
+  assertEquals([evsOf(sh, "take_shadow").length, r.take?.through, r.take?.shallow], [0, 1, 1]);
+  // The touch through no limit: the book is not read at all.
+  const quiet = world({ dry: false, armed: true, cfg: { take_mode: "shadow" } }), vQ = venue({ post: true });
+  const q = await turn(quiet, vQ, T0 + 10e3);
+  assertEquals([callsOf(vQ, "/product_book"), q.take?.through, q.take?.why], [0, 0, "the touch is not through any limit"]);
+  // Friday 22:00 UTC, inside PR5-W's closure: nothing is read or recorded.
+  const TC = Date.UTC(2026, 9, 30, 22, 0);
+  const cl = world({ dry: false, armed: true, last: TC - M, cfg: { take_mode: "shadow" } }), vC = venue({ post: true, touch, book: { bids: [], asks: [["0.7485", "50"]] } });
+  const c = await turn(cl, vC, TC + 10e3);
+  assertEquals([evsOf(cl, "take_shadow").length, callsOf(vC, "/product_book"), callsOf(vC, "/transaction_summary"), c.take?.why], [0, 0, 0, "inside an FX closure"]);
+  assertEquals([cbTakeClosed(Date.UTC(2026, 9, 30, 20, 59), null), cbTakeClosed(Date.UTC(2026, 9, 30, 21, 0), null), cbTakeClosed(Date.UTC(2026, 10, 1, 21, 0), null)], [null, "closure", null]);
+  assertEquals(cbTakeClosed(Date.UTC(2026, 10, 2, 9, 0), Date.UTC(2026, 10, 1, 20, 59)), "closure");   // a fair decided inside one
+  assertEquals(cbTakeClosed(Date.parse("2026-12-10T13:30:00Z"), null), "release");
+  // The fee unreadable: no event, the reason once over two turns, the book never read.
+  const nf = world({ dry: false, armed: true, cfg: { take_mode: "shadow" } }), vF = venue({ post: true, touch, book: { bids: [], asks: [["0.7485", "50"]] }, fee: "fail" });
+  await turn(nf, vF, T0 + 10e3);
+  nf.tables.cb_nudge_state[0].last_minute = iso(T0);
+  nf.tables.cb_nudge_minutes.push({ book: "USDC-GBP", minute: iso(T0), fair: FAIR });
+  const f2 = await turn(nf, vF, T0 + 70e3);
+  assertEquals([evsOf(nf, "take_shadow").length, evsOf(nf, "take_fee_unreadable").length, callsOf(vF, "/transaction_summary"), callsOf(vF, "/product_book")], [0, 1, 2, 0]);
+  assert(String(f2.take?.why).startsWith("taker fee unreadable"));
+  assertEquals([cbTakeFeeOf({ fee_tier: { taker_fee_rate: "0.0012", maker_fee_rate: "0.006", pricing_tier: "Advanced 1" } }, T0)?.taker, cbTakeFeeOf({ fee_tier: {} }, T0), cbTakeFeeOf(null, T0)], [0.0012, null, null]);
+});
+
+Deno.test("take shadow: an ask rung's take with no USDC to sell says its funds do not cover it; off, the config's default, reads nothing", async () => {
+  const touch = { bid: "0.7515", ask: "0.7520" };
+  const w = world({ dry: false, armed: true, cfg: { take_mode: "shadow" } }), v = venue({ post: true, usdc: 0, touch, book: { bids: [["0.7515", "30"]], asks: [["0.7520", "30"]] } });
+  await turn(w, v, T0 + 10e3);
+  const s = evsOf(w, "take_shadow");
+  // ask 0.1 %: limit ceil(0.75 × 1.0015) = 0.7512, the bid 0.7515 over it with 30 coins; 0.2 % (0.7519) is not through.
+  assertEquals(s.map((e) => [e.rung, e.side, e.limit, e.fundsOk, e.have]), [["ask|0.001", "SELL", 0.7512, false, 0]]);
+  assertEquals(cbTakeLine(FAIR, 1), 1 / FAIR);
+  assertEquals(cbTakeLine(2, 1), 1);
+  const off = world({ dry: false, armed: true }), vOff = venue({ post: true, usdc: 0, touch, book: { bids: [["0.7515", "30"]], asks: [] } });
+  await turn(off, vOff, T0 + 10e3);
+  assertEquals([evsOf(off, "take_shadow").length, callsOf(vOff, "/product_book"), callsOf(vOff, "/transaction_summary")], [0, 0, 0]);
 });

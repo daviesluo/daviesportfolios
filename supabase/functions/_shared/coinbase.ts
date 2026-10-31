@@ -187,6 +187,8 @@ export type CbProductInfo = {
   product_id: string; base_increment: string; quote_increment: string; base_min_size: string; base_max_size?: string; quote_min_size?: string;
   status?: string; trading_disabled?: boolean; cancel_only?: boolean; limit_only?: boolean; post_only?: boolean; price?: string;
 };
+/** A product's book as `productBook` reads it: levels [price, size], best first, and the time Coinbase gives the read. */
+export type CbProductBook = { bids: Array<[number, number]>; asks: Array<[number, number]>; time: string | null };
 /** An order's state ends here: no fill can follow. */
 export const CB_DONE: readonly CbOrderStatus[] = ["FILLED", "CANCELLED", "EXPIRED", "FAILED"];
 export type CbKeyPermissions = { can_view?: boolean; can_trade?: boolean; can_transfer?: boolean; portfolio_uuid?: string; portfolio_type?: string };
@@ -246,6 +248,16 @@ export function cbClient(o: { key: CryptoKey; keyName: string; alg?: CbAlg; fetc
       const b = (r.pricebooks ?? []).find((x) => x.product_id === id);
       const px = (s?: string) => (s != null && Number(s) > 0 ? Number(s) : null);
       return { bid: px(b?.bids?.[0]?.price), ask: px(b?.asks?.[0]?.price) };
+    },
+    /**
+     * The product's book with its sizes (`GET …/product_book`, "Get Product Book": `product_id`, `limit` levels a side): each
+     * side's levels best first as [price, size] in numbers, and Coinbase's `time` of the read. A GET, so a read-only client may.
+     */
+    productBook: async (id: string, limit = 50): Promise<CbProductBook> => {
+      const r = await call<{ pricebook?: { product_id?: string; bids?: Array<{ price: string; size: string }>; asks?: Array<{ price: string; size: string }>; time?: string } }>(
+        "GET", `${P}/product_book${cbQuery({ product_id: id, limit })}`);
+      const lv = (xs?: Array<{ price: string; size: string }>) => (xs ?? []).map((x) => [Number(x.price), Number(x.size)] as [number, number]).filter(([p, q]) => p > 0 && q >= 0);
+      return { bids: lv(r.pricebook?.bids), asks: lv(r.pricebook?.asks), time: r.pricebook?.time ?? null };
     },
     feeTier: (product_type = "SPOT") => call<{ fee_tier?: { pricing_tier?: string; maker_fee_rate?: string; taker_fee_rate?: string } }>("GET", `${P}/transaction_summary${cbQuery({ product_type })}`),
     getOrder: async (orderId: string): Promise<CbOrder> => (await call<{ order: CbOrder }>("GET", `${P}/orders/historical/${encodeURIComponent(orderId)}`)).order,

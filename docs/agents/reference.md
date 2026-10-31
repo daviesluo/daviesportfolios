@@ -4655,6 +4655,14 @@ fails too still reported (`edge-watchdog.retry`). In the three days before, 1,34
     Landed 'paper' (nothing sent changes); the shadow (`cb_live_shadow`, 14 days) records what 'self' would rest beside the
     follower's want and what rested, for the comparison before the switch. Pinned minute for minute against the paper arm's own
     run, nudged inside a closure (`cb_live.test.ts`).
+  - **The take shadow, records only (2026-10-31, `0187`; design §11).** Davies: "Coinbase USDC/GBP也做好加开 shadow记录".
+    `cb_live_config.take_mode` 'off' | 'shadow' ('live' not allowed), set 'shadow'. For each rung the decision source would enter
+    (its entry, or one refused before), outside FX closures and release blackouts (`cbTakeClosed`): the limit is k + the account's
+    taker fee (SPOT `transaction_summary`, a day's cache in the state; unreadable, no shadow and one event a reason) from the
+    entries' fair; when `best_bid_ask` is through it, one `product_book` read that turn must be through it too with more coin than
+    the £1 holding line at fair (`cbTakeLine`, `isDust`'s); then a `take_shadow` event (limit, size, fee, funds, depth, read).
+    The executor stays maker-only. The spot tier may not be the stable pair's price (its maker fills paid 0): each event carries
+    the maker rate beside the taker.
 
 ### Twin variants
 

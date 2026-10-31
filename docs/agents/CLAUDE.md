@@ -515,6 +515,9 @@ that follow from that evidence, in short:
   Davies, 2026-10-30: "要做"): 'paper' (the default) follows the paper arm order for order; 'self' decides every minute with that
   arm's own rule and code on its own state and fills, reading nothing of the paper arm's. While it follows, the shadow
   (`cb_live_shadow`) records what 'self' would rest; the switch to 'self' is Davies' word after reading it (design §10).
+  **Its take is a shadow of records only** (`0187`, design §11; Davies, 2026-10-31: "Coinbase USDC/GBP也做好加开 shadow记录"):
+  `take_mode` 'off' | 'shadow', never 'live' (the executor stays maker-only), a `take_shadow` event when a rung it would enter
+  has Coinbase's book through k + the account's taker fee, deeper than the £1 line, outside closures and release blackouts.
 - **The other maker's watch** (`0185`, `agents/maker_watch.ts`, `reviews/2026-10-30-maker-absent.md`; Davies, 2026-10-30: "我们能不能
   对他加个监控，实时观察和记录他的行为"): the automated maker that rests about 5,000 coins a side on Revolut X's GBP books, read from the
   book recorder's own snapshots inside its call (`agents?action=books`, no new `edge_calls` row), into `agent_maker_minutes` (a row a
