@@ -181,6 +181,8 @@ export type QuoteLiveInstance = {
    * out (the tests move it to put a rebook over their fixtures). No twin rule sets it.
    */
   rebook?: { since: number };
+  /** When the drain (`drainOn`) starts for this instance: QUOTE_LIVE_DRAIN_FROM, every instance's, when left out (the tests move it). No twin rule sets it. */
+  drain?: { from: number };
   /**
    * The automatic top-ups' day (`planTopUps`): at most `maxGbpDay` a book in a UTC day (QUOTE_LIVE_TOPUP_MAX_GBP_DAY, £5, when
    * left out), and, with it set, a shortfall the free GBP cannot cover buys what that GBP buys. "Stablecoin quotes USDC/GBP"
@@ -491,6 +493,32 @@ export const weightsOn = (inst: QuoteLiveInstance, now: number): boolean => !!in
  */
 export const rebookOn = (inst: QuoteLiveInstance, now: number): boolean =>
   weightsOn(inst, now) && inst.weights!.from >= (inst.rebook?.since ?? QUOTE_LIVE_REBOOK_SINCE) && now < inst.weights!.from + QUOTE_LIVE_REBOOK_MS;
+/**
+ * THE DRAIN, for good (Davies, 2026-10-31 ~03:55 UTC, "同意", on the audit's N2: LIVE's rebook was a 72-hour window from 10-29 22:30,
+ * so from 11-01 22:30 nothing could sell its surplus coin back to pounds and its bids could starve as Coinbase LIVE's 0.3 % bid
+ * did from 10-29 20:34). From this instant an instance with weights in force (LIVE, the USDC/GBP executor, and every twin on
+ * their rules) sells, outside a rebook, the coin a book holds beyond what its asks need (`planDrains`, the rebook's own sale:
+ * post-only at the top of the asks, never under fair, the 2 % buffer kept), but only while a bid lacks pounds and no ask of the
+ * book lacks coin, at most what the bids lack (rounded up a step and one step more), within QUOTE_LIVE_DRAIN_DAY_SHARE of the
+ * capital a book a UTC day; a resting sale is cancelled the turn either stops being true. Inside a rebook the rebook's rule runs
+ * as before. The Coinbase executor's drain (`planCbDrain`, cb_live.ts) is the same rule on its venue.
+ */
+export const QUOTE_LIVE_DRAIN_FROM = Date.parse("2026-10-31T08:00:00Z");
+/** The drain's day, a book: at most this share of the capital sold back to pounds (£150 on £600; a rung is £100). */
+export const QUOTE_LIVE_DRAIN_DAY_SHARE = 0.25;
+/** Is the drain on for the instance at `now`: its weights in force, from QUOTE_LIVE_DRAIN_FROM, and not inside a rebook. */
+export const drainOn = (inst: QuoteLiveInstance, now: number): boolean => weightsOn(inst, now) && now >= (inst.drain?.from ?? QUOTE_LIVE_DRAIN_FROM) && !rebookOn(inst, now);
+/**
+ * Pure: a drain's sale cut to what the bids lack and the day leaves: the least of the rebook's own plan (`base`, the coin beyond
+ * the asks' need), what the bids lack at the sale's price (up a step, one step more) and the day's room; null under the venue's
+ * minimum. `step` is the pair's base step.
+ */
+export function drainBase(planBase: string, price: number, gbpShort: number, roomGbp: number, pair: PairConfig): string | null {
+  const step = Number(pair.base_step);
+  const want = Math.ceil(gbpShort / price / step - 1e-9) * step + step;
+  const base = floorToStep(Math.min(Number(planBase), want, Math.max(0, roomGbp) / price), pair.base_step);
+  return Number(base) > 0 && Number(base) >= dustBase(pair, price) - 1e-12 ? base : null;
+}
 /** A rung's weight under `w`: the product of its book's, side's and distance's, each 1 when not named. */
 export function rungWeight(w: RungWeights, book: QuoteBook, side: Side, k: number): number {
   const of = (m: Record<string, number | undefined> | undefined, key: string) => (m && Object.hasOwn(m, key) ? Number(m[key]) : 1);
@@ -1756,6 +1784,8 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLiveIn
   };
   /** The books an ask of the live book was skipped on this turn for want of coin: step 6b tops their coin up. */
   const shortOf = new Set<QuoteBook>();
+  /** What the live bids skipped for want of pounds needed this turn: the drain sells coin for what the free pounds leave of it. */
+  let gbpLack = 0;
   // TAKE (docs/agents/reviews/2026-10-03-take-prereg.md), an instance's option from `take.from`. On a rung that may enter
   // in the live book (its turn's entry conditions, the rung holding nothing and quoting no exit, the paper rung in no
   // position of its own), the recorder's read of the book at most 90 s old (step 2) is checked against the rung's take
@@ -1878,7 +1908,11 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLiveIn
         if (!base) { await skipEvent(mode, r, target, "the rung's size is under the venue's minimum", { gbp: gbpOf(r), price }); continue; }
         if (side === "buy") {
           const need = pennyUp(Number(base) * price);
-          if (!((free.GBP ?? 0) + 1e-9 >= need)) { await skipEvent(mode, r, target, "not enough free GBP", { needGbp: need, freeGbp: free.GBP ?? 0 }); continue; }
+          if (!((free.GBP ?? 0) + 1e-9 >= need)) {
+            if (mode === "live") gbpLack += need;
+            await skipEvent(mode, r, target, "not enough free GBP", { needGbp: need, freeGbp: free.GBP ?? 0 });
+            continue;
+          }
           free.GBP -= need;
         } else {
           const coin = coinOf(r.book);
@@ -2004,14 +2038,32 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLiveIn
   // armed, no global pause, no loss stop, the book unguarded, the governor open, a fair no older than three minutes). Step 1
   // cancels it after QUOTE_LIVE_TOPUP_REST_MS unfilled and the next turn sends what is still surplus at the book as it then
   // stands. Its pounds go to the top-ups of the book that is short (step 6b, its daily cap lifted to the capital meanwhile).
-  if (rebookOn(inst, d.now) && entry.book === "live" && !globalPause && !lossStopped && bal && T != null && d.now - T <= 3 * M) {
+  const rebooking = rebookOn(inst, d.now), draining = drainOn(inst, d.now);
+  const gbpShort = Math.max(0, gbpLack - Math.max(0, free.GBP ?? 0));
+  // The drain's resting sale goes the turn it is no longer wanted: an ask of its book lacks coin, or no bid lacks pounds.
+  if (draining) {
+    for (const o of open.filter((o) => o.mode === "live" && isDrain(o) && !o.cancel_requested_at && !unreadable.has(o.id))) {
+      if (shortOf.has(o.book) || !(gbpShort > 0)) {
+        try { await cancelConfirmed(o, shortOf.has(o.book) ? "drain: an ask of the book lacks coin" : "drain: no bid lacks pounds"); } catch (e) { report.errors.push(`drain cancel: ${msg(e)}`); }
+      }
+    }
+  }
+  if ((rebooking || (draining && gbpShort > 0)) && entry.book === "live" && !globalPause && !lossStopped && bal && T != null && d.now - T <= 3 * M) {
     try {
       const resting = new Set([...open, ...sentNow].filter((o) => isOpen(o) && o.mode === "live" && o.leg === "convert").map((o) => o.book));
       const recentDrains = await d.db.selectAll<Pick<LiveOrderRow, "ts" | "book" | "leg" | "state" | "request" | "response">>(inst.orders,
         `mode=eq.live&leg=eq.convert&ts=gte.${enc(iso(d.now - QUOTE_LIVE_TOPUP_REST_MS))}&select=ts,book,leg,state,request,response&order=id.asc`);
       const cases: DrainBook[] = [];
+      // The drain's day: what each book's drains sold or still offer since 00:00 UTC.
+      const dayStart = Math.floor(d.now / DAY) * DAY;
+      const soldToday = (book: QuoteBook) => recentDay.filter((o) => o.book === book && isDrain(o))
+        .reduce((a, o) => a + Number(isOpen(o as LiveOrderRow) ? o.base_size : o.filled_base) * Number(o.price), 0);
+      const recentDay = draining ? await d.db.selectAll<Pick<LiveOrderRow, "ts" | "book" | "leg" | "price" | "base_size" | "filled_base" | "state" | "request">>(inst.orders,
+        `mode=eq.live&leg=eq.convert&ts=gte.${enc(iso(dayStart))}&select=ts,book,leg,price,base_size,filled_base,state,request&order=id.asc`) : [];
       for (const book of QUOTE_BOOKS) {
         if (resting.has(book) || report.guards[book].length || levelOf("live", book, null) !== "all") continue;
+        // The drain sells only for a book none of whose asks lacks coin (the rebook sells regardless, as it always did).
+        if (!rebooking && shortOf.has(book)) continue;
         // A sale the venue refused is not sent again for QUOTE_LIVE_TOPUP_REST_MS, as a top-up is not.
         if (recentDrains.some((o) => o.book === book && isDrain(o) && o.state === "rejected" && wasSent(o) && !wasRateLimited(o))) {
           report.skippedEntries.push({ mode: "live", rung: `${book}|convert`, reason: "rebook: the venue refused the last sale; the next waits 30 minutes from it" });
@@ -2024,12 +2076,23 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLiveIn
         cases.push({ book, fair, pair, bestBid: seen?.bestBid ?? null, bestAsk: seen?.bestAsk ?? null,
           beyond: (bal[coinOf(book)] ?? 0) - held("bid") + held("ask"), free: free[coinOf(book)] ?? 0 });
       }
+      let shortLeft = gbpShort;
       for (const p of planDrains(cases, capital, inst.rungs, retiredAt(inst, d.now), (b, k) => rungGbpOf(inst, capital, b, "ask", k, d.now))) {
-        if ("skip" in p) { report.skippedEntries.push({ mode: "live", rung: `${p.book}|convert`, reason: `rebook: ${p.skip}` }); continue; }
-        const row = await placeOrder(ctx, { mode: "live", book: p.book, rungSide: null, k: null, leg: "convert", side: "sell", ticks: p.ticks, base: p.base,
-          marketable: false, fair: p.fair, extra: { auto: true, drain: true, asksNeed: p.asksNeed, coinBeyondLongs: p.beyond } });
+        const why = rebooking ? "rebook" : "drain";
+        if ("skip" in p) { report.skippedEntries.push({ mode: "live", rung: `${p.book}|convert`, reason: `${why}: ${p.skip}` }); continue; }
+        let base = p.base;
+        if (!rebooking) {
+          if (!(shortLeft > 0)) continue;
+          const price = p.ticks * QUOTE_TICK, pair = pairs[LIVE_SYMBOL[p.book]]!;
+          const cut = drainBase(p.base, price, shortLeft, QUOTE_LIVE_DRAIN_DAY_SHARE * capital - soldToday(p.book), pair);
+          if (!cut) { report.skippedEntries.push({ mode: "live", rung: `${p.book}|convert`, reason: "drain: what the bids lack, or the day leaves, is under the venue's minimum" }); continue; }
+          base = cut;
+          shortLeft -= Number(base) * price;
+        }
+        const row = await placeOrder(ctx, { mode: "live", book: p.book, rungSide: null, k: null, leg: "convert", side: "sell", ticks: p.ticks, base,
+          marketable: false, fair: p.fair, extra: { auto: true, drain: true, asksNeed: p.asksNeed, coinBeyondLongs: p.beyond, ...(rebooking ? {} : { gbpShort, permanent: true }) } });
         sent(row);
-        free[coinOf(p.book)] = (free[coinOf(p.book)] ?? 0) - Number(p.base);
+        free[coinOf(p.book)] = (free[coinOf(p.book)] ?? 0) - Number(base);
         if (row?.state === "rejected" && wasSent(row) && !wasRateLimited(row)) {
           report.errors.push(`${p.book}|convert: the venue refused a rebook's sale of ${p.base} at ${(p.ticks * QUOTE_TICK).toFixed(4)}: ${(row.response as { error?: string } | null)?.error ?? "no reason given"}`);
         }

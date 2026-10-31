@@ -74,7 +74,23 @@ describe("no take inside an FX closure (2026-10-31), recorded apart", () => {
     const s = dev.indexOf('### `docs/agents/reviews/2026-10-03-take-prereg.md`'), rest = dev.slice(s + 1), e = rest.search(/\n##/);
     const named = [...rest.slice(0, e).matchAll(/\| `supabase\/functions\/agents\/quotes_live\.ts` \| ([0-9a-f]{64}) \|/g)].map((m) => m[1]);
     expect(s).toBeGreaterThan(0);
-    expect(named).toEqual([sha(live)]);
+    expect(named).toEqual(['e70a8dd4733df4911bbac39c1767d0827f92e743599c27ac6adf336934277dd9']);
     expect(read(live).toString('utf8')).toContain('const takeClosed = T != null && inQuoteClosure(T);');
+  });
+});
+
+describe("the drain for good and LIVE's twin taking as LIVE (2026-10-31, N1/N2), recorded apart", () => {
+  it('names the executor as it is under the take pre-registration\'s heading, quotes Davies, and the executor holds the drain', () => {
+    const dev = read('docs/agents/reviews/2026-10-31-live-twin-take-drain-deviation.md').toString('utf8');
+    const live = 'supabase/functions/agents/quotes_live.ts';
+    const s = dev.indexOf('### `docs/agents/reviews/2026-10-03-take-prereg.md`'), rest = dev.slice(s + 1), e = rest.search(/\n##/);
+    const named = [...rest.slice(0, e < 0 ? undefined : e).matchAll(/\| `supabase\/functions\/agents\/quotes_live\.ts` \| ([0-9a-f]{64}) \|/g)].map((m) => m[1]);
+    expect(s).toBeGreaterThan(0);
+    expect(named).toEqual([sha(live)]);
+    expect(dev).toContain('"同意"');
+    expect(dev).toContain('the executor was `e70a8dd4733df4911bbac39c1767d0827f92e743599c27ac6adf336934277dd9` before this change');
+    const src = read(live).toString('utf8');
+    expect(src).toContain('export const QUOTE_LIVE_DRAIN_FROM = Date.parse("2026-10-31T08:00:00Z");');
+    expect(src).toContain('!rebookOn(inst, now)');
   });
 });

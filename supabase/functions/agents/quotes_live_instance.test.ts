@@ -627,3 +627,100 @@ Deno.test("p50x1's exitOffset: from its instant every exit, placed or re-priced,
     assertEquals(await exitsOf(side, Now, off(2, T0)), [...two], `${side}: two ticks`);
   }
 });
+
+// THE DRAIN, for good (Davies, 2026-10-31 ~03:55 UTC, "同意", N2): outside a rebook, an instance with weights in force sells the coin
+// beyond its asks' need back to pounds while a bid lacks them and no ask of the book lacks coin, at most what the bids lack, never
+// under fair, and withdraws the sale the turn that stops being true. Worked at £120 (six £20 rungs on USDT-GBP alone, fair 0.7554).
+async function drainRun(instance: Now.QuoteLiveInstance, bal: { GBP: number; USDT: number }, minutes = 3, between?: (w: ReturnType<typeof world>, t: number) => void) {
+  const w = world(Now, instance);
+  w.sim.st.balances.GBP = bal.GBP; w.sim.st.balances.USDC = 0; w.sim.st.balances.USDT = bal.USDT;
+  const books = Object.fromEntries(QUOTE_BOOKS.map((bk) => [bk, newBookState(bk, { id: "seed", ts: T0 - 30e3, ticks: bk === "USDC-GBP" ? 7553 : 7551, qty: 10, side: "sell" })])) as Record<QuoteBook, BookState>;
+  for (let t = T0; t < T0 + minutes * M; t += M) {
+    for (const bk of QUOTE_BOOKS) stepMinute(books[bk], t, { x: 1.3238, fairU: 1.0, prints: [] });
+    await w.mem.db.upsert("agent_quote_state", [{ id: 1, state: { lastMinute: t, books: JSON.parse(JSON.stringify(books)), fetchedTo: {}, hourFetchedFor: 0 }, last_minute: iso(t), updated_at: iso(t), last_error: null }], "id");
+    between?.(w, t);
+    await w.turn(t + M + 30e3);
+  }
+  const orders = w.mem.tables.agent_quote_live_orders as Row[];
+  return {
+    w, orders,
+    drains: orders.filter((o) => o.leg === "convert" && o.side === "sell"),
+    asks: orders.filter((o) => o.leg === "entry" && o.side === "sell" && o.book === "USDT-GBP"),
+    bids: orders.filter((o) => o.leg === "entry" && o.side === "buy" && o.book === "USDT-GBP"),
+  };
+}
+const usdtOnly = { from: T0 - H, book: { "USDC-GBP": 0, "USDT-GBP": 1 } };
+/** LIVE's instance with its weights from before these hours and no rebook over them, its drain from `from`. */
+const drainInst = (from: number): Now.QuoteLiveInstance => ({ ...Now.QUOTE_LIVE_INSTANCE, weights: usdtOnly, rebook: { since: T0 + 1e9 }, drain: { from } });
+
+Deno.test("the drain: a bid short of pounds and USDT beyond the asks' need, sold post-only at or over fair, at most what the bids lack; the asks keep their coin", async () => {
+  const r = await drainRun(drainInst(T0), { GBP: 30, USDT: 140 });
+  assert(r.drains.length >= 1, JSON.stringify(r.drains));
+  const d = r.drains[0], req = d.request as Record<string, unknown>;
+  assertEquals([d.book, req.auto, req.drain, req.permanent, req.postOnly, req.marketable], ["USDT-GBP", true, true, true, true, false]);
+  const fair = 1 / 1.3238;
+  assert(Math.round(Number(d.price) / 1e-4) >= Math.ceil(fair / 1e-4 - 1e-9), `sold under fair: ${d.price}`);
+  // Never into the asks' coin: what the three asks rest, and the 2 % buffer, stay in the account after the whole sale.
+  const asksCoin = r.asks.filter((o) => o.state !== "cancelled").slice(-3).reduce((a, o) => a + Number(o.base_size), 0);
+  assert(140 - Number(d.base_size) >= asksCoin * 1.02 - 1e-6, `${140 - Number(d.base_size)} < ${asksCoin * 1.02}`);
+  // At most what the bids lacked: on £30 one £20 bid rests and two do not, £40 against the £10 left, so £30, plus a step.
+  assert(Number(d.base_size) * Number(d.price) <= 30 + 0.01, `sold ${Number(d.base_size) * Number(d.price)}`);
+  assert(Number(d.base_size) * Number(d.price) >= 30 - 0.01, `sold ${Number(d.base_size) * Number(d.price)}`);
+});
+
+Deno.test("the drain's counterfactual and its limits: none after a rebook window ends without it (the old rule), none with every bid funded, none while an ask lacks coin", async () => {
+  // Before this change, outside the 72-hour rebook nothing sold coin back: the drain not yet in force is that rule.
+  assertEquals((await drainRun(drainInst(T0 + 1e9), { GBP: 30, USDT: 140 })).drains, []);
+  // Every bid funded: no sale, whatever surplus the account holds.
+  assertEquals((await drainRun(drainInst(T0), { GBP: 200, USDT: 140 })).drains, []);
+  // Both look needed: the asks lack USDT (50 against ~79) and a bid lacks pounds. No sale; the top-up path is the asks'.
+  assertEquals((await drainRun(drainInst(T0), { GBP: 30, USDT: 50 })).drains, []);
+  // The window's end no longer stops it: the default instant is QUOTE_LIVE_DRAIN_FROM, before LIVE's rebook ends (11-01 22:30).
+  const I = { ...Now.QUOTE_LIVE_INSTANCE };
+  const end = Now.QUOTE_LIVE_REBOOK_SINCE + Now.QUOTE_LIVE_REBOOK_MS;
+  assertEquals([Now.rebookOn(I, end - 1), Now.drainOn(I, end - 1), Now.rebookOn(I, end), Now.drainOn(I, end)], [true, false, false, true]);
+  assert(Now.QUOTE_LIVE_DRAIN_FROM < end);
+  assertEquals(Now.drainOn(Now.QUOTE_RXU_INSTANCE, Now.QUOTE_LIVE_DRAIN_FROM), true);
+});
+
+Deno.test("the drain withdraws a resting sale the turn no bid lacks pounds, and does not sell again while none does", async () => {
+  let gave = false;
+  const r = await drainRun(drainInst(T0), { GBP: 30, USDT: 140 }, 4, (w, t) => {
+    // Pounds arrive after the sale went out (a deposit, or a sale filled elsewhere): every bid can rest.
+    if (!gave && t >= T0 + 2 * M && (w.mem.tables.agent_quote_live_orders as Row[]).some((o) => o.leg === "convert" && o.side === "sell")) { w.sim.st.balances.GBP += 200; gave = true; }
+  });
+  assert(gave);
+  const d = r.drains;
+  assertEquals(d.length, 1, JSON.stringify(d));
+  assertEquals(d[0].cancel_reason, "drain: no bid lacks pounds");
+  assertEquals(r.bids.filter((o) => o.state === "new").length, 3);
+});
+
+Deno.test("drainBase: the plan's surplus, what the bids lack (up a step, one more) and the day's room, the least of them; null under the minimum", () => {
+  const pair = { base_step: "0.00001", min_order_size: "1", min_order_size_quote: "1" } as unknown as Parameters<typeof Now.drainBase>[4];
+  assertEquals(Now.drainBase("50.00000", 0.7556, 10, 150, pair), String(Math.round((Math.ceil(10 / 0.7556 / 0.00001 - 1e-9) * 0.00001 + 0.00001) * 1e5) / 1e5));
+  assertEquals(Now.drainBase("5.00000", 0.7556, 10, 150, pair), "5.00000");
+  assertEquals(Now.drainBase("50.00000", 0.7556, 10, 3, pair), String(Math.floor(3 / 0.7556 * 1e5) / 1e5));
+  assertEquals(Now.drainBase("50.00000", 0.7556, 10, 0, pair), null);
+});
+
+Deno.test("the drain partly filled: it rests while the bids still lack pounds, the asks keep resting on their own coin, nothing is sold twice", async () => {
+  let printed = false;
+  const r = await drainRun(drainInst(T0), { GBP: 30, USDT: 140 }, 4, (w, t) => {
+    const d = (w.mem.tables.agent_quote_live_orders as Row[]).find((o) => o.leg === "convert" && o.side === "sell");
+    if (!printed && d && t >= T0 + M) {
+      // A buyer of 10 USDT through the sale's price: a part of it fills, £7.6 of the £30 the bids lack.
+      w.print("USDT-GBP", { id: "buyer", ts: t + M + 20e3, ticks: Math.round(Number(d.price) / 1e-4) + 1, qty: 10, side: "buy" });
+      printed = true;
+    }
+  });
+  assert(printed);
+  assertEquals(r.drains.length, 1, JSON.stringify(r.drains));
+  const d = r.drains[0];
+  assert(Number(d.filled_base) > 0 && Number(d.filled_base) < Number(d.base_size), JSON.stringify(d));
+  assert(d.state === "partially_filled" || d.state === "new", String(d.state));
+  // The three asks rest throughout: none was skipped for want of USDT.
+  assertEquals(r.asks.filter((o) => o.state === "new").length, 3);
+  const skipped = ((r.w.mem.tables.agent_quote_live_events as Row[]) ?? []).filter((e) => e.kind === "skip" && String(JSON.stringify(e.detail)).includes("USDT to sell"));
+  assertEquals(skipped, []);
+});

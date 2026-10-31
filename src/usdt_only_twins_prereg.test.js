@@ -24,6 +24,12 @@ const namedTC = (head, f) => {
   const s = DTC.indexOf('### `docs/agents/reviews/' + head + '`'), rest = s < 0 ? '' : DTC.slice(s + 1), e = rest.search(/\n##/);
   return [...rest.slice(0, e < 0 ? undefined : e).matchAll(new RegExp('\\| `' + f.replace(/[.]/g, '\\.') + '` \\| ([0-9a-f]{64}) \\|', 'g'))].map((m) => m[1]);
 };
+/** The drain's deviation (2026-10-31, N2: coin sold back to pounds for good), recorded apart: the files as they are, under a pre-registration's own heading. */
+const DDR = read('docs/agents/reviews/2026-10-31-live-twin-take-drain-deviation.md').toString('utf8');
+const namedDR = (head, f) => {
+  const s = DDR.indexOf('### `docs/agents/reviews/' + head + '`'), rest = s < 0 ? '' : DDR.slice(s + 1), e = rest.search(/\n##/);
+  return [...rest.slice(0, e < 0 ? undefined : e).matchAll(new RegExp('\\| `' + f.replace(/[.]/g, '\\.') + '` \\| ([0-9a-f]{64}) \\|', 'g'))].map((m) => m[1]);
+};
 /** TAKE-DEPTH's deviation (2026-10-31), recorded apart: the files as they are, under a pre-registration's own heading. */
 const DTD = read('docs/agents/reviews/2026-10-31-take-depth-deviation.md').toString('utf8');
 const namedTD = (head, f) => {
@@ -72,7 +78,7 @@ describe("variant-5's pre-registration (the USDC-GBP nudge on USDC:USDT 1:1)", (
     ]) expect(namedIn(DOC, f), f).toEqual([sha(f)]);
     // The executor as frozen, then as the 22:30 deviation (0179) names it.
     const live = 'supabase/functions/agents/quotes_live.ts';
-    expect([...namedIn(DOC, live), ...named2230('2026-10-29-usdt-only-twins-prereg.md', live), ...namedRxu('2026-10-29-usdt-only-twins-prereg.md', live), ...namedX1('2026-10-29-usdt-only-twins-prereg.md', live), ...namedTD('2026-10-29-usdt-only-twins-prereg.md', live), ...namedTC('2026-10-29-usdt-only-twins-prereg.md', live)], live).toEqual(['eb9790f61931636ca0ee58d7d4fbbb0d2d515fd2e2dc197303fd8f805d79136a', 'aa770ef6fc40301e4d7bbfbf4f9f2e66f6e7a8b010f4c4a8b5646cc1075d80cc', 'd683bb5a4f1accf144c630a7d69bd565953a23879be847eade2ce2868d8bc86c', 'b6bdbd8cc1947b0949923322988290b6928f679798f7042c100b1776ffbcc3a1', '2ec5455b525f8f5d5d9996e994e9b512154cc0abfe4890df14dd33e786b06270', sha(live)]);
+    expect([...namedIn(DOC, live), ...named2230('2026-10-29-usdt-only-twins-prereg.md', live), ...namedRxu('2026-10-29-usdt-only-twins-prereg.md', live), ...namedX1('2026-10-29-usdt-only-twins-prereg.md', live), ...namedTD('2026-10-29-usdt-only-twins-prereg.md', live), ...namedTC('2026-10-29-usdt-only-twins-prereg.md', live), ...namedDR('2026-10-29-usdt-only-twins-prereg.md', live)], live).toEqual(['eb9790f61931636ca0ee58d7d4fbbb0d2d515fd2e2dc197303fd8f805d79136a', 'aa770ef6fc40301e4d7bbfbf4f9f2e66f6e7a8b010f4c4a8b5646cc1075d80cc', 'd683bb5a4f1accf144c630a7d69bd565953a23879be847eade2ce2868d8bc86c', 'b6bdbd8cc1947b0949923322988290b6928f679798f7042c100b1776ffbcc3a1', '2ec5455b525f8f5d5d9996e994e9b512154cc0abfe4890df14dd33e786b06270', 'e70a8dd4733df4911bbac39c1767d0827f92e743599c27ac6adf336934277dd9', sha(live)]);
   });
 
   it('holds its bar and its comparison as written', () => {
@@ -96,7 +102,9 @@ describe('the USDT-only deviation (0178)', () => {
       expect(namedX1(h, live), h).toEqual(['b6bdbd8cc1947b0949923322988290b6928f679798f7042c100b1776ffbcc3a1']);
       expect(namedTD(h, live), h).toEqual(['2ec5455b525f8f5d5d9996e994e9b512154cc0abfe4890df14dd33e786b06270']);
       // Then the closure deviation (2026-10-31): the executor as it is.
-      expect(namedTC(h, live), h).toEqual([sha(live)]);
+      expect(namedTC(h, live), h).toEqual(['e70a8dd4733df4911bbac39c1767d0827f92e743599c27ac6adf336934277dd9']);
+      // Then the drain's deviation (2026-10-31, N2): the executor as it is.
+      expect(namedDR(h, live), h).toEqual([sha(live)]);
     }
     expect(DTD).toContain('the executor was `b6bdbd8cc1947b0949923322988290b6928f679798f7042c100b1776ffbcc3a1` before this change');
     expect(DTC).toContain('the executor was `2ec5455b525f8f5d5d9996e994e9b512154cc0abfe4890df14dd33e786b06270` before this change');

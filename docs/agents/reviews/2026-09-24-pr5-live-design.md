@@ -571,3 +571,24 @@ update public.agent_quote_live_config set take_mode = 'live', updated_at = now()
 Undo: `take_mode = 'shadow'` on LIVE, `'off'` on the USDC/GBP executor. The first live take can come only after the closure ends,
 Sunday 2026-11-01 21:00 UTC. Coinbase's executor has no take; its shadow is being built (records only, `take_mode` 'off'|'shadow').
 
+## Addendum (2026-10-31, 04:00): surplus coin goes back to pounds for good; LIVE's twin takes as LIVE
+
+Davies, 2026-10-31 ~03:55 UTC: "同意", on the agents audit's N2 and N1.
+
+**N2, the drain.** The rebook of the addendum of 2026-10-29 was a 72-hour window (`rebookOn`, to 2026-11-01 22:30 UTC) and the only
+path from coin back to pounds: after it the top-ups fall back to £5 a book a day and LIVE's bids could starve while the account held
+surplus USDT, as Coinbase LIVE's bid did from 10-29 20:34 (`reviews/2026-10-29-cb-live-design.md` §12). From 2026-10-31 08:00 UTC
+(`QUOTE_LIVE_DRAIN_FROM`, inside the rebook, so it takes over at 11-01 22:30 with no gap), outside a rebook, on an instance with
+weights in force (`drainOn`): when a live bid was skipped this turn for want of pounds and no ask of the book lacks coin, the
+rebook's own sale (`planDrains`: one post-only order a book at the top of the asks, never under fair, the asks' need and the 2 %
+buffer kept) sells the coin beyond the asks' need, cut to what the bids lack at its price (`drainBase`: up a base step, one more)
+and to 25 % of the capital a book a UTC day (`QUOTE_LIVE_DRAIN_DAY_SHARE`). A resting drain is cancelled the turn an ask of its book
+lacks coin or no bid lacks pounds, and after 30 minutes unfilled as before. The client id is written before the call
+(`placeOrder`); the governor, the guards, the dead-man watch and the loss stop apply as to any conversion; nothing takes, nothing
+crosses. The row is a `convert` with `request.auto`, `request.drain` and `request.permanent`. Inside a rebook its rule runs unchanged.
+
+The USDC/GBP executor (`QUOTE_RXU_INSTANCE`) has the same failure mode: its weights start at 0, before the rebook's instant, so it
+never rebooked; it could top its USDC up (£5 a book a day) and never sell it back. The same drain covers it from the same instant.
+Every twin on these rules runs the executor's code and takes it at the same minute; the pre-registrations' deviation is
+`reviews/2026-10-31-live-twin-take-drain-deviation.md`. Undo: a commit setting `QUOTE_LIVE_DRAIN_FROM` past now (no database
+switch holds it).

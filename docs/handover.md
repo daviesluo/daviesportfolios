@@ -47935,3 +47935,25 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
   or PR5's paper test (unused; their days views ~0.95 s each), nor live-prep's book while disarmed; `serverMs` taken after every
   read, `stagesMs` per read; 0186 indexes the arms' minute tables by minute and `agent_decisions` by ts. Moved the 00:17, 00:30
   sections to handover (thirty-third).
+## LEDGER.md, archived 2026-10-31 (forty-first) — the 2026-10-30 18:30, 2026-10-31 01:10 UTC history sections, oldest first
+
+### [2026-10-30 18:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **PR5 take shadow read again, 10-18 05:17 → 10-30 18:00** (sub-agent; commit, not pushed; routine "PR5 take-shadow
+  re-check"). 47 `take_shadow` rows are 2 opportunities (10-28 18:42, one 49.8-coin bid ~30 bps over fair repeated each
+  minute because the shadow holds nothing, by design; 10-29 15:22); 'live' would have sent 3 IOCs (2 filling). Criteria
+  (a)–(d) pass; none since USDT-only. Size, limit and exit follow USDT-only weights, compounding, exitOffset and holdMin;
+  take50's twin lacks `fill: at` and weekends. take_mode stays 'shadow' until Davies' word (statement in the 10-18
+  addendum's log). Moved the 00:35, 00:57 sections to handover (thirty-fourth).
+
+### [2026-10-31 01:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **xhedge A1/A2 stood still from 10-30 09:57 (inside) and 10:55 (behind) to this fix** (Davies: "两个策略停了，有报错").
+  Two Revolut X prints of one millisecond, each over £1, owed two hedges with the same first fill, settled on one Coinbase
+  read: two trips with one key (arm, book, side, t_fill, t_hedge), so the batch upsert failed (21000) and every run rolled
+  the arm back. `xhSettle` now folds them into one trip (qty, fee, P&L and fills summed, RX price qty-weighted); pin test
+  fails on the old code. The arms replay the missed minutes from the recorded inputs, 30 a minute, about half an hour;
+  recorded as the test's Deviation 2 (`reviews/2026-10-30-xhedge-deviation.md`): money unchanged by construction, the files' new sha256 named there.
+- **PR5 take stays 'shadow'** (Davies: "按照你推荐的来"): the two unverified risks of the 10-30 re-read (a partial fill
+  under holdMin letting more IOCs out; a rebook sale competing with the exit) go to tests first; Claude proposes the flip
+  after the first USDT-only take event reads clean.
+- **IGBOT:** C-003 answered by Grok (the 8.5 h gap was its own pause after a box restart; restore step added); checked
+  against the record and closed on `igbot-ledger` 7ca96b50.
