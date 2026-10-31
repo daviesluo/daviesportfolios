@@ -47887,3 +47887,33 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
   earns as much or more (replay 48-62 %/yr; maker ~31-35 % on what it shows). Of a-f only one helps: an order a tick inside
   the maker while it is ≥ 10 ticks wide, in place of the 0.3 % rung: LIVE +3.2/+1.9 bps/day (P 0.0001), RXU +1.7 (P 0.12).
   In-sample, one regime, now off: no twin built. Nothing live changes.
+## LEDGER.md, archived 2026-10-31 (thirty-ninth) — the 2026-10-30 03:50, 2026-10-30 04:05, 2026-10-30 04:20, 2026-10-30 04:20, 2026-10-30 05:25 UTC history sections, oldest first
+
+### [2026-10-30 03:50 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **RX↔Coinbase hedge rows on both venues** (sub-agent; not pushed; Davies, ~03:30): both badges, card "Revolut X + Coinbase";
+  FUNDED/DEPLOYED/TODAY across both (`xhedge_page.ts`; the frozen `xhedge.ts` untouched).
+
+### [2026-10-30 04:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Hedge rows: no own card** (sub-agent; not pushed; Davies ~03:45): each venue's half (funded, deployed, P&L by leg) on its own
+  card; venue badges centred.
+
+### [2026-10-30 04:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **XHEDGE A1/A2 start now** (main session; Davies, 10-30 ~04:17: "A1/A2 纸面测试现在就可以上线"). Both arms' S moved from 10-31
+  00:00 to 10-30 04:20 UTC by one statement on `agent_xhedge_state` before either decided a minute; window to 11-27 04:20, reading
+  on or after 11-27 05:20 UTC. Deviation 1, `reviews/2026-10-30-xhedge-deviation.md`; no file changed.
+
+### [2026-10-30 04:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **The other maker's watch, and MAKER-ABSENT** (sub-agent; commit, not pushed; Davies, 10-30 ~03:25: "我们如何趁他不在时最大化收益？",
+  "我们能不能对他加个监控，实时观察和记录他的行为"). `0185` + `agents/maker_watch.ts`: inside the books call's wait (no new `edge_calls`
+  row), `agent_maker_minutes`/`_events`/`_state` from 09-26 (backfill ~50 min after deploy; check `agent_maker_state` then), a line
+  on both Revolut X live pages. History (`mmcomp/results/maker_history.json`): 5 ticks to 10-12, 12 from 10-13, narrow again from
+  10-28 ~15:45; USDT-GBP absent 47 h in 32 spells, now since 10-29 21:17. `reviews/2026-10-30-maker-absent.md`: today's rules earn
+  ~3× an hour while it is away (LIVE £2.87/day vs £0.90-1.06); nearer rungs worse; exit +3 ticks while absent +£0.24 (P 0.28-0.36,
+  five active windows): no twin; £1,200 earns 1.85× (P 0.005), bids all held 31 % of absent minutes. Archived 22:55, 23:13 (thirty-first).
+
+### [2026-10-30 05:25 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **LOTS: more than one lot a rung? No** (sub-agent; commit, not pushed; Davies, 10-30 ~04:30: "…目前我们每档只有一个lot，如果我们每档多做几个呢？
+  …会不会提升收益？"). `reviews/2026-10-30-lots.md`, `mmcomp/scripts/lots.py`: LIVE, RX USDC/GBP, Coinbase LIVE (approx.), `live1200`,
+  `n600usdt`. Stacked lots from the same pounds lose 30-75 % (P 1.00 everywhere: each print fills a smaller order); doubled rungs
+  earn 1.7-1.9×, two stacked lots of today's size 1.04-1.2× (worse markouts): bigger rungs are the lever. Same £ split into
+  lots resting together +2-3 % on USDT-GBP (a partly filled rung keeps its rest), not on USDC, 2-3× orders: K = 1, no twin.

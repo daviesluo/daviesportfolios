@@ -243,70 +243,267 @@
 import { reportServerError } from "../_shared/ops.ts";
 import { BEAT_TABLE, beatKey, beatKeyOfRequest, writeBeat } from "../_shared/beats.ts";
 import { constantTimeEqual, verifyToken } from "../_shared/token.ts";
-import { askJev, type JevEnv, type JevResult, type Questions } from "../_shared/jev.ts";
-import { activeOrders, balances, candles, historicalOrders, loadPrivateKey, pairs, publicTickers, REVX_REGION, revxVenue, type RevxEnv } from "../_shared/revx.ts";
-import {
-  addOrder, balance as krakenBalance, balanceEx, cancelOrder as krakenCancel, closedOrders, krakenNonce, krakenVenue, ohlc, openOrders,
-  krakenSupports, ticker as krakenTicker, tradeVolume, type KrakenEnv,
-} from "../_shared/kraken.ts";
-import { b64ToBytes } from "../_shared/bytes.ts";
-import { loadPolymarketEnv, polymarketProbe } from "../_shared/polymarket.ts";
-import { loadPmLiveEnv, PM_ORDER_SENDS_ENABLED, pmVenue } from "../_shared/polymarket_orders.ts";
-import { PM_LIVE_TIMEOUT_MS, PM_MINI_INSTANCE, runPmLive, type PmSettlement } from "./pm_live.ts";
-import { PREP_INSTANCE, runPmPrep, type PrepInstance } from "./pm_prep.ts";
-import { PM_MID_INSTANCE, PREP_MID_INSTANCE } from "./pm_mid.ts";
-import { PM_LP_INSTANCE, PREP_LP_INSTANCE } from "./pm_lp.ts";
-import { runPmLpReserve } from "./pm_lp_reserve.ts";
-import { LP_LIVE_CLOSE_COLUMNS, LP_LIVE_CLOSE_MINUTES, LP_LIVE_FILL_COLUMNS, LP_LIVE_HOUR_COLUMNS, LP_LIVE_HOURS_VIEW, LP_LIVE_MARKET_COLUMNS, LP_LIVE_MINUTE_COLUMNS, LP_LIVE_ORDER_COLUMNS, LP_LIVE_REWARD_COLUMNS, lpCloseMinutes, lpLiveSince, lpLiveSummary, type LpLiveCloseRow, type LpLiveConfigRow, type LpLiveFillRow, type LpLiveHourRow, type LpLiveMarketRow, type LpLiveMinuteRow, type LpLiveOrderRow, type LpLiveRewardDayRow, type LpLiveStateRow, type LpLiveStopRow } from "./pm_lp_live_view.ts";
-import { recordPrepStress } from "./pm_prep_stress.ts";
-import { JEV_QUESTION_VERSION, positionFromFills, unrealisedUsd, type CategoricalState, type Position, type StrategyKind } from "../_shared/agents_strategy.ts";
 import type { Venue, VenueId } from "../_shared/venue.ts";
-import { binancePaperVenue, binanceProbe, toBinanceSymbol } from "./binance.ts";
-import { ALL_QUESTION_VERSIONS, isRowQuestionVersion, questionsFor, ROW_QUESTION_KIND, type AnyQuestionVersion } from "./jev_rows.ts";
 import { makeDb, type Db } from "./db.ts";
-import { booksAYear } from "./book_ratio.ts";
-import { deribitProbe } from "./deribit.ts";
-import { youtubeProbe } from "./youtube.ts";
-import { runViews } from "./views.ts";
-import { QUOTE_BOOKS, QUOTE_RUNGS, QUOTE_TICK, runQuotes, type QuoteBook, type QuoteReport, type Side } from "./quotes.ts";
-import {
-  coinOf, markedGbp, QUOTE_LIVE_INSTANCE, QUOTE_LIVE_LOSS_FRACTION, QUOTE_LIVE_USDT_ONLY_FROM, QUOTE_RXU_INSTANCE, rungBook, rungGbpOf, rungWeight, runQuotesConvert, runQuotesLive,
-  type LiveLeg, type QuoteLiveInstance, type QuoteLiveDeps, type QuoteLiveReport, type RungBook, type RungFill,
-} from "./quotes_live.ts";
-import { stepLiveWeekendPaper, type LiveWeekendReport } from "./quotes_live_weekend.ts";
-import { COMPOUND_RXU, conversionSales, runLiveCompound, runTwinsCompound, type CompoundReport, type ConversionSale } from "./quotes_compound.ts";
-import { cbCompoundMultNow } from "./cb_compound.ts";
-import { runQuotesVariant, VARIANT_ARMS, VARIANT_KEYS, VARIANT_START, variantCapitalUsd, type VariantArmName } from "./quotes_variant.ts";
-import { runQuotesRuled, RULED_ARMS } from "./quotes_ruled.ts";
-import { runQuotesTwins, twinSpecs, type TwinDriverState, type TwinSpec } from "./quotes_twin.ts";
-import { runPmrw, runPmrwSelect, RWC_INSTANCE, type RwSelectReport } from "./pmrw.ts";
-import { runPmrwE, RWCE_REPLAY } from "./pmrw_e.ts";
-import { parseRwxSpecs, researchRwx, runPmrwX, RWCX_REPLAY } from "./pmrw_x.ts";
-import { booksDelayMs, runBooks } from "./books.ts";
-import { MW_TABLES, mwStatusOf, runMakerWatch } from "./maker_watch.ts";
-import { PM_REC_VENUE_TIMEOUT_MS, pmRecStorage, runPmRec, runPmRecMeta } from "./pm_book_rec.ts";
-import { runCjRec } from "./cj_rec.ts";
-import { runGrokPmRec } from "./grokpm_rec.ts";
-import { readCxbot, readIgbot } from "./grok_tests_view.ts";
-import { GROKPM_CONFIG_COLUMNS, GROKPM_CYCLE_COLUMNS, GROKPM_DAILY_COLUMNS, GROKPM_DECISION_COLUMNS, GROKPM_ENTRY_COLUMNS, GROKPM_FILL_COLUMNS, GROKPM_FILL_STATUSES, GROKPM_JOURNAL_PAGE_MAX, GROKPM_JOURNAL_ROWS, GROKPM_MARKET_COLUMNS, GROKPM_OPEN_COLUMNS, GROKPM_SNAPSHOT_COLUMNS, grokPmJournalPage, grokPmSummary, type GrokPmConfigRow, type GrokPmCycleRow, type GrokPmDailyRow, type GrokPmDayOpenRow, type GrokPmDecisionRow, type GrokPmEntryRow, type GrokPmOpenSnapRow, type GrokPmFillRow, type GrokPmMarketRow, type GrokPmOpenRow, type GrokPmResolutionRow, type GrokPmSnapshotRow } from "./grokpm_view.ts";
-import { CB_PRODUCTS, runCbRec, type CbRecState } from "./cb_rec.ts";
-import { cbBooksDelayMs, runCbBooks } from "./cb_books.ts";
-import { runFxRec, type FxRecReport } from "./fx_rec.ts";
-import { runCbQuotes } from "./cb_quotes.ts";
-import { CB_HOLD_FACTOR_50, CB_HOLD_ID, CB_HOLD_RUNG_USD_50, CB_HOLD_TABLES, cbHoldFactorNow, runCbHold } from "./cb_hold.ts";
-import { CB_USDC_FACTOR_50, CB_USDC_ID, CB_USDC_RUNG_USD_50, CB_USDC_TABLES, cbUsdcFactorNow, cbUsdcView, runCbUsdc } from "./cb_usdc.ts";
-import { CB_NUDGE_ID, CB_NUDGE_PRODUCTS, CB_NUDGE_RUNG_USD, CB_NUDGE_TABLES, runCbNudge } from "./cb_nudge.ts";
-import { runCbLiveProbe } from "./cb_live_probe.ts";
-import { readCbLive, runCbLive } from "./cb_live.ts";
-import { runOkxRec, type OkxRecState } from "./okx_rec.ts";
-import { readOkxQuotes, runOkxQuotes } from "./okx_quotes.ts";
-import { okxRowsWithBasis, readOkxBasis, runOkxBasis } from "./okx_basis.ts";
-import { runXhedge } from "./xhedge.ts";
-import { readXhedgePage } from "./xhedge_page.ts";
-import { readFxw } from "./fxw_view.ts";
-import { CB_HOLD_PAGE_NAME, CB_NUDGE_PAGE_NAME, CB_USDC_PAGE_NAME, readCoinbaseUsd } from "./cb_page.ts";
-import { runEconcal } from "./econcal.ts";
-import { dayOpenOf, dayPnl, decisionBarMs, isOffBook, jevViewOf, resolveBook, stateBarMs, tick, toFill, type OrderRow, type RiskRow, type StrategyRow } from "./tick.ts";
+import type * as $shared_jev from "../_shared/jev.ts";
+import type { JevEnv, JevResult, Questions } from "../_shared/jev.ts";
+let askJev!: typeof $shared_jev.askJev;
+import type * as $shared_revx from "../_shared/revx.ts";
+import type { RevxEnv } from "../_shared/revx.ts";
+let activeOrders!: typeof $shared_revx.activeOrders, balances!: typeof $shared_revx.balances, candles!: typeof $shared_revx.candles, historicalOrders!: typeof $shared_revx.historicalOrders, loadPrivateKey!: typeof $shared_revx.loadPrivateKey, pairs!: typeof $shared_revx.pairs, publicTickers!: typeof $shared_revx.publicTickers, REVX_REGION!: typeof $shared_revx.REVX_REGION, revxVenue!: typeof $shared_revx.revxVenue;
+import type * as $shared_kraken from "../_shared/kraken.ts";
+import type { KrakenEnv } from "../_shared/kraken.ts";
+let addOrder!: typeof $shared_kraken.addOrder, krakenBalance!: typeof $shared_kraken.balance, balanceEx!: typeof $shared_kraken.balanceEx, krakenCancel!: typeof $shared_kraken.cancelOrder, closedOrders!: typeof $shared_kraken.closedOrders, krakenNonce!: typeof $shared_kraken.krakenNonce, krakenVenue!: typeof $shared_kraken.krakenVenue, ohlc!: typeof $shared_kraken.ohlc, openOrders!: typeof $shared_kraken.openOrders, krakenSupports!: typeof $shared_kraken.krakenSupports, krakenTicker!: typeof $shared_kraken.ticker, tradeVolume!: typeof $shared_kraken.tradeVolume;
+import type * as $shared_bytes from "../_shared/bytes.ts";
+let b64ToBytes!: typeof $shared_bytes.b64ToBytes;
+import type * as $shared_polymarket from "../_shared/polymarket.ts";
+let loadPolymarketEnv!: typeof $shared_polymarket.loadPolymarketEnv, polymarketProbe!: typeof $shared_polymarket.polymarketProbe;
+import type * as $shared_polymarket_orders from "../_shared/polymarket_orders.ts";
+let loadPmLiveEnv!: typeof $shared_polymarket_orders.loadPmLiveEnv, PM_ORDER_SENDS_ENABLED!: typeof $shared_polymarket_orders.PM_ORDER_SENDS_ENABLED, pmVenue!: typeof $shared_polymarket_orders.pmVenue;
+import type * as $pm_live from "./pm_live.ts";
+import type { PmSettlement } from "./pm_live.ts";
+let PM_LIVE_TIMEOUT_MS!: typeof $pm_live.PM_LIVE_TIMEOUT_MS, PM_MINI_INSTANCE!: typeof $pm_live.PM_MINI_INSTANCE, runPmLive!: typeof $pm_live.runPmLive;
+import type * as $pm_prep from "./pm_prep.ts";
+import type { PrepInstance } from "./pm_prep.ts";
+let PREP_INSTANCE!: typeof $pm_prep.PREP_INSTANCE, runPmPrep!: typeof $pm_prep.runPmPrep;
+import type * as $pm_mid from "./pm_mid.ts";
+let PM_MID_INSTANCE!: typeof $pm_mid.PM_MID_INSTANCE, PREP_MID_INSTANCE!: typeof $pm_mid.PREP_MID_INSTANCE;
+import type * as $pm_lp from "./pm_lp.ts";
+let PM_LP_INSTANCE!: typeof $pm_lp.PM_LP_INSTANCE, PREP_LP_INSTANCE!: typeof $pm_lp.PREP_LP_INSTANCE;
+import type * as $pm_lp_reserve from "./pm_lp_reserve.ts";
+let runPmLpReserve!: typeof $pm_lp_reserve.runPmLpReserve;
+import type * as $pm_lp_live_view from "./pm_lp_live_view.ts";
+import type { LpLiveCloseRow, LpLiveConfigRow, LpLiveFillRow, LpLiveHourRow, LpLiveMarketRow, LpLiveMinuteRow, LpLiveOrderRow, LpLiveRewardDayRow, LpLiveStateRow, LpLiveStopRow } from "./pm_lp_live_view.ts";
+let LP_LIVE_CLOSE_COLUMNS!: typeof $pm_lp_live_view.LP_LIVE_CLOSE_COLUMNS, LP_LIVE_CLOSE_MINUTES!: typeof $pm_lp_live_view.LP_LIVE_CLOSE_MINUTES, LP_LIVE_FILL_COLUMNS!: typeof $pm_lp_live_view.LP_LIVE_FILL_COLUMNS, LP_LIVE_HOUR_COLUMNS!: typeof $pm_lp_live_view.LP_LIVE_HOUR_COLUMNS, LP_LIVE_HOURS_VIEW!: typeof $pm_lp_live_view.LP_LIVE_HOURS_VIEW, LP_LIVE_MARKET_COLUMNS!: typeof $pm_lp_live_view.LP_LIVE_MARKET_COLUMNS, LP_LIVE_MINUTE_COLUMNS!: typeof $pm_lp_live_view.LP_LIVE_MINUTE_COLUMNS, LP_LIVE_ORDER_COLUMNS!: typeof $pm_lp_live_view.LP_LIVE_ORDER_COLUMNS, LP_LIVE_REWARD_COLUMNS!: typeof $pm_lp_live_view.LP_LIVE_REWARD_COLUMNS, lpCloseMinutes!: typeof $pm_lp_live_view.lpCloseMinutes, lpLiveSince!: typeof $pm_lp_live_view.lpLiveSince, lpLiveSummary!: typeof $pm_lp_live_view.lpLiveSummary;
+import type * as $pm_prep_stress from "./pm_prep_stress.ts";
+let recordPrepStress!: typeof $pm_prep_stress.recordPrepStress;
+import type * as $shared_agents_strategy from "../_shared/agents_strategy.ts";
+import type { CategoricalState, Position, StrategyKind } from "../_shared/agents_strategy.ts";
+let JEV_QUESTION_VERSION!: typeof $shared_agents_strategy.JEV_QUESTION_VERSION, positionFromFills!: typeof $shared_agents_strategy.positionFromFills, unrealisedUsd!: typeof $shared_agents_strategy.unrealisedUsd;
+import type * as $binance from "./binance.ts";
+let binancePaperVenue!: typeof $binance.binancePaperVenue, binanceProbe!: typeof $binance.binanceProbe, toBinanceSymbol!: typeof $binance.toBinanceSymbol;
+import type * as $jev_rows from "./jev_rows.ts";
+import type { AnyQuestionVersion } from "./jev_rows.ts";
+let ALL_QUESTION_VERSIONS!: typeof $jev_rows.ALL_QUESTION_VERSIONS, isRowQuestionVersion!: typeof $jev_rows.isRowQuestionVersion, questionsFor!: typeof $jev_rows.questionsFor, ROW_QUESTION_KIND!: typeof $jev_rows.ROW_QUESTION_KIND;
+import type * as $book_ratio from "./book_ratio.ts";
+let booksAYear!: typeof $book_ratio.booksAYear;
+import type * as $deribit from "./deribit.ts";
+let deribitProbe!: typeof $deribit.deribitProbe;
+import type * as $youtube from "./youtube.ts";
+let youtubeProbe!: typeof $youtube.youtubeProbe;
+import type * as $views from "./views.ts";
+let runViews!: typeof $views.runViews;
+import type * as $quotes from "./quotes.ts";
+import type { QuoteBook, QuoteReport, Side } from "./quotes.ts";
+let QUOTE_BOOKS!: typeof $quotes.QUOTE_BOOKS, QUOTE_RUNGS!: typeof $quotes.QUOTE_RUNGS, QUOTE_TICK!: typeof $quotes.QUOTE_TICK, runQuotes!: typeof $quotes.runQuotes;
+import type * as $quotes_live from "./quotes_live.ts";
+import type { LiveLeg, QuoteLiveInstance, QuoteLiveDeps, QuoteLiveReport, RungBook, RungFill } from "./quotes_live.ts";
+let coinOf!: typeof $quotes_live.coinOf, markedGbp!: typeof $quotes_live.markedGbp, QUOTE_LIVE_INSTANCE!: typeof $quotes_live.QUOTE_LIVE_INSTANCE, QUOTE_LIVE_LOSS_FRACTION!: typeof $quotes_live.QUOTE_LIVE_LOSS_FRACTION, QUOTE_LIVE_USDT_ONLY_FROM!: typeof $quotes_live.QUOTE_LIVE_USDT_ONLY_FROM, QUOTE_RXU_INSTANCE!: typeof $quotes_live.QUOTE_RXU_INSTANCE, rungBook!: typeof $quotes_live.rungBook, rungGbpOf!: typeof $quotes_live.rungGbpOf, rungWeight!: typeof $quotes_live.rungWeight, runQuotesConvert!: typeof $quotes_live.runQuotesConvert, runQuotesLive!: typeof $quotes_live.runQuotesLive;
+import type * as $quotes_live_weekend from "./quotes_live_weekend.ts";
+import type { LiveWeekendReport } from "./quotes_live_weekend.ts";
+let stepLiveWeekendPaper!: typeof $quotes_live_weekend.stepLiveWeekendPaper;
+import type * as $quotes_compound from "./quotes_compound.ts";
+import type { CompoundReport, ConversionSale } from "./quotes_compound.ts";
+let COMPOUND_RXU!: typeof $quotes_compound.COMPOUND_RXU, conversionSales!: typeof $quotes_compound.conversionSales, runLiveCompound!: typeof $quotes_compound.runLiveCompound, runTwinsCompound!: typeof $quotes_compound.runTwinsCompound;
+import type * as $cb_compound from "./cb_compound.ts";
+let cbCompoundMultNow!: typeof $cb_compound.cbCompoundMultNow;
+import type * as $quotes_variant from "./quotes_variant.ts";
+import type { VariantArmName } from "./quotes_variant.ts";
+let runQuotesVariant!: typeof $quotes_variant.runQuotesVariant, VARIANT_ARMS!: typeof $quotes_variant.VARIANT_ARMS, VARIANT_KEYS!: typeof $quotes_variant.VARIANT_KEYS, VARIANT_START!: typeof $quotes_variant.VARIANT_START, variantCapitalUsd!: typeof $quotes_variant.variantCapitalUsd;
+import type * as $quotes_ruled from "./quotes_ruled.ts";
+let runQuotesRuled!: typeof $quotes_ruled.runQuotesRuled, RULED_ARMS!: typeof $quotes_ruled.RULED_ARMS;
+import type * as $quotes_twin from "./quotes_twin.ts";
+import type { TwinDriverState, TwinSpec } from "./quotes_twin.ts";
+let runQuotesTwins!: typeof $quotes_twin.runQuotesTwins, twinSpecs!: typeof $quotes_twin.twinSpecs;
+import type * as $pmrw from "./pmrw.ts";
+import type { RwSelectReport } from "./pmrw.ts";
+let runPmrw!: typeof $pmrw.runPmrw, runPmrwSelect!: typeof $pmrw.runPmrwSelect, RWC_INSTANCE!: typeof $pmrw.RWC_INSTANCE;
+import type * as $pmrw_e from "./pmrw_e.ts";
+let runPmrwE!: typeof $pmrw_e.runPmrwE, RWCE_REPLAY!: typeof $pmrw_e.RWCE_REPLAY;
+import type * as $pmrw_x from "./pmrw_x.ts";
+let parseRwxSpecs!: typeof $pmrw_x.parseRwxSpecs, researchRwx!: typeof $pmrw_x.researchRwx, runPmrwX!: typeof $pmrw_x.runPmrwX, RWCX_REPLAY!: typeof $pmrw_x.RWCX_REPLAY;
+import type * as $books from "./books.ts";
+let booksDelayMs!: typeof $books.booksDelayMs, runBooks!: typeof $books.runBooks;
+import type * as $maker_watch from "./maker_watch.ts";
+let MW_TABLES!: typeof $maker_watch.MW_TABLES, mwStatusOf!: typeof $maker_watch.mwStatusOf, runMakerWatch!: typeof $maker_watch.runMakerWatch;
+import type * as $pm_book_rec from "./pm_book_rec.ts";
+let PM_REC_VENUE_TIMEOUT_MS!: typeof $pm_book_rec.PM_REC_VENUE_TIMEOUT_MS, pmRecStorage!: typeof $pm_book_rec.pmRecStorage, runPmRec!: typeof $pm_book_rec.runPmRec, runPmRecMeta!: typeof $pm_book_rec.runPmRecMeta;
+import type * as $cj_rec from "./cj_rec.ts";
+let runCjRec!: typeof $cj_rec.runCjRec;
+import type * as $grokpm_rec from "./grokpm_rec.ts";
+let runGrokPmRec!: typeof $grokpm_rec.runGrokPmRec;
+import type * as $grok_tests_view from "./grok_tests_view.ts";
+let readCxbot!: typeof $grok_tests_view.readCxbot, readIgbot!: typeof $grok_tests_view.readIgbot;
+import type * as $grokpm_view from "./grokpm_view.ts";
+import type { GrokPmConfigRow, GrokPmCycleRow, GrokPmDailyRow, GrokPmDayOpenRow, GrokPmDecisionRow, GrokPmEntryRow, GrokPmOpenSnapRow, GrokPmFillRow, GrokPmMarketRow, GrokPmOpenRow, GrokPmResolutionRow, GrokPmSnapshotRow } from "./grokpm_view.ts";
+let GROKPM_CONFIG_COLUMNS!: typeof $grokpm_view.GROKPM_CONFIG_COLUMNS, GROKPM_CYCLE_COLUMNS!: typeof $grokpm_view.GROKPM_CYCLE_COLUMNS, GROKPM_DAILY_COLUMNS!: typeof $grokpm_view.GROKPM_DAILY_COLUMNS, GROKPM_DECISION_COLUMNS!: typeof $grokpm_view.GROKPM_DECISION_COLUMNS, GROKPM_ENTRY_COLUMNS!: typeof $grokpm_view.GROKPM_ENTRY_COLUMNS, GROKPM_FILL_COLUMNS!: typeof $grokpm_view.GROKPM_FILL_COLUMNS, GROKPM_FILL_STATUSES!: typeof $grokpm_view.GROKPM_FILL_STATUSES, GROKPM_JOURNAL_PAGE_MAX!: typeof $grokpm_view.GROKPM_JOURNAL_PAGE_MAX, GROKPM_JOURNAL_ROWS!: typeof $grokpm_view.GROKPM_JOURNAL_ROWS, GROKPM_MARKET_COLUMNS!: typeof $grokpm_view.GROKPM_MARKET_COLUMNS, GROKPM_OPEN_COLUMNS!: typeof $grokpm_view.GROKPM_OPEN_COLUMNS, GROKPM_SNAPSHOT_COLUMNS!: typeof $grokpm_view.GROKPM_SNAPSHOT_COLUMNS, grokPmJournalPage!: typeof $grokpm_view.grokPmJournalPage, grokPmSummary!: typeof $grokpm_view.grokPmSummary;
+import type * as $cb_rec from "./cb_rec.ts";
+import type { CbRecState } from "./cb_rec.ts";
+let CB_PRODUCTS!: typeof $cb_rec.CB_PRODUCTS, runCbRec!: typeof $cb_rec.runCbRec;
+import type * as $cb_books from "./cb_books.ts";
+let cbBooksDelayMs!: typeof $cb_books.cbBooksDelayMs, runCbBooks!: typeof $cb_books.runCbBooks;
+import type * as $fx_rec from "./fx_rec.ts";
+import type { FxRecReport } from "./fx_rec.ts";
+let runFxRec!: typeof $fx_rec.runFxRec;
+import type * as $cb_quotes from "./cb_quotes.ts";
+let runCbQuotes!: typeof $cb_quotes.runCbQuotes;
+import type * as $cb_hold from "./cb_hold.ts";
+let CB_HOLD_FACTOR_50!: typeof $cb_hold.CB_HOLD_FACTOR_50, CB_HOLD_ID!: typeof $cb_hold.CB_HOLD_ID, CB_HOLD_RUNG_USD_50!: typeof $cb_hold.CB_HOLD_RUNG_USD_50, CB_HOLD_TABLES!: typeof $cb_hold.CB_HOLD_TABLES, cbHoldFactorNow!: typeof $cb_hold.cbHoldFactorNow, runCbHold!: typeof $cb_hold.runCbHold;
+import type * as $cb_usdc from "./cb_usdc.ts";
+let CB_USDC_FACTOR_50!: typeof $cb_usdc.CB_USDC_FACTOR_50, CB_USDC_ID!: typeof $cb_usdc.CB_USDC_ID, CB_USDC_RUNG_USD_50!: typeof $cb_usdc.CB_USDC_RUNG_USD_50, CB_USDC_TABLES!: typeof $cb_usdc.CB_USDC_TABLES, cbUsdcFactorNow!: typeof $cb_usdc.cbUsdcFactorNow, cbUsdcView!: typeof $cb_usdc.cbUsdcView, runCbUsdc!: typeof $cb_usdc.runCbUsdc;
+import type * as $cb_nudge from "./cb_nudge.ts";
+let CB_NUDGE_ID!: typeof $cb_nudge.CB_NUDGE_ID, CB_NUDGE_PRODUCTS!: typeof $cb_nudge.CB_NUDGE_PRODUCTS, CB_NUDGE_RUNG_USD!: typeof $cb_nudge.CB_NUDGE_RUNG_USD, CB_NUDGE_TABLES!: typeof $cb_nudge.CB_NUDGE_TABLES, runCbNudge!: typeof $cb_nudge.runCbNudge;
+import type * as $cb_live_probe from "./cb_live_probe.ts";
+let runCbLiveProbe!: typeof $cb_live_probe.runCbLiveProbe;
+import type * as $cb_live from "./cb_live.ts";
+let readCbLive!: typeof $cb_live.readCbLive, runCbLive!: typeof $cb_live.runCbLive;
+import type * as $okx_rec from "./okx_rec.ts";
+import type { OkxRecState } from "./okx_rec.ts";
+let runOkxRec!: typeof $okx_rec.runOkxRec;
+import type * as $okx_quotes from "./okx_quotes.ts";
+let readOkxQuotes!: typeof $okx_quotes.readOkxQuotes, runOkxQuotes!: typeof $okx_quotes.runOkxQuotes;
+import type * as $okx_basis from "./okx_basis.ts";
+let okxRowsWithBasis!: typeof $okx_basis.okxRowsWithBasis, readOkxBasis!: typeof $okx_basis.readOkxBasis, runOkxBasis!: typeof $okx_basis.runOkxBasis;
+import type * as $xhedge from "./xhedge.ts";
+let runXhedge!: typeof $xhedge.runXhedge;
+import type * as $xhedge_page from "./xhedge_page.ts";
+let readXhedgePage!: typeof $xhedge_page.readXhedgePage;
+import type * as $fxw_view from "./fxw_view.ts";
+let readFxw!: typeof $fxw_view.readFxw;
+import type * as $cb_page from "./cb_page.ts";
+let CB_HOLD_PAGE_NAME!: typeof $cb_page.CB_HOLD_PAGE_NAME, CB_NUDGE_PAGE_NAME!: typeof $cb_page.CB_NUDGE_PAGE_NAME, CB_USDC_PAGE_NAME!: typeof $cb_page.CB_USDC_PAGE_NAME, readCoinbaseUsd!: typeof $cb_page.readCoinbaseUsd;
+import type * as $econcal from "./econcal.ts";
+let runEconcal!: typeof $econcal.runEconcal;
+import type * as $tick from "./tick.ts";
+import type { OrderRow, RiskRow, StrategyRow } from "./tick.ts";
+let dayOpenOf!: typeof $tick.dayOpenOf, dayPnl!: typeof $tick.dayPnl, decisionBarMs!: typeof $tick.decisionBarMs, isOffBook!: typeof $tick.isOffBook, jevViewOf!: typeof $tick.jevViewOf, resolveBook!: typeof $tick.resolveBook, stateBarMs!: typeof $tick.stateBarMs, tick!: typeof $tick.tick, toFill!: typeof $tick.toFill;
+
+// The modules an action needs, loaded when a request asks for it rather than when the function boots (2026-10-31 audit: the
+// whole 2.2 MB graph evaluated at every boot, and about one request in ten failed to boot, 503 BOOT_ERROR). Each binding above
+// is set by its module's loader; `AGENTS_ROUTE_MODULES` is what each action's code reaches, written by the audit's script and
+// checked against the code by `src/agents_lazy_modules.test.js` (a binding an action reaches outside its list fails it). An
+// action not listed loads every module. Imported by a test or another module (`import.meta.main` false), all load at once.
+const AGENTS_MODULE_LOADERS: Record<string, () => Promise<void>> = {
+  "../_shared/jev.ts": () => import("../_shared/jev.ts").then((m) => { ({ askJev } = m); }),
+  "../_shared/revx.ts": () => import("../_shared/revx.ts").then((m) => { ({ activeOrders, balances, candles, historicalOrders, loadPrivateKey, pairs, publicTickers, REVX_REGION, revxVenue } = m); }),
+  "../_shared/kraken.ts": () => import("../_shared/kraken.ts").then((m) => { ({ addOrder, balance: krakenBalance, balanceEx, cancelOrder: krakenCancel, closedOrders, krakenNonce, krakenVenue, ohlc, openOrders, krakenSupports, ticker: krakenTicker, tradeVolume } = m); }),
+  "../_shared/bytes.ts": () => import("../_shared/bytes.ts").then((m) => { ({ b64ToBytes } = m); }),
+  "../_shared/polymarket.ts": () => import("../_shared/polymarket.ts").then((m) => { ({ loadPolymarketEnv, polymarketProbe } = m); }),
+  "../_shared/polymarket_orders.ts": () => import("../_shared/polymarket_orders.ts").then((m) => { ({ loadPmLiveEnv, PM_ORDER_SENDS_ENABLED, pmVenue } = m); }),
+  "./pm_live.ts": () => import("./pm_live.ts").then((m) => { ({ PM_LIVE_TIMEOUT_MS, PM_MINI_INSTANCE, runPmLive } = m); }),
+  "./pm_prep.ts": () => import("./pm_prep.ts").then((m) => { ({ PREP_INSTANCE, runPmPrep } = m); }),
+  "./pm_mid.ts": () => import("./pm_mid.ts").then((m) => { ({ PM_MID_INSTANCE, PREP_MID_INSTANCE } = m); }),
+  "./pm_lp.ts": () => import("./pm_lp.ts").then((m) => { ({ PM_LP_INSTANCE, PREP_LP_INSTANCE } = m); }),
+  "./pm_lp_reserve.ts": () => import("./pm_lp_reserve.ts").then((m) => { ({ runPmLpReserve } = m); }),
+  "./pm_lp_live_view.ts": () => import("./pm_lp_live_view.ts").then((m) => { ({ LP_LIVE_CLOSE_COLUMNS, LP_LIVE_CLOSE_MINUTES, LP_LIVE_FILL_COLUMNS, LP_LIVE_HOUR_COLUMNS, LP_LIVE_HOURS_VIEW, LP_LIVE_MARKET_COLUMNS, LP_LIVE_MINUTE_COLUMNS, LP_LIVE_ORDER_COLUMNS, LP_LIVE_REWARD_COLUMNS, lpCloseMinutes, lpLiveSince, lpLiveSummary } = m); }),
+  "./pm_prep_stress.ts": () => import("./pm_prep_stress.ts").then((m) => { ({ recordPrepStress } = m); }),
+  "../_shared/agents_strategy.ts": () => import("../_shared/agents_strategy.ts").then((m) => { ({ JEV_QUESTION_VERSION, positionFromFills, unrealisedUsd } = m); }),
+  "./binance.ts": () => import("./binance.ts").then((m) => { ({ binancePaperVenue, binanceProbe, toBinanceSymbol } = m); }),
+  "./jev_rows.ts": () => import("./jev_rows.ts").then((m) => { ({ ALL_QUESTION_VERSIONS, isRowQuestionVersion, questionsFor, ROW_QUESTION_KIND } = m); }),
+  "./book_ratio.ts": () => import("./book_ratio.ts").then((m) => { ({ booksAYear } = m); }),
+  "./deribit.ts": () => import("./deribit.ts").then((m) => { ({ deribitProbe } = m); }),
+  "./youtube.ts": () => import("./youtube.ts").then((m) => { ({ youtubeProbe } = m); }),
+  "./views.ts": () => import("./views.ts").then((m) => { ({ runViews } = m); }),
+  "./quotes.ts": () => import("./quotes.ts").then((m) => { ({ QUOTE_BOOKS, QUOTE_RUNGS, QUOTE_TICK, runQuotes } = m); }),
+  "./quotes_live.ts": () => import("./quotes_live.ts").then((m) => { ({ coinOf, markedGbp, QUOTE_LIVE_INSTANCE, QUOTE_LIVE_LOSS_FRACTION, QUOTE_LIVE_USDT_ONLY_FROM, QUOTE_RXU_INSTANCE, rungBook, rungGbpOf, rungWeight, runQuotesConvert, runQuotesLive } = m); }),
+  "./quotes_live_weekend.ts": () => import("./quotes_live_weekend.ts").then((m) => { ({ stepLiveWeekendPaper } = m); }),
+  "./quotes_compound.ts": () => import("./quotes_compound.ts").then((m) => { ({ COMPOUND_RXU, conversionSales, runLiveCompound, runTwinsCompound } = m); }),
+  "./cb_compound.ts": () => import("./cb_compound.ts").then((m) => { ({ cbCompoundMultNow } = m); }),
+  "./quotes_variant.ts": () => import("./quotes_variant.ts").then((m) => { ({ runQuotesVariant, VARIANT_ARMS, VARIANT_KEYS, VARIANT_START, variantCapitalUsd } = m); }),
+  "./quotes_ruled.ts": () => import("./quotes_ruled.ts").then((m) => { ({ runQuotesRuled, RULED_ARMS } = m); }),
+  "./quotes_twin.ts": () => import("./quotes_twin.ts").then((m) => { ({ runQuotesTwins, twinSpecs } = m); }),
+  "./pmrw.ts": () => import("./pmrw.ts").then((m) => { ({ runPmrw, runPmrwSelect, RWC_INSTANCE } = m); }),
+  "./pmrw_e.ts": () => import("./pmrw_e.ts").then((m) => { ({ runPmrwE, RWCE_REPLAY } = m); }),
+  "./pmrw_x.ts": () => import("./pmrw_x.ts").then((m) => { ({ parseRwxSpecs, researchRwx, runPmrwX, RWCX_REPLAY } = m); }),
+  "./books.ts": () => import("./books.ts").then((m) => { ({ booksDelayMs, runBooks } = m); }),
+  "./maker_watch.ts": () => import("./maker_watch.ts").then((m) => { ({ MW_TABLES, mwStatusOf, runMakerWatch } = m); }),
+  "./pm_book_rec.ts": () => import("./pm_book_rec.ts").then((m) => { ({ PM_REC_VENUE_TIMEOUT_MS, pmRecStorage, runPmRec, runPmRecMeta } = m); }),
+  "./cj_rec.ts": () => import("./cj_rec.ts").then((m) => { ({ runCjRec } = m); }),
+  "./grokpm_rec.ts": () => import("./grokpm_rec.ts").then((m) => { ({ runGrokPmRec } = m); }),
+  "./grok_tests_view.ts": () => import("./grok_tests_view.ts").then((m) => { ({ readCxbot, readIgbot } = m); }),
+  "./grokpm_view.ts": () => import("./grokpm_view.ts").then((m) => { ({ GROKPM_CONFIG_COLUMNS, GROKPM_CYCLE_COLUMNS, GROKPM_DAILY_COLUMNS, GROKPM_DECISION_COLUMNS, GROKPM_ENTRY_COLUMNS, GROKPM_FILL_COLUMNS, GROKPM_FILL_STATUSES, GROKPM_JOURNAL_PAGE_MAX, GROKPM_JOURNAL_ROWS, GROKPM_MARKET_COLUMNS, GROKPM_OPEN_COLUMNS, GROKPM_SNAPSHOT_COLUMNS, grokPmJournalPage, grokPmSummary } = m); }),
+  "./cb_rec.ts": () => import("./cb_rec.ts").then((m) => { ({ CB_PRODUCTS, runCbRec } = m); }),
+  "./cb_books.ts": () => import("./cb_books.ts").then((m) => { ({ cbBooksDelayMs, runCbBooks } = m); }),
+  "./fx_rec.ts": () => import("./fx_rec.ts").then((m) => { ({ runFxRec } = m); }),
+  "./cb_quotes.ts": () => import("./cb_quotes.ts").then((m) => { ({ runCbQuotes } = m); }),
+  "./cb_hold.ts": () => import("./cb_hold.ts").then((m) => { ({ CB_HOLD_FACTOR_50, CB_HOLD_ID, CB_HOLD_RUNG_USD_50, CB_HOLD_TABLES, cbHoldFactorNow, runCbHold } = m); }),
+  "./cb_usdc.ts": () => import("./cb_usdc.ts").then((m) => { ({ CB_USDC_FACTOR_50, CB_USDC_ID, CB_USDC_RUNG_USD_50, CB_USDC_TABLES, cbUsdcFactorNow, cbUsdcView, runCbUsdc } = m); }),
+  "./cb_nudge.ts": () => import("./cb_nudge.ts").then((m) => { ({ CB_NUDGE_ID, CB_NUDGE_PRODUCTS, CB_NUDGE_RUNG_USD, CB_NUDGE_TABLES, runCbNudge } = m); }),
+  "./cb_live_probe.ts": () => import("./cb_live_probe.ts").then((m) => { ({ runCbLiveProbe } = m); }),
+  "./cb_live.ts": () => import("./cb_live.ts").then((m) => { ({ readCbLive, runCbLive } = m); }),
+  "./okx_rec.ts": () => import("./okx_rec.ts").then((m) => { ({ runOkxRec } = m); }),
+  "./okx_quotes.ts": () => import("./okx_quotes.ts").then((m) => { ({ readOkxQuotes, runOkxQuotes } = m); }),
+  "./okx_basis.ts": () => import("./okx_basis.ts").then((m) => { ({ okxRowsWithBasis, readOkxBasis, runOkxBasis } = m); }),
+  "./xhedge.ts": () => import("./xhedge.ts").then((m) => { ({ runXhedge } = m); }),
+  "./xhedge_page.ts": () => import("./xhedge_page.ts").then((m) => { ({ readXhedgePage } = m); }),
+  "./fxw_view.ts": () => import("./fxw_view.ts").then((m) => { ({ readFxw } = m); }),
+  "./cb_page.ts": () => import("./cb_page.ts").then((m) => { ({ CB_HOLD_PAGE_NAME, CB_NUDGE_PAGE_NAME, CB_USDC_PAGE_NAME, readCoinbaseUsd } = m); }),
+  "./econcal.ts": () => import("./econcal.ts").then((m) => { ({ runEconcal } = m); }),
+  "./tick.ts": () => import("./tick.ts").then((m) => { ({ dayOpenOf, dayPnl, decisionBarMs, isOffBook, jevViewOf, resolveBook, stateBarMs, tick, toFill } = m); }),
+};
+export const AGENTS_ROUTE_MODULES: Record<string, string[]> = {
+  "books": ["./books.ts", "./maker_watch.ts"],
+  "cbbooks": ["./cb_books.ts"],
+  "cbhold": ["./cb_hold.ts"],
+  "cblive": ["./cb_live.ts", "./cb_live_probe.ts"],
+  "cbnudge": ["./cb_nudge.ts"],
+  "cbrec": ["./cb_quotes.ts", "./cb_rec.ts"],
+  "cbusdc": ["./cb_usdc.ts"],
+  "chart": ["../_shared/agents_strategy.ts", "../_shared/revx.ts", "./tick.ts"],
+  "cjrec": ["./cj_rec.ts"],
+  "dashboard": ["../_shared/agents_strategy.ts", "../_shared/bytes.ts", "../_shared/kraken.ts", "../_shared/revx.ts", "./binance.ts", "./book_ratio.ts", "./cb_compound.ts", "./cb_hold.ts", "./cb_live.ts", "./cb_nudge.ts", "./cb_page.ts", "./cb_rec.ts", "./cb_usdc.ts", "./fxw_view.ts", "./grok_tests_view.ts", "./grokpm_view.ts", "./maker_watch.ts", "./okx_basis.ts", "./okx_quotes.ts", "./pm_lp.ts", "./pm_lp_live_view.ts", "./quotes.ts", "./quotes_compound.ts", "./quotes_live.ts", "./quotes_twin.ts", "./tick.ts", "./xhedge_page.ts"],
+  "econcal": ["./econcal.ts"],
+  "fxrec": ["./fx_rec.ts"],
+  "grokpmjournal": ["./grokpm_view.ts"],
+  "grokpmrec": ["./grokpm_rec.ts"],
+  "jev": ["../_shared/agents_strategy.ts", "../_shared/jev.ts", "./jev_rows.ts", "./tick.ts"],
+  "log": [],
+  "okxbasis": ["./okx_basis.ts"],
+  "okxrec": ["./okx_quotes.ts", "./okx_rec.ts"],
+  "pmlive": ["../_shared/polymarket_orders.ts", "./pm_live.ts"],
+  "pmlp": ["../_shared/polymarket_orders.ts", "./pm_live.ts", "./pm_lp.ts"],
+  "pmlpprep": ["./pm_lp.ts", "./pm_prep.ts", "./pm_prep_stress.ts"],
+  "pmlpreserve": ["../_shared/polymarket_orders.ts", "./pm_live.ts", "./pm_lp.ts", "./pm_lp_reserve.ts"],
+  "pmmid": ["../_shared/polymarket_orders.ts", "./pm_live.ts", "./pm_mid.ts"],
+  "pmmidprep": ["./pm_mid.ts", "./pm_prep.ts", "./pm_prep_stress.ts"],
+  "pmprep": ["./pm_prep.ts", "./pm_prep_stress.ts"],
+  "pmrec": ["./pm_book_rec.ts"],
+  "pmrec-meta": ["../_shared/polymarket_orders.ts", "./pm_book_rec.ts"],
+  "pmrw": ["./pmrw.ts"],
+  "pmrw-e": ["./pmrw_e.ts"],
+  "pmrw-select": ["./pmrw.ts"],
+  "pmrw-x": ["./pmrw_x.ts"],
+  "pmrw-x-research": ["./pmrw_x.ts"],
+  "pmrwc": ["./pmrw.ts"],
+  "pmrwc-e": ["./pmrw_e.ts"],
+  "pmrwc-select": ["./pmrw.ts"],
+  "pmrwc-x": ["./pmrw_x.ts"],
+  "probe": ["../_shared/bytes.ts", "../_shared/jev.ts", "../_shared/kraken.ts", "../_shared/polymarket.ts", "../_shared/revx.ts", "./binance.ts", "./deribit.ts", "./youtube.ts"],
+  "quotes": ["../_shared/revx.ts", "./quotes.ts", "./quotes_compound.ts", "./quotes_live.ts", "./quotes_live_weekend.ts"],
+  "quotes-convert": ["../_shared/revx.ts", "./quotes_live.ts"],
+  "quotesd": ["./quotes_ruled.ts"],
+  "quotestwins": ["./quotes_compound.ts", "./quotes_twin.ts"],
+  "quotesv": ["./quotes_variant.ts"],
+  "tick": ["../_shared/bytes.ts", "../_shared/kraken.ts", "../_shared/revx.ts", "./binance.ts", "./tick.ts"],
+  "views": ["./views.ts"],
+  "xhedge": ["./xhedge.ts"],
+};
+const agentsModulesLoaded = new Map<string, Promise<void>>();
+/** Load the modules `action` needs (every module for an action not listed, or none given), each once per isolate. */
+export function loadAgentsModules(action?: string): Promise<void> {
+  const mods = (action != null && AGENTS_ROUTE_MODULES[action]) || Object.keys(AGENTS_MODULE_LOADERS);
+  return Promise.all(mods.map((m) => {
+    let p = agentsModulesLoaded.get(m);
+    if (!p) {
+      p = AGENTS_MODULE_LOADERS[m]();
+      agentsModulesLoaded.set(m, p);
+      p.catch(() => agentsModulesLoaded.delete(m));
+    }
+    return p;
+  })).then(() => {});
+}
+if (!import.meta.main) await loadAgentsModules();
+
 
 export { constantTimeEqual, verifyToken } from "../_shared/token.ts";
 
@@ -3388,5 +3585,6 @@ async function route(req: Request, who: Exclude<Who, null>, url: URL, action: st
 if (import.meta.main) Deno.serve((req: Request) => serveRequest(req, {
   authorise: (r) => authorise(r, Deno.env.get("CRON_SECRET") ?? ""),
   beat: (key) => writeBeat(key),
-  route,
+  // Its modules after the beat, so a call that started is still told apart from one whose worker never did.
+  route: async (req, who, url, action) => { await loadAgentsModules(action); return route(req, who, url, action); },
 }));

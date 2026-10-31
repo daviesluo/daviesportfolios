@@ -7,7 +7,7 @@ import {
   authorise, chartBook, PAGE_VENUES, chartWindow, dayOpensFrom, envAny, FULL_HISTORY_LIMIT, isNotReady, jevStats, JEV_BATCH_MAX_CALLS, latestObservationQuery, mapPool, ordersBeyondChart, parseState, probeParts, probeSymbols, runJevBatch,
   STATE_VOCAB, strategyBooks, SYMBOLS, probeSummary, quotesDelayMs, quotesSummary, quoteDays, QUOTES_CAPITAL_USD, QUOTES_RECENT_TRIPS, tickErrorReport, crashReport, type ProbeSummaryRow,
   REVX_KEY_NAMES, REVX2_PROBE_SYMBOLS, runProbe, PROBE_PARTS, newestDecisions, quotesLiveSummary, type QuoteLiveOrderView, quotesVariantSummary, quotesRuledSummary,
-  serveRequest, type ServeDeps, type Who,
+  serveRequest, type ServeDeps, type Who, AGENTS_ROUTE_MODULES, loadAgentsModules,
   exitOverbuy, venueAsks, lpLiveArmed, lpLiveOff, twinBookRatio, quoteRungsTraded, liveBookGbp, liveCoinBooks, conversionSales, liveConversionShares, liveIndexPrices, liveOrderReason, liveRestingBuysGbp, liveRungs, liveRungTrips, quotesLiveDetail, dayCapitalGbp, tripEnds, QUOTE_LIVE_ORDER_COLUMNS,
   QUOTE_TICKER_FRESH_MS,
   QUOTE_LIVE_REASON_COLUMNS, QUOTE_LIVE_SUMMARY_COLUMNS, QUOTES_LIVE_KNOWN_REFUSALS, QUOTES_LIVE_ORDERS_FILTER, QUOTES_LIVE_PAGE_ROWS, type QuoteLiveRecentRow, withConversionFees,
@@ -1796,4 +1796,14 @@ Deno.test("readLpLive: disarmed, live-prep's book is sent as off alone, its book
   assertEquals(lpLiveArmed({ dry_run: false, live_confirmed_at: null }), false);
   // What the page reads of it while disarmed: `armed` false, so `liveExtraRows` lists no row and nothing opens its page.
   assertEquals(lpLiveOff({ dry_run: true }), { armed: false, dryRun: true, off: true });
+});
+
+// The modules each action loads when it is asked for (2026-10-31 audit; `src/agents_lazy_modules.test.js` checks each list
+// against the code). Each list's loaders resolve, an unknown action loads them all, and a second load is the first's.
+Deno.test("lazy modules: every action's list loads, an unknown action loads every module, a module loads once", async () => {
+  assert(Object.keys(AGENTS_ROUTE_MODULES).length >= 45);
+  for (const action of Object.keys(AGENTS_ROUTE_MODULES)) await loadAgentsModules(action);
+  await loadAgentsModules("no-such-action");
+  await loadAgentsModules();
+  assertEquals(AGENTS_ROUTE_MODULES.quotes.includes("./quotes_live.ts"), true);
 });

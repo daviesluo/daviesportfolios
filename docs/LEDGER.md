@@ -804,7 +804,17 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 "LEDGER.md history, archived 2026-09-22" or "LEDGER.md, archived <date> (<n-th>)" that names the sections it holds, oldest
 first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 2026-10-29 01:24 UTC section (archived
 2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth), and the 2026-10-29 01:45, 2026-10-29 01:57 one(s) (thirteenth), the 2026-10-29 02:19 one(s) (fourteenth),
-and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 02:43, 2026-10-29 02:36, 2026-10-29 02:49, 2026-10-29 03:00, 2026-10-29 03:02, 2026-10-29 03:07, 2026-10-29 03:12 ones (sixteenth), and the 2026-10-29 03:24, 2026-10-29 03:30, 2026-10-29 03:39, 2026-10-29 03:41, 2026-10-29 03:49 ones (seventeenth), and the 2026-10-29 04:18, 2026-10-29 05:50 ones (eighteenth), and the 2026-10-29 06:05, 2026-10-29 06:30, 2026-10-29 06:41 ones (nineteenth), and the 2026-10-29 06:56, 2026-10-29 07:05, 2026-10-29 07:26, 2026-10-29 07:31 ones (twentieth), and the 2026-10-29 07:45, 2026-10-29 07:52, 2026-10-29 07:58 ones (twenty-first), and the 2026-10-29 08:10, 2026-10-29 08:25, 2026-10-29 09:05 ones (twenty-second), and the 2026-10-29 09:22, 2026-10-29 09:40, 2026-10-29 09:45, 2026-10-29 10:15 ones (twenty-third), and the 2026-10-29 17:10, 2026-10-29 18:20, 2026-10-29 18:33, 2026-10-29 18:43 ones (twenty-fourth), and the 2026-10-29 19:16, 2026-10-29 19:25, 2026-10-29 19:28, 2026-10-29 19:31 ones (twenty-fifth), and the 2026-10-29 19:50, 2026-10-29 19:55, 2026-10-29 20:00, 2026-10-29 20:15 ones (twenty-sixth), and the 2026-10-29 20:41, 2026-10-29 21:07 ones (twenty-seventh), and the 2026-10-29 21:30, 2026-10-29 22:10 ones (twenty-eighth), and the 2026-10-29 22:12, 2026-10-29 22:27 ones (twenty-ninth), and the 2026-10-29 22:40, 2026-10-29 22:43 ones (thirtieth), and the 2026-10-29 22:55, 2026-10-29 23:13 ones (thirty-first), and the 2026-10-29 23:24, 2026-10-29 23:30 ones (thirty-second), and the 2026-10-30 00:17, 2026-10-30 00:30 ones (thirty-third), and the 2026-10-30 00:35, 2026-10-30 00:57 ones (thirty-fourth), and the 2026-10-30 01:05, 2026-10-30 01:20 ones (thirty-fifth), and the 2026-10-30 01:45, 2026-10-30 01:48 ones (thirty-sixth), and the 2026-10-30 02:05, 2026-10-30 02:11, 2026-10-30 02:12, 2026-10-30 02:17 ones (thirty-seventh), and the 2026-10-30 02:55, 2026-10-30 03:05 ones (thirty-eighth).
+and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 02:43, 2026-10-29 02:36, 2026-10-29 02:49, 2026-10-29 03:00, 2026-10-29 03:02, 2026-10-29 03:07, 2026-10-29 03:12 ones (sixteenth), and the 2026-10-29 03:24, 2026-10-29 03:30, 2026-10-29 03:39, 2026-10-29 03:41, 2026-10-29 03:49 ones (seventeenth), and the 2026-10-29 04:18, 2026-10-29 05:50 ones (eighteenth), and the 2026-10-29 06:05, 2026-10-29 06:30, 2026-10-29 06:41 ones (nineteenth), and the 2026-10-29 06:56, 2026-10-29 07:05, 2026-10-29 07:26, 2026-10-29 07:31 ones (twentieth), and the 2026-10-29 07:45, 2026-10-29 07:52, 2026-10-29 07:58 ones (twenty-first), and the 2026-10-29 08:10, 2026-10-29 08:25, 2026-10-29 09:05 ones (twenty-second), and the 2026-10-29 09:22, 2026-10-29 09:40, 2026-10-29 09:45, 2026-10-29 10:15 ones (twenty-third), and the 2026-10-29 17:10, 2026-10-29 18:20, 2026-10-29 18:33, 2026-10-29 18:43 ones (twenty-fourth), and the 2026-10-29 19:16, 2026-10-29 19:25, 2026-10-29 19:28, 2026-10-29 19:31 ones (twenty-fifth), and the 2026-10-29 19:50, 2026-10-29 19:55, 2026-10-29 20:00, 2026-10-29 20:15 ones (twenty-sixth), and the 2026-10-29 20:41, 2026-10-29 21:07 ones (twenty-seventh), and the 2026-10-29 21:30, 2026-10-29 22:10 ones (twenty-eighth), and the 2026-10-29 22:12, 2026-10-29 22:27 ones (twenty-ninth), and the 2026-10-29 22:40, 2026-10-29 22:43 ones (thirtieth), and the 2026-10-29 22:55, 2026-10-29 23:13 ones (thirty-first), and the 2026-10-29 23:24, 2026-10-29 23:30 ones (thirty-second), and the 2026-10-30 00:17, 2026-10-30 00:30 ones (thirty-third), and the 2026-10-30 00:35, 2026-10-30 00:57 ones (thirty-fourth), and the 2026-10-30 01:05, 2026-10-30 01:20 ones (thirty-fifth), and the 2026-10-30 01:45, 2026-10-30 01:48 ones (thirty-sixth), and the 2026-10-30 02:05, 2026-10-30 02:11, 2026-10-30 02:12, 2026-10-30 02:17 ones (thirty-seventh), and the 2026-10-30 02:55, 2026-10-30 03:05 ones (thirty-eighth), and the 2026-10-30 03:50, 2026-10-30 04:05, 2026-10-30 04:20, 2026-10-30 05:25 ones (thirty-ninth).
+
+### [2026-10-31 03:07 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Agents audit, round 2 (sub-agent; commits, not pushed).** `agents/index.ts` loads each action's modules when the request
+  asks for them, after its beat, not at boot: 56 imports became bindings set by literal `import()` loaders, and
+  `AGENTS_ROUTE_MODULES` lists each action's (an action not listed loads all; a test importing the file loads all). The boot
+  graph went from 76 modules / 2.21 MB to 5 / 0.28 MB; LIVE's minute loads 5 modules, Coinbase LIVE's 2. Function bodies are
+  unchanged. `src/agents_lazy_modules.test.js` reads the code and fails when an action reaches a binding outside its list
+  (counterfactual: `quotes` without `quotes_live_weekend.ts` fails). Measure after deploy: `function_edge_logs` 503 share
+  for the agents function a hour (49-161 of ~950 on 10-30), its boot_time, and `edge_call_retries` a day for `agents%`
+  (quotes 134-154 a day since 10-27). Moved the 10-30 03:50, 04:05, 04:20 (two), 05:25 sections to handover (thirty-ninth).
 
 ### [2026-10-31 03:07 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Agents-module audit, round 1 landed** (fa07448e paged reads in waves, 80bb0fcd monitor reads Coinbase LIVE). Davies on its
@@ -916,32 +926,3 @@ and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 0
   and error retry announce nothing (a by-hand announce on load made 2 dashboard requests on open, sweep agents-reload/open).
   `dashboard`: page reads start first and are awaited together, venues asked only for rows on the page (`venueAsks`),
   preflight cached; `serverMs` in the answer.
-
-### [2026-10-30 05:25 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **LOTS: more than one lot a rung? No** (sub-agent; commit, not pushed; Davies, 10-30 ~04:30: "…目前我们每档只有一个lot，如果我们每档多做几个呢？
-  …会不会提升收益？"). `reviews/2026-10-30-lots.md`, `mmcomp/scripts/lots.py`: LIVE, RX USDC/GBP, Coinbase LIVE (approx.), `live1200`,
-  `n600usdt`. Stacked lots from the same pounds lose 30-75 % (P 1.00 everywhere: each print fills a smaller order); doubled rungs
-  earn 1.7-1.9×, two stacked lots of today's size 1.04-1.2× (worse markouts): bigger rungs are the lever. Same £ split into
-  lots resting together +2-3 % on USDT-GBP (a partly filled rung keeps its rest), not on USDC, 2-3× orders: K = 1, no twin.
-
-### [2026-10-30 04:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **XHEDGE A1/A2 start now** (main session; Davies, 10-30 ~04:17: "A1/A2 纸面测试现在就可以上线"). Both arms' S moved from 10-31
-  00:00 to 10-30 04:20 UTC by one statement on `agent_xhedge_state` before either decided a minute; window to 11-27 04:20, reading
-  on or after 11-27 05:20 UTC. Deviation 1, `reviews/2026-10-30-xhedge-deviation.md`; no file changed.
-
-### [2026-10-30 04:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **The other maker's watch, and MAKER-ABSENT** (sub-agent; commit, not pushed; Davies, 10-30 ~03:25: "我们如何趁他不在时最大化收益？",
-  "我们能不能对他加个监控，实时观察和记录他的行为"). `0185` + `agents/maker_watch.ts`: inside the books call's wait (no new `edge_calls`
-  row), `agent_maker_minutes`/`_events`/`_state` from 09-26 (backfill ~50 min after deploy; check `agent_maker_state` then), a line
-  on both Revolut X live pages. History (`mmcomp/results/maker_history.json`): 5 ticks to 10-12, 12 from 10-13, narrow again from
-  10-28 ~15:45; USDT-GBP absent 47 h in 32 spells, now since 10-29 21:17. `reviews/2026-10-30-maker-absent.md`: today's rules earn
-  ~3× an hour while it is away (LIVE £2.87/day vs £0.90-1.06); nearer rungs worse; exit +3 ticks while absent +£0.24 (P 0.28-0.36,
-  five active windows): no twin; £1,200 earns 1.85× (P 0.005), bids all held 31 % of absent minutes. Archived 22:55, 23:13 (thirty-first).
-
-### [2026-10-30 04:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Hedge rows: no own card** (sub-agent; not pushed; Davies ~03:45): each venue's half (funded, deployed, P&L by leg) on its own
-  card; venue badges centred.
-
-### [2026-10-30 03:50 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **RX↔Coinbase hedge rows on both venues** (sub-agent; not pushed; Davies, ~03:30): both badges, card "Revolut X + Coinbase";
-  FUNDED/DEPLOYED/TODAY across both (`xhedge_page.ts`; the frozen `xhedge.ts` untouched).
