@@ -11,6 +11,6 @@
 -- `cb-live` lease keeps one turn at a time, every order it sends carries a client id it writes before the call, and the next turn
 -- reconciles by that id. A retried turn is the same turn 13 s late.
 --
--- Undo: update public.edge_calls set retry = false where path = 'agents?action=cblive';
+-- Undo: update public.edge_calls set retry = false where path in ('agents?action=cblive');
 
-update public.edge_calls set retry = true where path = 'agents?action=cblive';
+update public.edge_calls set retry = true where path in ('agents?action=cblive');
