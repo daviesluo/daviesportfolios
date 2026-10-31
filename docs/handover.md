@@ -47990,3 +47990,22 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
 ### [2026-10-31 01:47 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - xhedge Deviation 2's measurement added after the replay: at most 3 (`inside`) and 2 (`behind`) folded trips; both arms decided
   every missed minute, no error. TAKE-DEPTH (ef2e7565) landed, effective 04:00 UTC; take_mode stays 'shadow'.
+
+## LEDGER.md, archived 2026-10-31 (forty-fourth) — the 2026-10-31 02:00, 2026-10-31 02:11 UTC history sections, oldest first
+
+### [2026-10-31 02:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **No take inside an FX closure, at once** (sub-agent; commit, not pushed). With `weekend_mode` 'live' a closure minute is the
+  weekend replica's (held X), and the take and its shadow ran on it. Every take the rule was tested on is a weekday's
+  (take50's 14, the shadow's 2), so `takeClosed` in the shared take path now stops both in a closure. take50 never sees one
+  with a fair (no weekend rule), and no enabled twin has take and weekend together. Pin in `quotes_live_switches.test.ts`
+  (counterfactual: the guard reverted sends one IOC and records one shadow event). Recorded apart in
+  `reviews/2026-10-31-take-closure-deviation.md` (the five pre-registrations' executor hash; their tests and `take_twin.test.js`).
+- **Davies, 2026-10-31 ~02:00 UTC: "RX USDT/GBP上 / RX USDC/GBP开 shadow / Coinbase USDC/GBP也做好加开 shadow记录".** RXU's
+  `take_mode` 'shadow' at 02:00:12 (`update public.agent_quote_rxu_config set take_mode = 'shadow' …`; undo 'off'). LIVE's
+  `take_mode` 'live' follows once this guard is deployed (undo 'shadow'). Coinbase's take shadow is to build (cb_live has no
+  take path). No USDC take was ever seen: take50 0 of 14 since 09-23, LIVE's shadow 0 of 47 rows while it quoted both books.
+
+### [2026-10-31 02:11 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **LIVE's take is 'live' since 02:10:43 UTC** (Davies: "RX USDT/GBP上"), after the closure guard deployed (7b3d28cd, 02:09);
+  RXU's take 'shadow' since 02:00:12. Undo: LIVE 'shadow', RXU 'off'. First possible live take: Sun 11-01 21:00 UTC. The live
+  design's addendum of 2026-10-31 has both statements. Coinbase take shadow: a sub-agent is building it.

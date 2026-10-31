@@ -1,0 +1,642 @@
+{
+ "AAVE": {
+  "1d": {
+   "best_bps": 332.2,
+   "n": 13,
+   "sd_bps": 349.27,
+   "worst_bps": -1166.0
+  },
+  "1h": {
+   "best_bps": 379.2,
+   "n": 335,
+   "sd_bps": 88.12,
+   "worst_bps": -597.8
+  },
+  "1m": {
+   "best_bps": 159.4,
+   "n": 20159,
+   "sd_bps": 11.5,
+   "worst_bps": -192.4
+  },
+  "1s": {
+   "best_bps": 61.4,
+   "n": 1209599,
+   "sd_bps": 1.29,
+   "worst_bps": -75.6
+  },
+  "daily_sd_gbp": {
+   "300": 10.48,
+   "600": 20.96
+  },
+  "loss_gbp_worst_day": {
+   "300": 33.68,
+   "600": 67.36
+  },
+  "loss_gbp_worst_hour": {
+   "300": 18.9,
+   "600": 37.8
+  },
+  "worst_rolling_day_bps": -1190.9,
+  "worst_rolling_hour_bps": -650.8
+ },
+ "ADA": {
+  "1d": {
+   "best_bps": 262.3,
+   "n": 13,
+   "sd_bps": 279.6,
+   "worst_bps": -797.6
+  },
+  "1h": {
+   "best_bps": 287.4,
+   "n": 335,
+   "sd_bps": 72.42,
+   "worst_bps": -590.8
+  },
+  "1m": {
+   "best_bps": 135.5,
+   "n": 20159,
+   "sd_bps": 10.07,
+   "worst_bps": -213.8
+  },
+  "1s": {
+   "best_bps": 64.2,
+   "n": 1209599,
+   "sd_bps": 1.5,
+   "worst_bps": -57.3
+  },
+  "daily_sd_gbp": {
+   "300": 8.39,
+   "600": 16.78
+  },
+  "loss_gbp_worst_day": {
+   "300": 26.33,
+   "600": 52.66
+  },
+  "loss_gbp_worst_hour": {
+   "300": 19.26,
+   "600": 38.52
+  },
+  "worst_rolling_day_bps": -918.5,
+  "worst_rolling_hour_bps": -663.5
+ },
+ "AVAX": {
+  "1d": {
+   "best_bps": 149.8,
+   "n": 13,
+   "sd_bps": 261.48,
+   "worst_bps": -840.4
+  },
+  "1h": {
+   "best_bps": 337.8,
+   "n": 335,
+   "sd_bps": 75.95,
+   "worst_bps": -580.0
+  },
+  "1m": {
+   "best_bps": 120.0,
+   "n": 20159,
+   "sd_bps": 9.76,
+   "worst_bps": -143.0
+  },
+  "1s": {
+   "best_bps": 44.0,
+   "n": 1209599,
+   "sd_bps": 1.1,
+   "worst_bps": -59.9
+  },
+  "daily_sd_gbp": {
+   "300": 7.84,
+   "600": 15.69
+  },
+  "loss_gbp_worst_day": {
+   "300": 24.79,
+   "600": 49.58
+  },
+  "loss_gbp_worst_hour": {
+   "300": 17.45,
+   "600": 34.91
+  },
+  "worst_rolling_day_bps": -862.4,
+  "worst_rolling_hour_bps": -599.4
+ },
+ "BCH": {
+  "1d": {
+   "best_bps": 516.5,
+   "n": 13,
+   "sd_bps": 267.52,
+   "worst_bps": -543.6
+  },
+  "1h": {
+   "best_bps": 281.9,
+   "n": 335,
+   "sd_bps": 79.96,
+   "worst_bps": -581.2
+  },
+  "1m": {
+   "best_bps": 192.4,
+   "n": 20159,
+   "sd_bps": 10.32,
+   "worst_bps": -136.8
+  },
+  "1s": {
+   "best_bps": 79.1,
+   "n": 1209599,
+   "sd_bps": 1.22,
+   "worst_bps": -80.3
+  },
+  "daily_sd_gbp": {
+   "300": 8.03,
+   "600": 16.05
+  },
+  "loss_gbp_worst_day": {
+   "300": 24.16,
+   "600": 48.32
+  },
+  "loss_gbp_worst_hour": {
+   "300": 17.03,
+   "600": 34.06
+  },
+  "worst_rolling_day_bps": -839.7,
+  "worst_rolling_hour_bps": -584.5
+ },
+ "BTC": {
+  "1d": {
+   "best_bps": 132.1,
+   "n": 13,
+   "sd_bps": 159.88,
+   "worst_bps": -423.5
+  },
+  "1h": {
+   "best_bps": 137.3,
+   "n": 335,
+   "sd_bps": 35.28,
+   "worst_bps": -251.8
+  },
+  "1m": {
+   "best_bps": 52.2,
+   "n": 20159,
+   "sd_bps": 4.75,
+   "worst_bps": -58.7
+  },
+  "1s": {
+   "best_bps": 27.6,
+   "n": 1209599,
+   "sd_bps": 0.48,
+   "worst_bps": -20.8
+  },
+  "daily_sd_gbp": {
+   "300": 4.8,
+   "600": 9.59
+  },
+  "loss_gbp_worst_day": {
+   "300": 15.62,
+   "600": 31.25
+  },
+  "loss_gbp_worst_hour": {
+   "300": 8.65,
+   "600": 17.3
+  },
+  "worst_rolling_day_bps": -534.9,
+  "worst_rolling_hour_bps": -292.7
+ },
+ "DOGE": {
+  "1d": {
+   "best_bps": 259.9,
+   "n": 13,
+   "sd_bps": 222.7,
+   "worst_bps": -588.4
+  },
+  "1h": {
+   "best_bps": 218.5,
+   "n": 335,
+   "sd_bps": 59.95,
+   "worst_bps": -512.3
+  },
+  "1m": {
+   "best_bps": 87.1,
+   "n": 20159,
+   "sd_bps": 8.04,
+   "worst_bps": -175.6
+  },
+  "1s": {
+   "best_bps": 45.4,
+   "n": 1209599,
+   "sd_bps": 1.01,
+   "worst_bps": -64.5
+  },
+  "daily_sd_gbp": {
+   "300": 6.68,
+   "600": 13.36
+  },
+  "loss_gbp_worst_day": {
+   "300": 19.48,
+   "600": 38.95
+  },
+  "loss_gbp_worst_hour": {
+   "300": 16.26,
+   "600": 32.51
+  },
+  "worst_rolling_day_bps": -671.3,
+  "worst_rolling_hour_bps": -557.1
+ },
+ "ETH": {
+  "1d": {
+   "best_bps": 168.2,
+   "n": 13,
+   "sd_bps": 174.02,
+   "worst_bps": -465.6
+  },
+  "1h": {
+   "best_bps": 250.3,
+   "n": 335,
+   "sd_bps": 49.9,
+   "worst_bps": -346.0
+  },
+  "1m": {
+   "best_bps": 72.0,
+   "n": 20159,
+   "sd_bps": 6.97,
+   "worst_bps": -103.7
+  },
+  "1s": {
+   "best_bps": 40.5,
+   "n": 1209599,
+   "sd_bps": 0.76,
+   "worst_bps": -65.6
+  },
+  "daily_sd_gbp": {
+   "300": 5.22,
+   "600": 10.44
+  },
+  "loss_gbp_worst_day": {
+   "300": 18.09,
+   "600": 36.19
+  },
+  "loss_gbp_worst_hour": {
+   "300": 11.52,
+   "600": 23.04
+  },
+  "worst_rolling_day_bps": -622.1,
+  "worst_rolling_hour_bps": -391.6
+ },
+ "HYPE": {
+  "1d": {
+   "best_bps": 985.8,
+   "n": 13,
+   "sd_bps": 327.33,
+   "worst_bps": -408.5
+  },
+  "1h": {
+   "best_bps": 742.7,
+   "n": 335,
+   "sd_bps": 85.83,
+   "worst_bps": -278.0
+  },
+  "1m": {
+   "best_bps": 178.4,
+   "n": 20159,
+   "sd_bps": 10.74,
+   "worst_bps": -125.2
+  },
+  "1s": {
+   "best_bps": 68.8,
+   "n": 1209599,
+   "sd_bps": 1.24,
+   "worst_bps": -64.4
+  },
+  "daily_sd_gbp": {
+   "300": 9.82,
+   "600": 19.64
+  },
+  "loss_gbp_worst_day": {
+   "300": 16.1,
+   "600": 32.2
+  },
+  "loss_gbp_worst_hour": {
+   "300": 11.22,
+   "600": 22.44
+  },
+  "worst_rolling_day_bps": -551.6,
+  "worst_rolling_hour_bps": -381.2
+ },
+ "LINK": {
+  "1d": {
+   "best_bps": 221.4,
+   "n": 13,
+   "sd_bps": 336.7,
+   "worst_bps": -1075.9
+  },
+  "1h": {
+   "best_bps": 267.5,
+   "n": 335,
+   "sd_bps": 72.85,
+   "worst_bps": -615.3
+  },
+  "1m": {
+   "best_bps": 116.0,
+   "n": 20159,
+   "sd_bps": 9.45,
+   "worst_bps": -179.4
+  },
+  "1s": {
+   "best_bps": 54.5,
+   "n": 1209599,
+   "sd_bps": 1.02,
+   "worst_bps": -48.8
+  },
+  "daily_sd_gbp": {
+   "300": 10.1,
+   "600": 20.2
+  },
+  "loss_gbp_worst_day": {
+   "300": 32.1,
+   "600": 64.19
+  },
+  "loss_gbp_worst_hour": {
+   "300": 17.99,
+   "600": 35.98
+  },
+  "worst_rolling_day_bps": -1131.6,
+  "worst_rolling_hour_bps": -618.3
+ },
+ "NEAR": {
+  "1d": {
+   "best_bps": 651.5,
+   "n": 13,
+   "sd_bps": 546.29,
+   "worst_bps": -1540.5
+  },
+  "1h": {
+   "best_bps": 611.7,
+   "n": 335,
+   "sd_bps": 117.93,
+   "worst_bps": -543.3
+  },
+  "1m": {
+   "best_bps": 208.2,
+   "n": 20159,
+   "sd_bps": 16.2,
+   "worst_bps": -201.8
+  },
+  "1s": {
+   "best_bps": 131.0,
+   "n": 1209599,
+   "sd_bps": 2.02,
+   "worst_bps": -160.6
+  },
+  "daily_sd_gbp": {
+   "300": 16.39,
+   "600": 32.78
+  },
+  "loss_gbp_worst_day": {
+   "300": 43.38,
+   "600": 86.76
+  },
+  "loss_gbp_worst_hour": {
+   "300": 16.88,
+   "600": 33.76
+  },
+  "worst_rolling_day_bps": -1561.9,
+  "worst_rolling_hour_bps": -579.2
+ },
+ "PEPE": {
+  "1d": {
+   "best_bps": 918.1,
+   "n": 13,
+   "sd_bps": 550.48,
+   "worst_bps": -983.0
+  },
+  "1h": {
+   "best_bps": 853.6,
+   "n": 335,
+   "sd_bps": 142.01,
+   "worst_bps": -669.5
+  },
+  "1m": {
+   "best_bps": 254.7,
+   "n": 20159,
+   "sd_bps": 23.65,
+   "worst_bps": -266.7
+  },
+  "1s": {
+   "best_bps": 170.2,
+   "n": 1209599,
+   "sd_bps": 7.56,
+   "worst_bps": -131.5
+  },
+  "daily_sd_gbp": {
+   "300": 16.51,
+   "600": 33.03
+  },
+  "loss_gbp_worst_day": {
+   "300": 40.24,
+   "600": 80.47
+  },
+  "loss_gbp_worst_hour": {
+   "300": 31.33,
+   "600": 62.65
+  },
+  "worst_rolling_day_bps": -1440.1,
+  "worst_rolling_hour_bps": -1102.8
+ },
+ "QNT": {
+  "1d": {
+   "best_bps": 715.4,
+   "n": 13,
+   "sd_bps": 490.44,
+   "worst_bps": -991.4
+  },
+  "1h": {
+   "best_bps": 507.7,
+   "n": 335,
+   "sd_bps": 114.97,
+   "worst_bps": -449.4
+  },
+  "1m": {
+   "best_bps": 195.1,
+   "n": 20159,
+   "sd_bps": 16.49,
+   "worst_bps": -171.7
+  },
+  "1s": {
+   "best_bps": 94.3,
+   "n": 1209599,
+   "sd_bps": 2.2,
+   "worst_bps": -125.1
+  },
+  "daily_sd_gbp": {
+   "300": 14.71,
+   "600": 29.43
+  },
+  "loss_gbp_worst_day": {
+   "300": 32.58,
+   "600": 65.15
+  },
+  "loss_gbp_worst_hour": {
+   "300": 15.7,
+   "600": 31.4
+  },
+  "worst_rolling_day_bps": -1149.5,
+  "worst_rolling_hour_bps": -537.6
+ },
+ "SOL": {
+  "1d": {
+   "best_bps": 136.1,
+   "n": 13,
+   "sd_bps": 213.32,
+   "worst_bps": -687.8
+  },
+  "1h": {
+   "best_bps": 241.2,
+   "n": 335,
+   "sd_bps": 56.58,
+   "worst_bps": -379.6
+  },
+  "1m": {
+   "best_bps": 84.8,
+   "n": 20159,
+   "sd_bps": 7.74,
+   "worst_bps": -152.8
+  },
+  "1s": {
+   "best_bps": 46.2,
+   "n": 1209599,
+   "sd_bps": 0.92,
+   "worst_bps": -31.0
+  },
+  "daily_sd_gbp": {
+   "300": 6.4,
+   "600": 12.8
+  },
+  "loss_gbp_worst_day": {
+   "300": 22.9,
+   "600": 45.79
+  },
+  "loss_gbp_worst_hour": {
+   "300": 13.51,
+   "600": 27.02
+  },
+  "worst_rolling_day_bps": -793.9,
+  "worst_rolling_hour_bps": -460.9
+ },
+ "SUI": {
+  "1d": {
+   "best_bps": 299.6,
+   "n": 13,
+   "sd_bps": 314.05,
+   "worst_bps": -815.7
+  },
+  "1h": {
+   "best_bps": 275.5,
+   "n": 335,
+   "sd_bps": 80.35,
+   "worst_bps": -617.6
+  },
+  "1m": {
+   "best_bps": 126.8,
+   "n": 20159,
+   "sd_bps": 11.04,
+   "worst_bps": -237.5
+  },
+  "1s": {
+   "best_bps": 52.0,
+   "n": 1209599,
+   "sd_bps": 1.23,
+   "worst_bps": -54.8
+  },
+  "daily_sd_gbp": {
+   "300": 9.42,
+   "600": 18.84
+  },
+  "loss_gbp_worst_day": {
+   "300": 26.87,
+   "600": 53.75
+  },
+  "loss_gbp_worst_hour": {
+   "300": 19.6,
+   "600": 39.21
+  },
+  "worst_rolling_day_bps": -938.5,
+  "worst_rolling_hour_bps": -675.8
+ },
+ "XLM": {
+  "1d": {
+   "best_bps": 244.6,
+   "n": 13,
+   "sd_bps": 231.8,
+   "worst_bps": -597.5
+  },
+  "1h": {
+   "best_bps": 360.5,
+   "n": 335,
+   "sd_bps": 60.64,
+   "worst_bps": -422.5
+  },
+  "1m": {
+   "best_bps": 104.2,
+   "n": 20159,
+   "sd_bps": 8.46,
+   "worst_bps": -118.3
+  },
+  "1s": {
+   "best_bps": 41.2,
+   "n": 1209599,
+   "sd_bps": 1.37,
+   "worst_bps": -42.0
+  },
+  "daily_sd_gbp": {
+   "300": 6.95,
+   "600": 13.91
+  },
+  "loss_gbp_worst_day": {
+   "300": 19.54,
+   "600": 39.08
+  },
+  "loss_gbp_worst_hour": {
+   "300": 13.46,
+   "600": 26.92
+  },
+  "worst_rolling_day_bps": -673.5,
+  "worst_rolling_hour_bps": -459.0
+ },
+ "XRP": {
+  "1d": {
+   "best_bps": 238.7,
+   "n": 13,
+   "sd_bps": 251.55,
+   "worst_bps": -693.8
+  },
+  "1h": {
+   "best_bps": 256.2,
+   "n": 335,
+   "sd_bps": 53.99,
+   "worst_bps": -354.7
+  },
+  "1m": {
+   "best_bps": 86.6,
+   "n": 20159,
+   "sd_bps": 7.62,
+   "worst_bps": -119.3
+  },
+  "1s": {
+   "best_bps": 42.5,
+   "n": 1209599,
+   "sd_bps": 0.87,
+   "worst_bps": -47.7
+  },
+  "daily_sd_gbp": {
+   "300": 7.55,
+   "600": 15.09
+  },
+  "loss_gbp_worst_day": {
+   "300": 21.87,
+   "600": 43.75
+  },
+  "loss_gbp_worst_hour": {
+   "300": 12.75,
+   "600": 25.49
+  },
+  "worst_rolling_day_bps": -757.1,
+  "worst_rolling_hour_bps": -434.1
+ }
+}
