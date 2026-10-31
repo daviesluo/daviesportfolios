@@ -49,3 +49,7 @@ and the files' sha256 where a file changed.
 |---|---|
 | `supabase/functions/agents/xhedge.ts` | c896c6b3523090ad1bf3f85c35acccfb710441e09df435304862414d42a8ffa2 |
 | `supabase/functions/agents/xhedge.test.ts` | 36999897f1b8beecc043f9fe5482c38c02d27c060674880dd6859fcc90a65ee0 |
+
+- **Read after the replay (2026-10-31 01:46 UTC).** Trips hedged from 10-30 09:57 on whose first fill instant holds two or more
+  of the arm's fills worth over £2 together (each a candidate for a folded pair; an upper bound): `inside` 3, `behind` 2. Both
+  arms decided every minute from their stall to the clock, with no error.
