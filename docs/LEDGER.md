@@ -688,6 +688,13 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
     10-30 ("打开", §6's statements, `compound_from` 10-31 00:00). After 11-01 00:00 read each config's `compound_last`,
     `agent_quote_twin_compound.last` and the arms' `state.compound`. The base Coinbase test stays uncompounded (a control).
 
+23. **"Crypto quotes XRP/GBP": a paper test, built, not pushed** (Davies, 10-31 ~11:55: "好 再研究下确保策略一切最优后就开做然后上testing";
+   `0192`, `agents/mm_core.ts`, `agents/mm_paper.ts`, `agents/mm_page.ts`; frozen `reviews/2026-10-31-xrp-gbp-paper-prereg.md`).
+   After the push: the migration's row starts 15 minutes after it applies; check the first calls' `agent_mm_state` (`rec`'s
+   `last_error`, the arms' `last_minute`) and `ops_errors` `agents.mm` (whether Binance's data host, Revolut X's public trades and
+   Coinbase answer the Edge region at :12). It quotes from `startAt` (2026-11-01 00:00 UTC if the record began by 10-31 21:00,
+   else the next 00:00 with 3 h of record). Reading on day 29: `scripts/paper_reading.py` on the export its §9 names. Nothing live.
+
 ## Machine and platform setup
 
 A rebuilt container loses every line below. Run them before working.
@@ -804,7 +811,21 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 "LEDGER.md history, archived 2026-09-22" or "LEDGER.md, archived <date> (<n-th>)" that names the sections it holds, oldest
 first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 2026-10-29 01:24 UTC section (archived
 2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth), and the 2026-10-29 01:45, 2026-10-29 01:57 one(s) (thirteenth), the 2026-10-29 02:19 one(s) (fourteenth),
-and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 02:43, 2026-10-29 02:36, 2026-10-29 02:49, 2026-10-29 03:00, 2026-10-29 03:02, 2026-10-29 03:07, 2026-10-29 03:12 ones (sixteenth), and the 2026-10-29 03:24, 2026-10-29 03:30, 2026-10-29 03:39, 2026-10-29 03:41, 2026-10-29 03:49 ones (seventeenth), and the 2026-10-29 04:18, 2026-10-29 05:50 ones (eighteenth), and the 2026-10-29 06:05, 2026-10-29 06:30, 2026-10-29 06:41 ones (nineteenth), and the 2026-10-29 06:56, 2026-10-29 07:05, 2026-10-29 07:26, 2026-10-29 07:31 ones (twentieth), and the 2026-10-29 07:45, 2026-10-29 07:52, 2026-10-29 07:58 ones (twenty-first), and the 2026-10-29 08:10, 2026-10-29 08:25, 2026-10-29 09:05 ones (twenty-second), and the 2026-10-29 09:22, 2026-10-29 09:40, 2026-10-29 09:45, 2026-10-29 10:15 ones (twenty-third), and the 2026-10-29 17:10, 2026-10-29 18:20, 2026-10-29 18:33, 2026-10-29 18:43 ones (twenty-fourth), and the 2026-10-29 19:16, 2026-10-29 19:25, 2026-10-29 19:28, 2026-10-29 19:31 ones (twenty-fifth), and the 2026-10-29 19:50, 2026-10-29 19:55, 2026-10-29 20:00, 2026-10-29 20:15 ones (twenty-sixth), and the 2026-10-29 20:41, 2026-10-29 21:07 ones (twenty-seventh), and the 2026-10-29 21:30, 2026-10-29 22:10 ones (twenty-eighth), and the 2026-10-29 22:12, 2026-10-29 22:27 ones (twenty-ninth), and the 2026-10-29 22:40, 2026-10-29 22:43 ones (thirtieth), and the 2026-10-29 22:55, 2026-10-29 23:13 ones (thirty-first), and the 2026-10-29 23:24, 2026-10-29 23:30 ones (thirty-second), and the 2026-10-30 00:17, 2026-10-30 00:30 ones (thirty-third), and the 2026-10-30 00:35, 2026-10-30 00:57 ones (thirty-fourth), and the 2026-10-30 01:05, 2026-10-30 01:20 ones (thirty-fifth), and the 2026-10-30 01:45, 2026-10-30 01:48 ones (thirty-sixth), and the 2026-10-30 02:05, 2026-10-30 02:11, 2026-10-30 02:12, 2026-10-30 02:17 ones (thirty-seventh), and the 2026-10-30 02:55, 2026-10-30 03:05 ones (thirty-eighth), and the 2026-10-30 03:50, 2026-10-30 04:05, 2026-10-30 04:20, 2026-10-30 05:25 ones (thirty-ninth), and the 2026-10-30 05:40, 2026-10-30 05:55 ones (fortieth), and the 2026-10-30 18:30, 2026-10-31 01:10 ones (forty-first), and the 2026-10-31 01:16, 2026-10-31 01:23 ones (forty-second), and the 2026-10-31 01:41, 2026-10-31 01:47 ones (forty-third), and the 2026-10-31 02:00, 2026-10-31 02:11 ones (forty-fourth), and the 2026-10-31 02:16, 2026-10-31 02:49 ones (forty-fifth), and the 2026-10-31 03:07, 2026-10-31 03:07 ones (forty-sixth).
+and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 02:43, 2026-10-29 02:36, 2026-10-29 02:49, 2026-10-29 03:00, 2026-10-29 03:02, 2026-10-29 03:07, 2026-10-29 03:12 ones (sixteenth), and the 2026-10-29 03:24, 2026-10-29 03:30, 2026-10-29 03:39, 2026-10-29 03:41, 2026-10-29 03:49 ones (seventeenth), and the 2026-10-29 04:18, 2026-10-29 05:50 ones (eighteenth), and the 2026-10-29 06:05, 2026-10-29 06:30, 2026-10-29 06:41 ones (nineteenth), and the 2026-10-29 06:56, 2026-10-29 07:05, 2026-10-29 07:26, 2026-10-29 07:31 ones (twentieth), and the 2026-10-29 07:45, 2026-10-29 07:52, 2026-10-29 07:58 ones (twenty-first), and the 2026-10-29 08:10, 2026-10-29 08:25, 2026-10-29 09:05 ones (twenty-second), and the 2026-10-29 09:22, 2026-10-29 09:40, 2026-10-29 09:45, 2026-10-29 10:15 ones (twenty-third), and the 2026-10-29 17:10, 2026-10-29 18:20, 2026-10-29 18:33, 2026-10-29 18:43 ones (twenty-fourth), and the 2026-10-29 19:16, 2026-10-29 19:25, 2026-10-29 19:28, 2026-10-29 19:31 ones (twenty-fifth), and the 2026-10-29 19:50, 2026-10-29 19:55, 2026-10-29 20:00, 2026-10-29 20:15 ones (twenty-sixth), and the 2026-10-29 20:41, 2026-10-29 21:07 ones (twenty-seventh), and the 2026-10-29 21:30, 2026-10-29 22:10 ones (twenty-eighth), and the 2026-10-29 22:12, 2026-10-29 22:27 ones (twenty-ninth), and the 2026-10-29 22:40, 2026-10-29 22:43 ones (thirtieth), and the 2026-10-29 22:55, 2026-10-29 23:13 ones (thirty-first), and the 2026-10-29 23:24, 2026-10-29 23:30 ones (thirty-second), and the 2026-10-30 00:17, 2026-10-30 00:30 ones (thirty-third), and the 2026-10-30 00:35, 2026-10-30 00:57 ones (thirty-fourth), and the 2026-10-30 01:05, 2026-10-30 01:20 ones (thirty-fifth), and the 2026-10-30 01:45, 2026-10-30 01:48 ones (thirty-sixth), and the 2026-10-30 02:05, 2026-10-30 02:11, 2026-10-30 02:12, 2026-10-30 02:17 ones (thirty-seventh), and the 2026-10-30 02:55, 2026-10-30 03:05 ones (thirty-eighth), and the 2026-10-30 03:50, 2026-10-30 04:05, 2026-10-30 04:20, 2026-10-30 05:25 ones (thirty-ninth), and the 2026-10-30 05:40, 2026-10-30 05:55 ones (fortieth), and the 2026-10-30 18:30, 2026-10-31 01:10 ones (forty-first), and the 2026-10-31 01:16, 2026-10-31 01:23 ones (forty-second), and the 2026-10-31 01:41, 2026-10-31 01:47 ones (forty-third), and the 2026-10-31 02:00, 2026-10-31 02:11 ones (forty-fourth), and the 2026-10-31 02:16, 2026-10-31 02:49 ones (forty-fifth), and the 2026-10-31 03:07, 2026-10-31 03:07 ones (forty-sixth), and the 2026-10-31 03:31, 2026-10-31 04:20 ones (forty-seventh).
+
+### [2026-10-31 12:36 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **CRYPTOBOOKS-3 and "Crypto quotes XRP/GBP" on paper** (sub-agent; commits, not pushed; Davies, ~11:55 UTC: "好 再研究下确保策略
+  一切最优后就开做然后上testing"). The last pass (`scripts/final_opt.py`, `final_card.py`): size, a two-sided inventory, the basis
+  window, κ, re-pricing on a clock, the stop × cool-down, the regime as a size modifier and SOL-GBP as a second book; none beats
+  the card on the 15 days and the year with a paired P < 0.10, so it stands (d 14, θ 5, κ 0.5, £200 on £600, stop 300 bps / 1 h).
+  The paper fills a quote only from the second after it was placed: £6.98 a day on the 15 days (was £7.77), and on the year's
+  windows £1.07 a day at £600 (P 0.124; £0.24 at £120, £2.12 at £1,200); the 28-day bar's power about 0.37 on that sample.
+  Built: `mm_core.ts` (rule.py's port, fill for fill on a committed 6-hour slice, `mm_core.test.ts`), `mm_paper.ts` (records
+  Binance 1 s klines, Revolut X prints and book, Coinbase USDT-USD keyless; steps three arms £600/£120/£1,200 two minutes behind),
+  `0192` (`agent_mm_*`, lease `mm`, `agents?action=mm` at second 12, retry, prune), `mm_page.ts` and TESTING's row "Crypto quotes
+  XRP/GBP" on Revolut X's card with its page (`agents.js` `quotesCryptoRow`, `QuotesLiveDetail` `crypto`). Frozen:
+  `reviews/2026-10-31-xrp-gbp-paper-prereg.md` (`src/xrp_paper_prereg.test.js`). Moved the 03:31, 04:20 sections to handover
+  (forty-seventh).
 
 ### [2026-10-31 11:50 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **The two Revolut X executors' daily order limit is a runaway guard, not the venue's quota** (sub-agent; commit, not pushed;
@@ -909,21 +930,3 @@ and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 0
   Pins: `twin_specs.test.js` (only `live600` gains `take`, `{from: 02:10:43Z}`), `quotes_twin.test.ts` (the fixture's row gives
   the instance LIVE's take beside its weekend; every hour from then to 11-01 21:00 is a closure). Moved the 10-31 01:16 and
   01:23 sections to handover (forty-second).
-
-### [2026-10-31 04:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **N2: LIVE's surplus coin goes back to pounds for good** (sub-agent; commit, not pushed; Davies, ~03:55 UTC: "同意"). The
-  72-hour rebook ends 2026-11-01 22:30 UTC and was the only coin-to-pounds path. The drain (`drainOn`, `drainBase`,
-  `quotes_live.ts` step 6b″) runs from `QUOTE_LIVE_DRAIN_FROM` 2026-10-31 08:00 UTC (inside the rebook: no gap; move it to the
-  next whole hour if the push lands later) outside a rebook, on every instance with weights in force: when a live bid was
-  skipped for want of pounds and no ask of the book lacks coin, `planDrains`' sale (post-only, top of the asks, never under
-  fair, the asks' need + 2 % kept), cut to what the bids lack and 25 % of the capital a book a day; cancelled the turn an ask
-  lacks coin or no bid lacks pounds. The USDC/GBP executor has the same one-way limit (never rebooked) and the same fix; every
-  twin on these rules takes it through the shared code, no driver change. Deviation `reviews/2026-10-31-live-twin-take-drain-deviation.md`
-  (five pre-registrations' executor hash; their tests and `take_twin.test.js` read it); design addendum 10-31 04:00; reference
-  item 35. Pins in `quotes_live_instance.test.ts` (sale size/price/kept coin; none before the instant = the old rule, none with
-  bids funded or an ask short; withdrawn when pounds arrive; partial fill rests, asks keep resting). Moved the 10-30 18:30 and
-  10-31 01:10 sections to handover (forty-first).
-
-### [2026-10-31 03:31 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- Agents audit round 2, rebased on 0188 (cblive's watchdog retry on): the monitor's `cbLive` comment names it. Moved the 10-30
-  05:40, 05:55 sections to handover (fortieth).

@@ -156,6 +156,12 @@
 //                             hedged at Coinbase's next read, on paper, from the
 //                             recorders' tables alone; its own tables and lease.
 //                             Cron or admin.
+//   POST ?action=mm         — "Crypto quotes XRP/GBP" (mm_core.ts, mm_paper.ts,
+//                             0192): records Binance's one-second XRPUSDT,
+//                             Revolut X's XRP-GBP prints and book and Coinbase's
+//                             USDT-USD, keyless, then steps the XRP/GBP maker's
+//                             rule through the closed minutes on paper; its own
+//                             tables and lease. Cron or admin.
 //   POST ?action=econcal&from=YYYY-MM-DD&to=YYYY-MM-DD
 //                           — Finnhub's economic calendar for the window
 //                             (econcal.ts): country, event, time (UTC) and
@@ -368,6 +374,10 @@ import type * as $xhedge from "./xhedge.ts";
 let runXhedge!: typeof $xhedge.runXhedge;
 import type * as $xhedge_page from "./xhedge_page.ts";
 let readXhedgePage!: typeof $xhedge_page.readXhedgePage;
+import type * as $mm_paper from "./mm_paper.ts";
+let runMm!: typeof $mm_paper.runMm;
+import type * as $mm_page from "./mm_page.ts";
+let readMmPage!: typeof $mm_page.readMmPage;
 import type * as $fxw_view from "./fxw_view.ts";
 let readFxw!: typeof $fxw_view.readFxw;
 import type * as $cb_page from "./cb_page.ts";
@@ -436,6 +446,8 @@ const AGENTS_MODULE_LOADERS: Record<string, () => Promise<void>> = {
   "./okx_basis.ts": () => import("./okx_basis.ts").then((m) => { ({ okxRowsWithBasis, readOkxBasis, runOkxBasis } = m); }),
   "./xhedge.ts": () => import("./xhedge.ts").then((m) => { ({ runXhedge } = m); }),
   "./xhedge_page.ts": () => import("./xhedge_page.ts").then((m) => { ({ readXhedgePage } = m); }),
+  "./mm_paper.ts": () => import("./mm_paper.ts").then((m) => { ({ runMm } = m); }),
+  "./mm_page.ts": () => import("./mm_page.ts").then((m) => { ({ readMmPage } = m); }),
   "./fxw_view.ts": () => import("./fxw_view.ts").then((m) => { ({ readFxw } = m); }),
   "./cb_page.ts": () => import("./cb_page.ts").then((m) => { ({ CB_HOLD_PAGE_NAME, CB_NUDGE_PAGE_NAME, CB_USDC_PAGE_NAME, readCoinbaseUsd } = m); }),
   "./econcal.ts": () => import("./econcal.ts").then((m) => { ({ runEconcal } = m); }),
@@ -451,13 +463,14 @@ export const AGENTS_ROUTE_MODULES: Record<string, string[]> = {
   "cbusdc": ["./cb_usdc.ts"],
   "chart": ["../_shared/agents_strategy.ts", "../_shared/revx.ts", "./tick.ts"],
   "cjrec": ["./cj_rec.ts"],
-  "dashboard": ["../_shared/agents_strategy.ts", "../_shared/bytes.ts", "../_shared/kraken.ts", "../_shared/revx.ts", "./binance.ts", "./book_ratio.ts", "./cb_compound.ts", "./cb_hold.ts", "./cb_live.ts", "./cb_nudge.ts", "./cb_page.ts", "./cb_rec.ts", "./cb_usdc.ts", "./fxw_view.ts", "./grok_tests_view.ts", "./grokpm_view.ts", "./maker_watch.ts", "./okx_basis.ts", "./okx_quotes.ts", "./pm_lp.ts", "./pm_lp_live_view.ts", "./quotes.ts", "./quotes_compound.ts", "./quotes_live.ts", "./quotes_twin.ts", "./tick.ts", "./xhedge_page.ts"],
+  "dashboard": ["../_shared/agents_strategy.ts", "../_shared/bytes.ts", "../_shared/kraken.ts", "../_shared/revx.ts", "./binance.ts", "./book_ratio.ts", "./cb_compound.ts", "./cb_hold.ts", "./cb_live.ts", "./cb_nudge.ts", "./cb_page.ts", "./cb_rec.ts", "./cb_usdc.ts", "./fxw_view.ts", "./grok_tests_view.ts", "./grokpm_view.ts", "./maker_watch.ts", "./mm_page.ts", "./okx_basis.ts", "./okx_quotes.ts", "./pm_lp.ts", "./pm_lp_live_view.ts", "./quotes.ts", "./quotes_compound.ts", "./quotes_live.ts", "./quotes_twin.ts", "./tick.ts", "./xhedge_page.ts"],
   "econcal": ["./econcal.ts"],
   "fxrec": ["./fx_rec.ts"],
   "grokpmjournal": ["./grokpm_view.ts"],
   "grokpmrec": ["./grokpm_rec.ts"],
   "jev": ["../_shared/agents_strategy.ts", "../_shared/jev.ts", "./jev_rows.ts", "./tick.ts"],
   "log": [],
+  "mm": ["./mm_paper.ts"],
   "okxbasis": ["./okx_basis.ts"],
   "okxrec": ["./okx_quotes.ts", "./okx_rec.ts"],
   "pmlive": ["../_shared/polymarket_orders.ts", "./pm_live.ts"],
@@ -1052,6 +1065,24 @@ export async function runXhedgeAction(deps: { db?: Db; now?: number } = {}) {
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
     await reportServerError("agents.xhedge", { message: message.slice(0, 500), context: { at: new Date().toISOString() } });
+    return { error: message.slice(0, 300) };
+  }
+}
+
+/**
+ * "Crypto quotes XRP/GBP" (mm_paper.ts, 0192): its keyless reads, then the minutes two or more behind the clock on paper. A fault
+ * goes to `ops_errors` as `agents.mm` when it first appears and at most hourly while it lasts.
+ */
+export async function runMmAction(deps: { db?: Db; now?: number; fetchImpl?: typeof fetch } = {}) {
+  try {
+    const dbi = deps.db ?? db();
+    const now = deps.now ?? Date.now();
+    const r = await runMm({ db: dbi, now, holder: crypto.randomUUID(), fetchImpl: deps.fetchImpl });
+    if (r.report) await reportServerError("agents.mm", tickErrorReport({ errors: r.errors, at: new Date(now).toISOString() }));
+    return r;
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    await reportServerError("agents.mm", { message: message.slice(0, 500), context: { at: new Date().toISOString() } });
     return { error: message.slice(0, 300) };
   }
 }
@@ -2728,6 +2759,8 @@ async function dashboard(now: number) {
   // "Stablecoin quotes RX↔Coinbase hedge" and "… - 1" (0184, xhedge.ts): an arm appears once it has decided a minute, its money
   // across both venues (xhedge_page.ts).
   const quotesXhedgeRead = readXhedgePage(d, now, dayStartMs).catch(() => []);
+  // "Crypto quotes XRP/GBP" (0192, mm_paper.ts): its £600 arm once it has decided a minute (mm_page.ts).
+  const quotesCryptoRead = readMmPage(d, now, dayStartMs).catch(() => []);
   // "FXW-AUD weekend" on paper (fxw_view.ts; the `ig` function's `fxw` run writes it): null before its first run.
   const fxwAudRead = readFxw(d, now, dayStartMs).catch(() => null);
 
@@ -2798,6 +2831,7 @@ async function dashboard(now: number) {
     quotesLive: quotesRead, lpLive: lpLiveRead, cbLive: cbLiveRead, quotesRxu: quotesRxuRead, grokPm: grokPmRead, grokTests: grokTestsRead,
     makerWatch: makerWatchRead, quotesTwins: quotesTwinsRead, quotesCoinbaseHold: quotesCoinbaseHoldRead, quotesCoinbaseUsdc: quotesCoinbaseUsdcRead,
     quotesCoinbaseNudge: quotesCoinbaseNudgeRead, quotesOkx: quotesOkxRead, quotesOkxBasis: quotesOkxBasisRead, quotesXhedge: quotesXhedgeRead, fxwAud: fxwAudRead,
+    quotesCrypto: quotesCryptoRead,
   };
   for (const [name, p] of Object.entries(pageReads)) handled(timed(name, p));
   const [strategies, riskRows, filled, open, today, probeRows, decisions24h, recentDecisions, recentOrders, backtests, basis24h, { venues, notes }] = await timed("loop", Promise.all([
@@ -2924,9 +2958,9 @@ async function dashboard(now: number) {
   }
 
   const [quotes, lpLive, cbLive, quotesRxu, grokPm, [cxbot, igbot], makerWatch, quotesTwins, quotesCoinbaseHold, quotesCoinbaseUsdc, quotesCoinbaseNudge,
-    quotesOkx, quotesOkxBasis, quotesXhedge, fxwAud] = await Promise.all([
+    quotesOkx, quotesOkxBasis, quotesXhedge, fxwAud, quotesCrypto] = await Promise.all([
     quotesRead, lpLiveRead, cbLiveRead, quotesRxuRead, grokPmRead, grokTestsRead, makerWatchRead, quotesTwinsRead, quotesCoinbaseHoldRead,
-    quotesCoinbaseUsdcRead, quotesCoinbaseNudgeRead, quotesOkxRead, quotesOkxBasisRead, quotesXhedgeRead, fxwAudRead]);
+    quotesCoinbaseUsdcRead, quotesCoinbaseNudgeRead, quotesOkxRead, quotesOkxBasisRead, quotesXhedgeRead, fxwAudRead, quotesCryptoRead]);
   // Measured after every read has settled: the object below awaits nothing (until 2026-10-30 it awaited the twins and the
   // Coinbase, OKX and hedge pages inside it, after `serverMs` was taken, so it read short).
   const serverMs = Date.now() - t0;
@@ -2989,6 +3023,12 @@ async function dashboard(now: number) {
      * resting bids, TODAY what both hold against 00:00; `venues` ["revx", "coinbase"] and `byVenue` each venue's part.
      */
     quotesXhedge,
+    /**
+     * "Crypto quotes XRP/GBP" (`0192`, mm_paper.ts): the XRP/GBP maker on paper on Revolut X, its £600 arm (`twin.id` "xrpgbp")
+     * in the Stablecoin quotes pages' shape (mm_page.ts): FUNDED its £600, DEPLOYED its coin at the fair and the pounds in its
+     * resting bid, TODAY its round trips closed today; empty until it has decided a minute.
+     */
+    quotesCrypto,
     /**
      * "FXW-AUD weekend" (`0162`, fxw_view.ts): the frozen FXW-AUD rule on paper on the live IG recorder's quotes, in
      * pounds, one row a weekend; null before the `ig` function's first `fxw` run.
@@ -3532,6 +3572,8 @@ async function route(req: Request, who: Exclude<Who, null>, url: URL, action: st
   if (action === "okxbasis" && req.method === "POST" && operator) return json(200, await runOkxBasisAction());
   // "Stablecoin quotes RX↔Coinbase hedge" (xhedge.ts, 0184): decided from the recorders' tables alone.
   if (action === "xhedge" && req.method === "POST" && operator) return json(200, await runXhedgeAction());
+  // "Crypto quotes XRP/GBP" (mm_paper.ts, 0192): keyless reads of Binance, Revolut X and Coinbase, then its paper minutes.
+  if (action === "mm" && req.method === "POST" && operator) return json(200, await runMmAction());
   // Finnhub's economic calendar, read only (econcal.ts, 2026-10-15): the events of a window for the Coinbase blackout's release list. Cron bearer only; the key stays here.
   if (action === "econcal" && req.method === "POST" && who === "cron") return json(200, await runEconcal({ from: url.searchParams.get("from"), to: url.searchParams.get("to"), key: Deno.env.get("FINNHUB_API_KEY") }));
   // Coinbase's order books (cb_books.ts, 0114): the top ten levels a side, 30 s into the minute. Keyless reads.

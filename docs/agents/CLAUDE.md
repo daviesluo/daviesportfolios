@@ -393,6 +393,16 @@ that follow from that evidence, in short:
   anyone else's account. The inside arm and any LIVE change that rests inside the maker would compete for the same prints.
   Their rows show both venues' badges (`VENUE_PAIRS`) and both venues' money summed; each venue's half goes on that venue's
   card (`venueSplit`, `agents/xhedge_page.ts`), never on a card of its own.
+  **"Crypto quotes XRP/GBP"** (`0192`, `agents/mm_core.ts`, `agents/mm_paper.ts`, reference §4 item 70, 2026-10-31; Davies: "好 再研究下确保
+  策略一切最优后就开做然后上testing") is the CRYPTOBOOKS XRP/GBP maker on paper: 14 bps either side of Binance's XRPUSDT × USDT/USD ÷
+  GBP/USD × the book's 3-hour basis, re-priced on a 5 bps move, skewed against held coin, £200 a quote on £600, asks only for coin
+  bought, a 300 bps stop, every second of each closed minute stepped by one call (`agents?action=mm`, second 12, two minutes
+  behind the clock) on what it records itself keyless (Binance's one-second klines, Revolut X's XRP-GBP prints and book,
+  Coinbase's USDT-USD) and the FX recorder's GBP/USD. `mm_core.ts` is `rule.py`'s port, pinned fill for fill
+  (`mm_core.test.ts`); a print fills it only strictly through its price and only from the second after the quote was placed. Three
+  arms (£600 judged and on the page, £120, £1,200), its own tables (`agent_mm_*`) and lease (`mm`); 28 days from 2026-11-01 00:00 UTC
+  (`reviews/2026-10-31-xrp-gbp-paper-prereg.md`). A live version would need a sub-account of Davies' (about 2,500 placements a day,
+  over a main account's 1,000), a one-second loop and his word; nothing of it exists.
   The names above are their history. TESTING's scoreboard and the
   Revolut X card include them. **"Stablecoin quotes with Euros"** (`0112`,
   reference §4 item 58; "Stablecoin quotes Coinbase" until 2026-10-10) follows

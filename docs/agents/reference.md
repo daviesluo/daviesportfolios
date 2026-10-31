@@ -4778,6 +4778,37 @@ and its control are off, its pre-registration closed early, adopted.
     - **Pre-registered and frozen:** `reviews/2026-10-30-xhedge-prereg.md` (28 days; each arm's USDT-GBP passes on a positive sum,
       P(mean ≤ 0) < 0.10 by a 3-day block bootstrap, and 300 fills (`inside`) or 100 (`behind`); reading script
       `backtests/mmcomp/scripts/xhedge_reading.py`).
+70. **"Crypto quotes XRP/GBP", a real-time paper test of the XRP/GBP maker (2026-10-31, migration `0192`; `agents/mm_core.ts`,
+    `agents/mm_paper.ts`).** Davies, 2026-10-31 ~11:55 UTC: "好 再研究下确保策略一切最优后就开做然后上testing". The studies:
+    `reviews/2026-10-31-crypto-books-deep.md`, `reviews/2026-10-31-xrp-gbp-strategy.md` and CRYPTOBOOKS-3
+    (`backtests/cryptobooks/scripts/final_opt.py`, `final_card.py`); the design `reviews/2026-10-31-one-second-loop-architecture.md` §4.4.
+    - **The rule** (`mm_core.ts`, `rule.py`'s port at `xrp_study.CARD` + `final_card.FINAL`):
+      - fair = Binance's last XRPUSDT trade of the second before × USDT/USD ÷ GBP/USD × e^(basis); the basis is the trailing 3
+        hours' centre of the book's own prints against that fair;
+      - bid and ask 14 bps either side, both moved down by 0.5 · 14 bps · (coin value ÷ capital); re-priced on a 5 bps move or
+        after a fill; £200 a quote on £600; it starts in pounds and asks only for coin held;
+      - a 300 bps stop (sold as a taker, 9 + 20 bps), an hour without bids after it;
+      - any quote 10 bps beyond the true fair is taken at once (the arbitrageur, pessimistic).
+    - **The fill model:** only public taker orders, only by their prints strictly through our price (a print at our price is the
+      queue ahead), never more than the order or our quote, and only from the second after the quote was placed.
+    - **Inputs**, each minute, keyless: Binance's one-second klines (`data-api.binance.vision`), Revolut X's UK XRP-GBP prints by
+      id and its book (five levels a side), Coinbase's USDT-USD; GBP/USD the FX recorder's TrueFX reads (`fx_ticks`). USDT/USD and
+      GBP/USD are the newest reads by each minute's start (30 and 10 minutes at most); a second without a fair is stale.
+    - **Plumbing:** one call (`agents?action=mm`, `edge_calls` second 12, where nothing else reads Revolut X's public endpoints,
+      retry true, under the watchdog), lease `mm`, its own tables (`agent_mm_inputs` a minute with Binance's 60 closes, `_prints`,
+      `_state`, `_minutes`, `_fills`, `_trips`, the view `_days` with each day marked at the fair), prune of the inputs at 45 days
+      and the prints at 120. It decides two minutes behind the clock and no further than Binance and the prints are recorded.
+    - **Three arms**, one engine, differing only in money: £600 at £200 (judged, and the page's), £120 at £40, £1,200 at £400.
+    - **Expected** (CRYPTOBOOKS-3, under the paper's fill model): about £1.07 a day at £600 on the year's sampled windows (× 10.6;
+      £0.24 at £120, £2.12 at £1,200); £6.98 a day on 10-17 → 10-31, the unusual two weeks. The 28-day bar passes about 37 % of the
+      time if the year's sample is what comes.
+    - **The page:** TESTING's row "Crypto quotes XRP/GBP" on Revolut X's card, after the RX↔Coinbase hedge rows, and a Stablecoin
+      quotes page (`QuotesLiveDetail`'s `crypto`, `agents/mm_page.ts`): FUNDED £600, DEPLOYED the coin at the fair and the
+      resting bid, TODAY the round trips closed today (DAYS' today), REALIZED its round trips (each sale against the oldest
+      coin), UNREALIZED the coin at the fair less its cost; BOOKS, INVENTORY (pounds, and XRP at the fair), ROUND TRIPS, DAYS.
+    - **Pre-registered and frozen:** `reviews/2026-10-31-xrp-gbp-paper-prereg.md` (28 days from its start, 2026-11-01 00:00 UTC
+      when the record began by 21:00 the day before; PASS on a positive sum, P(mean ≤ 0) < 0.10 by a 3-day block bootstrap, the
+      tight hours' P&L ≥ 0 and 100 fills; reading `backtests/cryptobooks/scripts/paper_reading.py`).
 
 ## 5. Questions that blocked the build — answered 2026-09-20
 

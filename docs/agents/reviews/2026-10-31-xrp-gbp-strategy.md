@@ -425,8 +425,8 @@ It ranks below the maker. It deserves its own pre-registration later, not now.
 
 ## 8. Pre-registration draft: "Crypto quotes XRP/GBP" (paper)
 
-**Status: DRAFT.** Not frozen, nothing built. If Davies says so, it freezes at the commit that adds the paper test's code. It
-replaces CRYPTOBOOKS §7.
+**Status: DRAFT, superseded** by the frozen `2026-10-31-xrp-gbp-paper-prereg.md` (its §12 lists the differences). It replaced
+CRYPTOBOOKS §7.
 
 1. **What it tests.** Whether the card (§2) earns on XRP-GBP, in both regimes, on data it has not seen. SOL-GBP runs on the same
    engine and is reported, not judged.

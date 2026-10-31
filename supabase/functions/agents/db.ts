@@ -39,6 +39,8 @@ const PAGED_KEYS: Record<string, string> = {
   agent_quote_minutes: "book,minute", cb_touch: "product,ts",
   // "Stablecoin quotes RX↔Coinbase hedge" (0184) pages Revolut X's recorded book by book and time, and its own trips.
   agent_book_levels: "book,ts", agent_xhedge_trips: "arm,book,side,t_fill,t_hedge",
+  // "Crypto quotes XRP/GBP" (0192): its inputs a minute, its arms' minutes and its trips, each by its primary key.
+  agent_mm_inputs: "book,minute", agent_mm_minutes: "arm,minute", agent_mm_trips: "arm,t_exit,seq", agent_mm_fills: "arm,ts,seq",
   // The recorder's second-level FX reads (0172), read by the Coinbase arms' rate (cb_fx.ts `readCbFx`): its primary key.
   fx_ticks: "source,pair,minute",
   // Coinbase's live path (0177, cb_live.ts): its fills by Coinbase's entry id.

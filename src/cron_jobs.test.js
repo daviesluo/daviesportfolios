@@ -871,6 +871,48 @@ describe('pg_cron jobs', () => {
     expect(sql).toContain("insert into public.agent_locks (name) values ('xhedge') on conflict (name) do nothing;");
   });
 
+  // "Crypto quotes XRP/GBP" (Davies, 2026-10-31: "好 再研究下确保策略一切最优后就开做然后上testing"): one call a minute at second 12, where no
+  // other call reads Revolut X's public endpoints, its beat first, every other row as it was, a prune of SQL alone.
+  it("adds 'Crypto quotes XRP/GBP' as one call a minute at second 12 (0192), its beat first, every other row as it was, and a prune of SQL alone", () => {
+    const T = FILES.find((f) => /^0192_mm_xrp_paper\.sql$/.test(f)) ?? '';
+    expect(T).not.toBe('');
+    const before = replayList(sqlsOf(FILES.filter((f) => f < T))), after = replayList(sqlsOf(FILES.filter((f) => f <= T)));
+    expect(after.slice(0, before.length)).toEqual(before);
+    const shape = ({ path: p, timeout, every, lastHour, enabled, retry, offset }) => ({ path: p, timeout, every, lastHour, enabled, retry, offset });
+    expect(after.slice(before.length).map(shape)).toEqual([
+      { path: 'agents?action=mm', timeout: 30000, every: 1, lastHour: 23, enabled: true, retry: true, offset: 12 },
+    ]);
+    expect(after.at(-1).activeFrom).toBe('written + 15 minutes');
+    // Its second is no other row's, and its whole timeout ends inside its minute.
+    expect(before.filter((r) => (r.offset ?? 0) === 12)).toEqual([]);
+    expect(12 * 1000 + after.at(-1).timeout).toBeLessThan(60000);
+    expect(beatKeyOfPath(after.at(-1).path)).toBe('agents?action=mm');
+    const src = fs.readFileSync(path.join(ROOT, 'supabase/functions/agents/index.ts'), 'utf8');
+    expect(src).toContain('if (action === "mm" && req.method === "POST" && operator) return json(200, await runMmAction());');
+    // The calls that read Revolut X's public endpoints start their reads at other seconds.
+    const fn = (f) => fs.readFileSync(path.join(ROOT, 'supabase/functions/agents', f), 'utf8');
+    expect(fn('index.ts')).toContain('export const QUOTES_START_MS = 25e3;');
+    expect(fn('books.ts')).toContain('export const BOOKS_START_MS = 40e3;');
+    expect(fn('mm_paper.ts')).toContain('export const MM_LAG_MINUTES = 2;');
+    const jobsBefore = cronJobs(FILES.filter((f) => f < T)), jobsAfter = cronJobs(FILES.filter((f) => f <= T));
+    expect([...jobsAfter.keys()].filter((n) => !jobsBefore.has(n))).toEqual(['mm-prune']);
+    const prune = jobsAfter.get('mm-prune');
+    expect(norm(prune.command)).toBe("delete from public.agent_mm_inputs where minute < now() - interval '45 days'; delete from public.agent_mm_prints where ts < now() - interval '120 days';");
+    expect(Number(prune.schedule.split(' ')[0]) % 5).not.toBe(0);
+    expect([...jobsBefore.values()].some((j) => j.schedule === prune.schedule)).toBe(false);
+    expect(httpJobs(jobsAfter).map(([n]) => n)).toEqual(['edge-calls-every-minute']);
+    for (const [n, j] of jobsBefore) expect([n, jobsAfter.get(n)]).toEqual([n, j]);
+    const sql = fs.readFileSync(path.join(DIR, T), 'utf8').replace(/--[^\n]*/g, '');
+    expect(count(sql, "check (book in ('XRP-GBP'))")).toBe(2);
+    expect(count(sql, "check (arm in ('p600', 'p120', 'p1200'))")).toBe(3);   // the minutes, fills and trips
+    for (const t of ['agent_mm_inputs', 'agent_mm_prints', 'agent_mm_state', 'agent_mm_minutes', 'agent_mm_fills', 'agent_mm_trips']) {
+      expect(sql).toMatch(new RegExp(`alter table public\\.${t} +enable row level security;`));
+    }
+    expect(sql).not.toMatch(/\bgrant\b|create policy/i);
+    expect(sql).not.toMatch(/agent_quote_live|agent_quote_twin|cb_live|agent_quote_rxu|agent_xhedge/);
+    expect(sql).toContain("insert into public.agent_locks (name) values ('mm') on conflict (name) do nothing;");
+  });
+
   // GBP/USD and EUR/USD at second resolution beside Yahoo (Davies, 2026-10-29: "并行记录秒级汇率 并研究下最佳数据源并且要有fallback"):
   // one call a minute that answers at once and reads on under `waitUntil`, its beat first, every other row as it was, a prune.
   it("adds the second-level FX recorder as one call a minute (fx_ticks), its beat first, every other row as it was, and a prune of SQL alone", () => {

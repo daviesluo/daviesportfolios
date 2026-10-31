@@ -48070,3 +48070,23 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
   the failing batch was caught and the arms read the stored series. Every other batch upsert in the module was read: keys unique
   by construction (one row a book/source/minute, trade ids, a lease's id). Pin in `db.test.ts` (old code: the merge keeps the
   stray value, three rows sent, xhedge's duplicate stored).
+
+## LEDGER.md, archived 2026-10-31 (forty-seventh) — the 2026-10-31 03:31, 2026-10-31 04:20 UTC history sections, oldest first
+
+### [2026-10-31 03:31 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- Agents audit round 2, rebased on 0188 (cblive's watchdog retry on): the monitor's `cbLive` comment names it. Moved the 10-30
+  05:40, 05:55 sections to handover (fortieth).
+
+### [2026-10-31 04:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **N2: LIVE's surplus coin goes back to pounds for good** (sub-agent; commit, not pushed; Davies, ~03:55 UTC: "同意"). The
+  72-hour rebook ends 2026-11-01 22:30 UTC and was the only coin-to-pounds path. The drain (`drainOn`, `drainBase`,
+  `quotes_live.ts` step 6b″) runs from `QUOTE_LIVE_DRAIN_FROM` 2026-10-31 08:00 UTC (inside the rebook: no gap; move it to the
+  next whole hour if the push lands later) outside a rebook, on every instance with weights in force: when a live bid was
+  skipped for want of pounds and no ask of the book lacks coin, `planDrains`' sale (post-only, top of the asks, never under
+  fair, the asks' need + 2 % kept), cut to what the bids lack and 25 % of the capital a book a day; cancelled the turn an ask
+  lacks coin or no bid lacks pounds. The USDC/GBP executor has the same one-way limit (never rebooked) and the same fix; every
+  twin on these rules takes it through the shared code, no driver change. Deviation `reviews/2026-10-31-live-twin-take-drain-deviation.md`
+  (five pre-registrations' executor hash; their tests and `take_twin.test.js` read it); design addendum 10-31 04:00; reference
+  item 35. Pins in `quotes_live_instance.test.ts` (sale size/price/kept coin; none before the instant = the old rule, none with
+  bids funded or an ask short; withdrawn when pounds arrive; partial fill rests, asks keep resting). Moved the 10-30 18:30 and
+  10-31 01:10 sections to handover (forty-first).
