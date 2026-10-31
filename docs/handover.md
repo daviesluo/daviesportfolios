@@ -47797,3 +47797,27 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
   While 'paper', `cb_live_shadow` (14 days) logs per rung what 'self' would rest, the follower's want and what rested; SQL in
   design §10. Pins: `cb_live.test.ts` (fair and quotes minute for minute against the paper arm's run inside a closure,
   counterfactual without the nudge fails; the follower unchanged with the shadow on).
+
+## LEDGER.md, archived 2026-10-31 (thirty-fifth) — the 2026-10-30 01:05, 2026-10-30 01:20 UTC history sections, oldest first
+
+### [2026-10-30 01:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Coinbase rows renamed, "- 2" at $50, a per-coin line** (sub-agent; commit, not pushed; Davies, 00:40). TESTING's Coinbase rows:
+  "Stablecoin quotes USDC/GBP LIVE twin" (`coinbasenudge`, first; cb_live untouched), "with Euros - 1", "with Euros - 2" (`cb_hold`,
+  $50 a rung from its first minute ≥ 10-30 01:00, weekend prereg Deviation 7; usdc Dev 6, nudge Dev 5). "- 1"/"- 2" show each
+  book's and coin's realised a year under the scoreboard (`book_ratio.ts`, RX twins' reading). Same-name rows go by id and venue
+  (`site-check --venue`). No config or migration.
+
+### [2026-10-30 01:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **MMCOMP: who tightened Revolut X's GBP books, the £0.10 bot, what we could copy** (sub-agent; commit, not pushed; Davies,
+  10-30 ~00:50: "…有没有可能…有其他人像我们一样来做这种类似的策略…把这个盘口才给收紧了…小单的机器人是不是专门就是为了收割像我们这种做市的人…
+  我们能不能做类似的策略？coinbase等平台也一样"). `reviews/2026-10-30-revx-mm-competition.md`, `backtests/mmcomp/`. (1) Yes in
+  substance: the week of 08-24 (not September) an automated maker arrived on both GBP books (one-order ~5,000-coin levels;
+  whole-order prints 2 / 9 in the 47 / 37 weeks before, 5–24 a week after), a fixed width, 5 ticks to 10-12, 12 ticks from 10-13
+  on both books; flow did not grow, fees unchanged, LIVE five weeks later. We fill behind it. (2) The £0.10 bot (from 10-08, ~450
+  a day, sell-bid/buy-ask pairs every ~4.6 min, also on USDT-USD, ETH-GBP, BTC-GBP) pays the spread, carries no information
+  (markouts 0.00 bps); LIVE's fills after it no worse. (3) Paper candidates: a 0.05 % inner rung on LIVE's rules (tape +0.56 bps/day
+  P 0.013 through-only; FWD +0.10 to +0.56, +0.5 to +1.2 since 10-13) and resting inside the maker on Revolut X hedged on Coinbase
+  (RX 4.7–5.3 bps under CB; +6.3 to +10.3 bps a fill, 19/19 days, before transfers; needs Davies' check of Coinbase's taker fee,
+  Revolut X's withdrawal fee, two-venue inventory). FX lead-lag taker −6 to −10 bps: no. (4) Coinbase's and Kraken's GBP books
+  were one tick wide every week June → October (no August change: Revolut X's alone); Coinbase's touch holds ~15k-coin orders,
+  no room inside. Nothing live changes.

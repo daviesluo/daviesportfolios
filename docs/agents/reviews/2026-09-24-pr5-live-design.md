@@ -413,6 +413,41 @@ reading LIVE's record.
     `update public.agent_quote_live_config set take_mode = 'live', updated_at = now() where id = 1;`
   * **To watch on the first live take:** the IOC's partial fill, its fee in pounds, the exit a tick beyond fair, and no
     second IOC on the same rung while it holds.
+* 2026-10-31, the two risks the 10-30 read left unverified, run against the live executor's own take code
+  (`supabase/functions/agents/quotes_live_take_rules.test.ts`). Davies keeps `take_mode` 'shadow' ("按照你推荐的来").
+  The tests use LIVE's instance on a simulated account on Thursday 11-05, with every rule in force: USDT-GBP alone at
+  £100 a rung, the £1 line, the exit a tick beyond fair. No code changed and no config was touched.
+  1. **A partial fill under the £1 line: real, bounded, and the line's own rule. No fix.**
+     * A take IOC for the rung's £100 (132.64358 USDT at 0.7539) meets a read 0.6 coins deep. It fills 0.59946 after the
+       fee, which is under the line (1.3238 USDT).
+     * The rung counts as holding nothing. The next turn, with the book still through, sends the same full-size IOC
+       again. A third IOC against a deep read fills whole.
+     * So one opportunity gave 3 IOCs. There is never more than one in a turn, and each is sized at the rung's whole
+       pounds, not its remainder.
+     * The rung then carries 133.72 USDT: its 132.52 plus the partials' 1.20, over its pounds by less than the line. One
+       exit (0.7556) sells all of it. No fourth IOC follows while it holds, though the book stays through.
+     * Counterfactuals: a read 2 coins deep (over the line) gives one IOC and its exit. The same 0.6 partial without
+       `holdMin` is a holding, so one IOC.
+     * Shadow on the same reads sends nothing, sends every order exactly as 'off' does, and writes one `take_shadow` a
+       minute.
+     * Why no fix: this is the 10-29 holding line's rule ("under it the rung's entry keeps resting and its coin is carried
+       into the trip"). The maker entries and variant-2 (`take50`) run it the same way.
+     * The cost: each sub-£1 fill pays the venue's round-up to the penny (here 0.46 for 0.45234). It is pennies at most,
+       because the IOCs stop once the line is passed.
+     * If Davies wants a single IOC per opportunity, the change would be a rule change to variant-2's pre-registration as
+       well, made with his word and a deviation record. Two options: size a re-take to the rung's remainder, or take only
+       when the read's depth through the limit passes the line.
+  2. **A rebook's sale against the coin a take bought: not real. Pinned.**
+     * The setup: 420 USDT, a rebook running (its weights six hours old), and a 0.1 % bid take that buys 132.5242.
+     * The sale sells the 15.75471 surplus over the three asks and the 2 % buffer, at 0.7555. After 30 minutes it is
+       cancelled and the same turn sends 15.75471 again, with the take's coin in the account.
+     * The same sales go out without the take: `beyond` subtracts the longs and a sale is capped at `free`.
+     * The exit is the same order with the rebook on or off, so it is never starved.
+     * The open sells never offer more USDT than the account holds, checked on every one of the 35 turns.
+     * On 400 USDT the take lifts the account to 532.52 and nothing is sold.
+     * Counterfactual: with `beyond` not subtracting the longs, the test fails.
+  * **The next step: take stays 'shadow'** until the first take event under USDT-only reads clean against criteria
+    (a) to (d). Then Claude proposes the flip to Davies, with the statement above.
 
 ## Addendum (2026-10-28): the operator's conversion follows the bid
 
