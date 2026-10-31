@@ -47867,3 +47867,23 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
   each side's own re-price anchor (same fair, same price). `update cb_live_config set decide = 'self'` at 02:16:16; the 02:17 turn
   re-placed those two asks at self's prices, no error. Back: `set decide = 'paper'`. A (RX↔Coinbase hedge) goes to paper on
   Davies' word ("做成实时纸面测试加到testing里"); a5a02 builds it.
+## LEDGER.md, archived 2026-10-31 (thirty-eighth) — the 2026-10-30 02:55, 2026-10-30 03:05 UTC history sections, oldest first
+
+### [2026-10-30 02:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **"Stablecoin quotes RX↔Coinbase hedge" and "- 1", MMCOMP's A as a real-time paper test in two arms** (sub-agent; commit,
+  not pushed; Davies, 10-30 ~02:15: "…如果真的可以实现的话就做成实时纸面测试加到testing里…", ~02:35: "A 策略可以单独做吗…"). `agents/xhedge.ts`,
+  `0184`: USDT-GBP and USDC-GBP, each on two simulated accounts an arm (Revolut X, Coinbase; £600 a venue), one £100 order a
+  side, a tick inside Revolut X's touch (`inside`) or Coinbase's mid ∓ 10 bps never better than that touch (`behind`), capped
+  at Coinbase ± 2 bps, filled by recorded prints, hedged as a Coinbase taker at the first read ≥ fill + 30 s (0.45 bps); no
+  transfers: a side whose legs cannot carry a fill is off, its minutes counted by reason. One call `agents?action=xhedge`
+  (watchdog), starts at the first 00:00 UTC after its first run; two TESTING rows on Revolut X's card. Replay
+  (`scripts/xhedge_a2.py`): USDT-GBP £1.00/day inside, £0.46 behind. Frozen prereg `reviews/2026-10-30-xhedge-prereg.md` (28
+  days; each arm's USDT-GBP: sum > 0, P(mean ≤ 0) < 0.10, ≥ 300 / 100 fills). Nothing live.
+
+### [2026-10-30 03:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **MMCOMP-3: what LIVE and RX USDC/GBP can learn from the maker** (sub-agent; commit, not pushed; Davies, 10-30 ~02:25/02:40:
+  "那个做市商报价宽度是固定的…我们如何比他盈利更高…他的方法比我们目前的live方法更赚钱吗？"). `reviews/2026-10-30-mmcomp-3.md`, `mmcomp/scripts/inside.py`.
+  Width: 5 ticks to 10-12, 12 from 10-13, 5 again from 10-28 ~12:00, no 5,000-coin order since 10-29 21:16. Per pound LIVE
+  earns as much or more (replay 48-62 %/yr; maker ~31-35 % on what it shows). Of a-f only one helps: an order a tick inside
+  the maker while it is ≥ 10 ticks wide, in place of the 0.3 % rung: LIVE +3.2/+1.9 bps/day (P 0.0001), RXU +1.7 (P 0.12).
+  In-sample, one regime, now off: no twin built. Nothing live changes.

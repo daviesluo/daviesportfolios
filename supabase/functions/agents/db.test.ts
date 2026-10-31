@@ -1,5 +1,5 @@
 import { assert, assertEquals, assertThrows } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { assertPagedOrder, DB_ERROR_CHARS, dbErrorText, makeDb } from "./db.ts";
+import { assertPagedOrder, DB_ERROR_CHARS, dbErrorText, makeDb, PAGE_ROWS, PAGE_WAVE } from "./db.ts";
 import { isUniqueViolation } from "./tick.ts";
 
 // PostgREST's refusal as it arrives: `code, details, hint, message`, with `details` quoting the whole failing row.
@@ -60,4 +60,36 @@ Deno.test("a paged read names an order and ends it with the unique id: rows that
     () => { throw new Error("the real client must refuse it too"); },
     (e: Error) => assert(e.message.includes("unique id last"), e.message),
   );
+});
+
+// A paged read past its first page asks for the next pages together (2026-10-31 audit: LIVE's 10,443 orders were eleven
+// page reads one after another on every dashboard call, its slowest stage at 1.5 s), and still returns every row once, in
+// order, up to the first short page. A one-page read is still one request.
+Deno.test("selectAll: past the first page, pages go out PAGE_WAVE at a time and join in order; one page is one request", async () => {
+  const rows = (n: number) => Array.from({ length: n }, (_, i) => ({ id: i + 1 }));
+  const serve = (total: number) => {
+    const seen: number[] = [];
+    let inFlight = 0, most = 0;
+    const f = (async (url: string) => {
+      const u = new URL(url), offset = Number(u.searchParams.get("offset")), limit = Number(u.searchParams.get("limit"));
+      seen.push(offset);
+      inFlight++;
+      most = Math.max(most, inFlight);
+      await new Promise((r) => setTimeout(r, 5));
+      inFlight--;
+      return new Response(JSON.stringify(rows(total).slice(offset, offset + limit)));
+    }) as unknown as typeof fetch;
+    return { f, seen, most: () => most };
+  };
+  for (const total of [0, 1, 999, 1000, 1001, 4999, 5000, 10443]) {
+    const s = serve(total);
+    const got = await makeDb("https://db.example", "k", s.f).selectAll<{ id: number }>("agent_orders", "select=id&order=id.asc");
+    assertEquals(got.map((r) => r.id), rows(total).map((r) => r.id), `${total} rows`);
+    const pages = Math.floor(total / PAGE_ROWS) + 1; // the last page is the short (or empty) one
+    assert(s.seen.length >= pages && s.seen.length <= pages + PAGE_WAVE - 1, `${total} rows: ${s.seen.length} requests`);
+    if (total < PAGE_ROWS) assertEquals(s.seen, [0]);
+  }
+  const big = serve(10443);
+  await makeDb("https://db.example", "k", big.f).selectAll("agent_orders", "select=id&order=id.asc");
+  assertEquals(big.most(), PAGE_WAVE); // one after another before: never more than one in flight
 });

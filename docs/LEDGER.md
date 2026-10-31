@@ -804,7 +804,15 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 "LEDGER.md history, archived 2026-09-22" or "LEDGER.md, archived <date> (<n-th>)" that names the sections it holds, oldest
 first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 2026-10-29 01:24 UTC section (archived
 2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth), and the 2026-10-29 01:45, 2026-10-29 01:57 one(s) (thirteenth), the 2026-10-29 02:19 one(s) (fourteenth),
-and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 02:43, 2026-10-29 02:36, 2026-10-29 02:49, 2026-10-29 03:00, 2026-10-29 03:02, 2026-10-29 03:07, 2026-10-29 03:12 ones (sixteenth), and the 2026-10-29 03:24, 2026-10-29 03:30, 2026-10-29 03:39, 2026-10-29 03:41, 2026-10-29 03:49 ones (seventeenth), and the 2026-10-29 04:18, 2026-10-29 05:50 ones (eighteenth), and the 2026-10-29 06:05, 2026-10-29 06:30, 2026-10-29 06:41 ones (nineteenth), and the 2026-10-29 06:56, 2026-10-29 07:05, 2026-10-29 07:26, 2026-10-29 07:31 ones (twentieth), and the 2026-10-29 07:45, 2026-10-29 07:52, 2026-10-29 07:58 ones (twenty-first), and the 2026-10-29 08:10, 2026-10-29 08:25, 2026-10-29 09:05 ones (twenty-second), and the 2026-10-29 09:22, 2026-10-29 09:40, 2026-10-29 09:45, 2026-10-29 10:15 ones (twenty-third), and the 2026-10-29 17:10, 2026-10-29 18:20, 2026-10-29 18:33, 2026-10-29 18:43 ones (twenty-fourth), and the 2026-10-29 19:16, 2026-10-29 19:25, 2026-10-29 19:28, 2026-10-29 19:31 ones (twenty-fifth), and the 2026-10-29 19:50, 2026-10-29 19:55, 2026-10-29 20:00, 2026-10-29 20:15 ones (twenty-sixth), and the 2026-10-29 20:41, 2026-10-29 21:07 ones (twenty-seventh), and the 2026-10-29 21:30, 2026-10-29 22:10 ones (twenty-eighth), and the 2026-10-29 22:12, 2026-10-29 22:27 ones (twenty-ninth), and the 2026-10-29 22:40, 2026-10-29 22:43 ones (thirtieth), and the 2026-10-29 22:55, 2026-10-29 23:13 ones (thirty-first), and the 2026-10-29 23:24, 2026-10-29 23:30 ones (thirty-second), and the 2026-10-30 00:17, 2026-10-30 00:30 ones (thirty-third), and the 2026-10-30 00:35, 2026-10-30 00:57 ones (thirty-fourth), and the 2026-10-30 01:05, 2026-10-30 01:20 ones (thirty-fifth), and the 2026-10-30 01:45, 2026-10-30 01:48 ones (thirty-sixth), and the 2026-10-30 02:05, 2026-10-30 02:11, 2026-10-30 02:12, 2026-10-30 02:17 ones (thirty-seventh).
+and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 02:43, 2026-10-29 02:36, 2026-10-29 02:49, 2026-10-29 03:00, 2026-10-29 03:02, 2026-10-29 03:07, 2026-10-29 03:12 ones (sixteenth), and the 2026-10-29 03:24, 2026-10-29 03:30, 2026-10-29 03:39, 2026-10-29 03:41, 2026-10-29 03:49 ones (seventeenth), and the 2026-10-29 04:18, 2026-10-29 05:50 ones (eighteenth), and the 2026-10-29 06:05, 2026-10-29 06:30, 2026-10-29 06:41 ones (nineteenth), and the 2026-10-29 06:56, 2026-10-29 07:05, 2026-10-29 07:26, 2026-10-29 07:31 ones (twentieth), and the 2026-10-29 07:45, 2026-10-29 07:52, 2026-10-29 07:58 ones (twenty-first), and the 2026-10-29 08:10, 2026-10-29 08:25, 2026-10-29 09:05 ones (twenty-second), and the 2026-10-29 09:22, 2026-10-29 09:40, 2026-10-29 09:45, 2026-10-29 10:15 ones (twenty-third), and the 2026-10-29 17:10, 2026-10-29 18:20, 2026-10-29 18:33, 2026-10-29 18:43 ones (twenty-fourth), and the 2026-10-29 19:16, 2026-10-29 19:25, 2026-10-29 19:28, 2026-10-29 19:31 ones (twenty-fifth), and the 2026-10-29 19:50, 2026-10-29 19:55, 2026-10-29 20:00, 2026-10-29 20:15 ones (twenty-sixth), and the 2026-10-29 20:41, 2026-10-29 21:07 ones (twenty-seventh), and the 2026-10-29 21:30, 2026-10-29 22:10 ones (twenty-eighth), and the 2026-10-29 22:12, 2026-10-29 22:27 ones (twenty-ninth), and the 2026-10-29 22:40, 2026-10-29 22:43 ones (thirtieth), and the 2026-10-29 22:55, 2026-10-29 23:13 ones (thirty-first), and the 2026-10-29 23:24, 2026-10-29 23:30 ones (thirty-second), and the 2026-10-30 00:17, 2026-10-30 00:30 ones (thirty-third), and the 2026-10-30 00:35, 2026-10-30 00:57 ones (thirty-fourth), and the 2026-10-30 01:05, 2026-10-30 01:20 ones (thirty-fifth), and the 2026-10-30 01:45, 2026-10-30 01:48 ones (thirty-sixth), and the 2026-10-30 02:05, 2026-10-30 02:11, 2026-10-30 02:12, 2026-10-30 02:17 ones (thirty-seventh), and the 2026-10-30 02:55, 2026-10-30 03:05 ones (thirty-eighth).
+
+### [2026-10-31 02:49 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Agents module audit (sub-agent; commits, not pushed; Davies, 10-31: "…仔细深度全面审核下整个网站的agents…确保一切细节完美与最优").**
+  First fix: `selectAll` (`agents/db.ts`, every function's `makeDb`) read a big table's pages one after another; LIVE's
+  10,443 orders were eleven reads on every dashboard call (`quotesLive`, its slowest stage, 1,536 ms of `serverMs` 1,536).
+  Past the first page it now asks `PAGE_WAVE` (4) pages at once and joins them in order; a one-page read is still one request.
+  Pin in `db.test.ts` (counterfactual: the old loop never has more than one page in flight). No rule, no frozen file.
+  Moved the 02:55, 03:05 (10-30) sections to handover (thirty-eighth).
 
 ### [2026-10-31 02:16 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Coinbase USDC/GBP take shadow, records only** (sub-agent; commit, not pushed; Davies, 10-31 ~02:00: "Coinbase USDC/GBP也做好加开
@@ -926,22 +934,3 @@ and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 0
 ### [2026-10-30 03:50 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **RX↔Coinbase hedge rows on both venues** (sub-agent; not pushed; Davies, ~03:30): both badges, card "Revolut X + Coinbase";
   FUNDED/DEPLOYED/TODAY across both (`xhedge_page.ts`; the frozen `xhedge.ts` untouched).
-
-### [2026-10-30 03:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **MMCOMP-3: what LIVE and RX USDC/GBP can learn from the maker** (sub-agent; commit, not pushed; Davies, 10-30 ~02:25/02:40:
-  "那个做市商报价宽度是固定的…我们如何比他盈利更高…他的方法比我们目前的live方法更赚钱吗？"). `reviews/2026-10-30-mmcomp-3.md`, `mmcomp/scripts/inside.py`.
-  Width: 5 ticks to 10-12, 12 from 10-13, 5 again from 10-28 ~12:00, no 5,000-coin order since 10-29 21:16. Per pound LIVE
-  earns as much or more (replay 48-62 %/yr; maker ~31-35 % on what it shows). Of a-f only one helps: an order a tick inside
-  the maker while it is ≥ 10 ticks wide, in place of the 0.3 % rung: LIVE +3.2/+1.9 bps/day (P 0.0001), RXU +1.7 (P 0.12).
-  In-sample, one regime, now off: no twin built. Nothing live changes.
-
-### [2026-10-30 02:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **"Stablecoin quotes RX↔Coinbase hedge" and "- 1", MMCOMP's A as a real-time paper test in two arms** (sub-agent; commit,
-  not pushed; Davies, 10-30 ~02:15: "…如果真的可以实现的话就做成实时纸面测试加到testing里…", ~02:35: "A 策略可以单独做吗…"). `agents/xhedge.ts`,
-  `0184`: USDT-GBP and USDC-GBP, each on two simulated accounts an arm (Revolut X, Coinbase; £600 a venue), one £100 order a
-  side, a tick inside Revolut X's touch (`inside`) or Coinbase's mid ∓ 10 bps never better than that touch (`behind`), capped
-  at Coinbase ± 2 bps, filled by recorded prints, hedged as a Coinbase taker at the first read ≥ fill + 30 s (0.45 bps); no
-  transfers: a side whose legs cannot carry a fill is off, its minutes counted by reason. One call `agents?action=xhedge`
-  (watchdog), starts at the first 00:00 UTC after its first run; two TESTING rows on Revolut X's card. Replay
-  (`scripts/xhedge_a2.py`): USDT-GBP £1.00/day inside, £0.46 behind. Frozen prereg `reviews/2026-10-30-xhedge-prereg.md` (28
-  days; each arm's USDT-GBP: sum > 0, P(mean ≤ 0) < 0.10, ≥ 300 / 100 fills). Nothing live.

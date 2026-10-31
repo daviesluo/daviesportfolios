@@ -117,6 +117,8 @@ export function dbErrorText(body: string, max = DB_ERROR_CHARS): string {
 
 /** PostgREST's page: Supabase's `max-rows` default, and the page size `selectAll` asks for. */
 export const PAGE_ROWS = 1000;
+/** How many pages past the first `selectAll` asks for at once (`makeDb`): at most this many minus one are read past the end. */
+export const PAGE_WAVE = 4;
 
 export function makeDb(supabaseUrl: string, serviceKey: string, fetchImpl: typeof fetch = fetch, timeoutMs = 8_000): Db {
   const headers = { apikey: serviceKey, Authorization: `Bearer ${serviceKey}`, "Content-Type": "application/json" };
@@ -141,11 +143,19 @@ export function makeDb(supabaseUrl: string, serviceKey: string, fetchImpl: typeo
     claim: (table, query, patch) => call("PATCH", `${table}?${query}`, patch, { Prefer: "return=representation" }),
     selectAll: async (table, query) => {
       assertPagedOrder(table, query);
+      const page = (offset: number) => call("GET", `${table}?${query}&limit=${PAGE_ROWS}&offset=${offset}`) as Promise<unknown[]>;
+      // The first page alone: almost every paged read is one page, and it costs one request as before. Past it, the next
+      // pages go out PAGE_WAVE at a time and are joined in order, up to the first short one (2026-10-31 audit: LIVE's
+      // 10,443 orders were eleven page reads one after another on every dashboard call, its slowest stage at 1.5 s).
       const out: unknown[] = [];
-      for (let offset = 0; ; offset += PAGE_ROWS) {
-        const page = await call("GET", `${table}?${query}&limit=${PAGE_ROWS}&offset=${offset}`) as unknown[];
-        out.push(...page);
-        if (page.length < PAGE_ROWS) break;
+      const first = await page(0);
+      out.push(...first);
+      for (let offset = PAGE_ROWS, done = first.length < PAGE_ROWS; !done; offset += PAGE_WAVE * PAGE_ROWS) {
+        const wave = await Promise.all(Array.from({ length: PAGE_WAVE }, (_, i) => page(offset + i * PAGE_ROWS)));
+        for (const p of wave) {
+          out.push(...p);
+          if (p.length < PAGE_ROWS) { done = true; break; }
+        }
       }
       // deno-lint-ignore no-explicit-any
       return out as any;
