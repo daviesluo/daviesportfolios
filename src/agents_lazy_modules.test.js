@@ -38,7 +38,7 @@ const valueImports = [];
 const decls = new Map();
 for (const st of sf.statements) {
   if (ts.isImportDeclaration(st) && st.importClause) {
-    const ic = st.importClause, mod = st.moduleSpecifier.text;
+    const ic = st.importClause, mod = /** @type {import('typescript').StringLiteral} */ (st.moduleSpecifier).text;
     if (ic.isTypeOnly && ic.namedBindings && ts.isNamespaceImport(ic.namedBindings)) nsModule.set(ic.namedBindings.name.text, mod);
     else if (!ic.isTypeOnly) valueImports.push(mod);
   }
@@ -62,7 +62,7 @@ function modulesOf(start) {
     if (seen.has(n)) continue;
     seen.add(n);
     if (lazyName.has(n)) mods.add(lazyName.get(n));
-    if (declRefs.has(n)) todo.push(...declRefs.get(n));
+    if (declRefs.has(n)) todo.push(.../** @type {Set<string>} */ (declRefs.get(n)));
   }
   return mods;
 }
