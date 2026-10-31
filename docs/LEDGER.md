@@ -273,8 +273,8 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      20:28:27, all cancelled by 20:29:26 with 0 filled. Re-set to 'live' at 21:06:04, outside the closure (PR5's
      minute 21:04); first trading Fri 10-23 21:00. Take shadow read 10-23 18:05 (five weekdays): 0 events, not a fail,
      'shadow' kept (the addendum's log). Read again 10-30 18:00: 47 events, 2 opportunities, (a)–(d) pass. Davies 10-31: stays
-     'shadow'; TAKE-DEPTH from 10-31 04:00 (no take through £1 of coin or less); no take inside an FX closure (10-31). Next: the first USDT-only take event, read against
-     (a)–(d), then Claude proposes the flip.
+     'shadow'; TAKE-DEPTH from 10-31 04:00 (no take through £1 of coin or less); no take inside an FX closure (10-31). LIVE 'live' since 10-31 02:10:43 on Davies' word ("RX USDT/GBP上"); RXU 'shadow'. Next:
+     read the first live take (fill, fee, exit) against (a)–(d).
      **Review 10-26** (`reviews/2026-10-26-stablecoin-quotes-review.md`): "+64.9 %" right but realised-only, half one weekend.
      **LIVE at £600 since 2026-10-27 03:09 UTC** (Davies; §8): his two maker conversions for the asks' coin. Since 10-28 an operator's
      conversion left under the bid goes again at the top for its remainder (history 10-28 19:48). `0144`:
@@ -805,6 +805,11 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 2026-10-29 01:24 UTC section (archived
 2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth), and the 2026-10-29 01:45, 2026-10-29 01:57 one(s) (thirteenth), the 2026-10-29 02:19 one(s) (fourteenth),
 and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 02:43, 2026-10-29 02:36, 2026-10-29 02:49, 2026-10-29 03:00, 2026-10-29 03:02, 2026-10-29 03:07, 2026-10-29 03:12 ones (sixteenth), and the 2026-10-29 03:24, 2026-10-29 03:30, 2026-10-29 03:39, 2026-10-29 03:41, 2026-10-29 03:49 ones (seventeenth), and the 2026-10-29 04:18, 2026-10-29 05:50 ones (eighteenth), and the 2026-10-29 06:05, 2026-10-29 06:30, 2026-10-29 06:41 ones (nineteenth), and the 2026-10-29 06:56, 2026-10-29 07:05, 2026-10-29 07:26, 2026-10-29 07:31 ones (twentieth), and the 2026-10-29 07:45, 2026-10-29 07:52, 2026-10-29 07:58 ones (twenty-first), and the 2026-10-29 08:10, 2026-10-29 08:25, 2026-10-29 09:05 ones (twenty-second), and the 2026-10-29 09:22, 2026-10-29 09:40, 2026-10-29 09:45, 2026-10-29 10:15 ones (twenty-third), and the 2026-10-29 17:10, 2026-10-29 18:20, 2026-10-29 18:33, 2026-10-29 18:43 ones (twenty-fourth), and the 2026-10-29 19:16, 2026-10-29 19:25, 2026-10-29 19:28, 2026-10-29 19:31 ones (twenty-fifth), and the 2026-10-29 19:50, 2026-10-29 19:55, 2026-10-29 20:00, 2026-10-29 20:15 ones (twenty-sixth), and the 2026-10-29 20:41, 2026-10-29 21:07 ones (twenty-seventh), and the 2026-10-29 21:30, 2026-10-29 22:10 ones (twenty-eighth), and the 2026-10-29 22:12, 2026-10-29 22:27 ones (twenty-ninth), and the 2026-10-29 22:40, 2026-10-29 22:43 ones (thirtieth), and the 2026-10-29 22:55, 2026-10-29 23:13 ones (thirty-first), and the 2026-10-29 23:24, 2026-10-29 23:30 ones (thirty-second), and the 2026-10-30 00:17, 2026-10-30 00:30 ones (thirty-third), and the 2026-10-30 00:35, 2026-10-30 00:57 ones (thirty-fourth), and the 2026-10-30 01:05, 2026-10-30 01:20 ones (thirty-fifth), and the 2026-10-30 01:45, 2026-10-30 01:48 ones (thirty-sixth), and the 2026-10-30 02:05, 2026-10-30 02:11, 2026-10-30 02:12, 2026-10-30 02:17 ones (thirty-seventh).
+
+### [2026-10-31 02:11 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **LIVE's take is 'live' since 02:10:43 UTC** (Davies: "RX USDT/GBP上"), after the closure guard deployed (7b3d28cd, 02:09);
+  RXU's take 'shadow' since 02:00:12. Undo: LIVE 'shadow', RXU 'off'. First possible live take: Sun 11-01 21:00 UTC. The live
+  design's addendum of 2026-10-31 has both statements. Coinbase take shadow: a sub-agent is building it.
 
 ### [2026-10-31 02:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **No take inside an FX closure, at once** (sub-agent; commit, not pushed). With `weekend_mode` 'live' a closure minute is the

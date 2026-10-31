@@ -555,3 +555,19 @@ one tick inside it (`exitTicksOnBook`, this design's addendum of 2026-10-28). Be
 executor's comparison runs as before. Every twin on LIVE's rules takes it at the same minute (`0181`); the deviation of the
 pre-registrations is `reviews/2026-10-29-live-exit-tick-deviation.md`. Undo: a commit setting `exitOffset` back off the live
 instance (no database switch holds it).
+
+## Addendum (2026-10-31, 02:10): the take goes live; the USDC/GBP executor's take in shadow
+
+Davies, 2026-10-31 ~02:00 UTC: "RX USDT/GBP上 / RX USDC/GBP开 shadow" (after the evidence: variant-2's 14 filled takes, all USDT-GBP
+on weekdays, +£1.17 against fair after the fee at £50 a rung; LIVE's shadow 47 rows, 2 opportunities, all USDT-GBP; no USDC-GBP take
+ever, in either, while both books were quoted). With TAKE-DEPTH (`reviews/2026-10-31-take-depth-deviation.md`, from 04:00 UTC) and
+no take inside an FX closure (`reviews/2026-10-31-take-closure-deviation.md`, deployed 02:09 UTC) in place:
+
+```sql
+update public.agent_quote_rxu_config set take_mode = 'shadow', updated_at = now() where id = 1;   -- 02:00:12 UTC
+update public.agent_quote_live_config set take_mode = 'live', updated_at = now() where id = 1;    -- 02:10:43 UTC
+```
+
+Undo: `take_mode = 'shadow'` on LIVE, `'off'` on the USDC/GBP executor. The first live take can come only after the closure ends,
+Sunday 2026-11-01 21:00 UTC. Coinbase's executor has no take; its shadow is being built (records only, `take_mode` 'off'|'shadow').
+
