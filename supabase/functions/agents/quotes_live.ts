@@ -38,7 +38,9 @@
 //
 // ITS HARD LIMITS, each enforced here and pinned in quotes_live.test.ts:
 //   * The order governor, on its own POSTs in a UTC day. At 900 the entry quotes are withdrawn, which costs DELETEs only,
-//     and exits and stops go on. At 950 nothing is placed but the 24-hour stops.
+//     and exits and stops go on. At 950 nothing is placed but the 24-hour stops. Those are every twin's levels; the two
+//     Revolut X executors, on sub-accounts the venue's 1,000 a day does not bind, have 5,000 and 5,500 since 2026-10-31
+//     (`QuoteLiveInstance.governor`, QUOTE_LIVE_SUBACCOUNT_GOVERNOR), and at most QUOTE_LIVE_MINUTE_POSTS in any minute.
 //   * A refused exit waits as the rule's own refused order waits: it is sent again only once the paper engine holds a
 //     newer print than it held at the refusal, and that print is not through the exit's price.
 //   * The daily loss stop. At −1 % of capital, realised today plus marked, there are no entries for the rest of the UTC day.
@@ -105,6 +107,18 @@ export type QuoteLiveInstance = {
    * the live account, whatever the rung; a conversion (no rung side) counts against its book's ask key.
    */
   govKey: (book: QuoteBook, rungSide: Side | null) => string;
+  /**
+   * Its order governor (`governorLevel`): entries withdrawn from `entryPosts` POSTs a UTC day on a key, nothing but the 24-hour
+   * stops from `stopsOnlyPosts`. QUOTE_LIVE_GOVERNOR (900 / 950, the venue's 1,000 orders a day on a main account) when left
+   * out, every twin's. The two Revolut X executors trade sub-accounts, which that limit does not bind (QUOTE_LIVE_SUBACCOUNT_GOVERNOR).
+   */
+  governor?: Governor;
+  /**
+   * At most this many POSTs in any 60 s of the instance (`minuteRoom`), counted from its rows and this turn's sends: an order
+   * past it is not written and not sent this turn. The venue takes 1,000 a minute; the gap between POSTs
+   * (QUOTE_LIVE_POST_GAP_MS) keeps a second under its 10. None when left out, every twin's.
+   */
+  minutePosts?: number;
   /**
    * TAKE (docs/agents/reviews/2026-10-03-take-prereg.md), from `from` (ms): before a rung's paper entry, a taker IOC when
    * the recorded book rests through the rung by its fee (`takeTriggered`). The live account's instance has none.
@@ -251,10 +265,26 @@ export const QUOTE_LIVE_REBOOK_SINCE = Date.parse("2026-10-29T22:30:00Z");   // 
  * 30 minutes at the book as it stands; three days leave room for a slow book and a weekend's thin one.
  */
 export const QUOTE_LIVE_REBOOK_MS = 72 * H;
+/** A governor's two levels, POSTs a UTC day on a key (`QuoteLiveInstance.governor`). */
+export type Governor = { entryPosts: number; stopsOnlyPosts: number };
+/**
+ * The two Revolut X executors' governor since 2026-10-31 (Davies, ~10:00 UTC: "那先把这两个live策略的的单日下单数量限制取消掉吧";
+ * ~10:05: "这两个都是sub accounts"). Revolut X's developer docs say its 1,000 orders a day "does not apply to sub-accounts", and
+ * both keys trade sub-accounts (`_2` LIVE's, `REVX_KEY_NAMES.revx` the USDC/GBP executor's), so this is no quota but a guard
+ * against a fault that sends orders in a loop. LIVE's POSTs by UTC day, read from its rows on 2026-10-31: 950 on 10-07 (the old
+ * governor's stops-only level, reached in that day's database stall), 693 on 10-15, 656 on 10-29 (the rebook's); the USDC/GBP
+ * executor's most, 150. So 5,000 is over five times any day's and binds no working turn. Stops-only 500 later, as 50 was at 950. The venue's rate limits
+ * still bound it (place 10 a second, 1,000 a minute, at most 300 active orders an account), and so do this executor's own:
+ * QUOTE_LIVE_POST_GAP_MS between POSTs and QUOTE_LIVE_MINUTE_POSTS in any minute.
+ */
+export const QUOTE_LIVE_SUBACCOUNT_GOVERNOR: Governor = { entryPosts: 5_000, stopsOnlyPosts: 5_500 };
+/** The most POSTs the two Revolut X executors send in any 60 s (`QuoteLiveInstance.minutePosts`): 600, under the venue's 1,000. */
+export const QUOTE_LIVE_MINUTE_POSTS = 600;
 /** The live account: PR5's own sub-account, the paper engine's own state, three rungs, one key. */
 export const QUOTE_LIVE_INSTANCE: QuoteLiveInstance = {
   config: "agent_quote_live_config", orders: "agent_quote_live_orders", events: "agent_quote_live_events", state: "agent_quote_live_state",
   migration: "0052", paper: "agent_quote_state", lease: "quotes-live", rungs: QUOTE_RUNGS, exitReprice: QUOTE_REPRICE, govKey: () => "account",
+  governor: QUOTE_LIVE_SUBACCOUNT_GOVERNOR, minutePosts: QUOTE_LIVE_MINUTE_POSTS,
   liveSwitches: { wkPaper: "agent_quote_live_wkpaper" },
   convertRepeg: { from: Date.parse("2026-10-28T00:00:00Z") },
   holdMin: { from: QUOTE_LIVE_HOLD_MIN_FROM, gbp: 1 },
@@ -274,6 +304,7 @@ export const QUOTE_LIVE_INSTANCE: QuoteLiveInstance = {
 export const QUOTE_RXU_INSTANCE: QuoteLiveInstance = {
   config: "agent_quote_rxu_config", orders: "agent_quote_rxu_orders", events: "agent_quote_rxu_events", state: "agent_quote_rxu_state",
   migration: "0180", paper: "agent_quote_state", lease: "quotes-live-rxu", rungs: QUOTE_RUNGS, exitReprice: QUOTE_REPRICE, govKey: () => "account",
+  governor: QUOTE_LIVE_SUBACCOUNT_GOVERNOR, minutePosts: QUOTE_LIVE_MINUTE_POSTS,
   liveSwitches: { wkPaper: "agent_quote_live_wkpaper" },
   holdMin: { from: 0, gbp: 1 },
   weights: { from: 0, book: { "USDC-GBP": 1, "USDT-GBP": 0 }, k: { "0.003": 0 } },
@@ -313,6 +344,10 @@ const rungsWord = (rungs: readonly number[]) => (rungs.length === 3 ? "three" : 
  */
 export const QUOTE_LIVE_ENTRY_POSTS = 900;          // from here, no entry quotes: the resting ones are withdrawn
 export const QUOTE_LIVE_STOPS_ONLY_POSTS = 950;     // from here, nothing but the 24-hour stops
+/** The governor every instance has unless it names its own: every twin's. */
+export const QUOTE_LIVE_GOVERNOR: Governor = { entryPosts: QUOTE_LIVE_ENTRY_POSTS, stopsOnlyPosts: QUOTE_LIVE_STOPS_ONLY_POSTS };
+/** An instance's governor: its own, or QUOTE_LIVE_GOVERNOR. */
+export const governorOf = (inst: QuoteLiveInstance): Governor => inst.governor ?? QUOTE_LIVE_GOVERNOR;
 export const QUOTE_LIVE_LOSS_FRACTION = 0.01;       // the daily loss stop: 1 % of capital, realised today plus marked
 export const QUOTE_LIVE_DEPEG = 0.005;              // 50 bps: the quotes sit 10–30 bps from fair, so a 50 bps gap means fair is stale
 export const QUOTE_LIVE_USD_STALE_MS = 2 * H;       // the USD book's newest hour may have ended at most this long before the minute
@@ -967,8 +1002,16 @@ export function takeDeep(now: number, depth: number, line: number): boolean {
 }
 
 /** The governor's level for a count of today's POSTs. */
-export function governorLevel(postsToday: number): "all" | "no-entries" | "stops-only" {
-  return postsToday >= QUOTE_LIVE_STOPS_ONLY_POSTS ? "stops-only" : postsToday >= QUOTE_LIVE_ENTRY_POSTS ? "no-entries" : "all";
+export function governorLevel(postsToday: number, gov: Governor = QUOTE_LIVE_GOVERNOR): "all" | "no-entries" | "stops-only" {
+  return postsToday >= gov.stopsOnlyPosts ? "stops-only" : postsToday >= gov.entryPosts ? "no-entries" : "all";
+}
+/**
+ * How many more POSTs fit the instance's minute (`QuoteLiveInstance.minutePosts`) at `now`, given when its recent POSTs went out
+ * (each POST once: a 429's resend is a second): Infinity for an instance with no such limit.
+ */
+export function minuteRoom(inst: QuoteLiveInstance, sentAt: readonly number[], now: number): number {
+  if (inst.minutePosts == null) return Infinity;
+  return inst.minutePosts - sentAt.filter((t) => t > now - M && t <= now).length;
 }
 
 /** Is a holding past the rule's 24 hours? */
@@ -1100,6 +1143,10 @@ type Ctx = {
   posts: Record<LiveMode, number>;
   /** Each governed key's POSTs today, by mode (`QuoteLiveInstance.govKey`): the live account's one key is every POST. */
   keyPosts: Record<LiveMode, Record<string, number>>;
+  /** When the instance's live POSTs of the last minute went out, this turn's appended as they go (`minuteRoom`). */
+  sentAt?: number[];
+  /** The turn's clock, for `sentAt`. */
+  clock?: () => number;
 };
 
 /** The POSTs a rung's key has sent today: the governor's count for that rung. */
@@ -1138,6 +1185,11 @@ async function placeOrder(ctx: Ctx, o: {
   const { d, report } = ctx;
   const label = o.rungSide ? rungLabel(o.book, o.rungSide, o.k!) : `${o.book}|convert`;
   const price = (o.ticks * QUOTE_TICK).toFixed(4);
+  // The instance's minute (`minutePosts`): a POST past it, and the 429's resend it might need, wait for the next turn.
+  if (o.mode === "live" && ctx.sentAt && minuteRoom(ctx.inst, ctx.sentAt, (ctx.clock ?? (() => d.now))()) < 2) {
+    report.errors.push(`${label}: ${ctx.inst.minutePosts} POSTs in the last minute, the instance's most; nothing placed, the next turn tries again`);
+    return null;
+  }
   const seen = await ctx.bookSeen(o.book);
   const crosses = o.marketable ? null : crossesBook(o.side, Number(price), seen);
   if (crosses && o.skipIfCrossing) {
@@ -1171,6 +1223,7 @@ async function placeOrder(ctx: Ctx, o: {
   }
   ctx.posts[o.mode]++;
   countKey(ctx, o.mode, o.book, o.rungSide);
+  if (o.mode === "live") ctx.sentAt?.push((ctx.clock ?? (() => d.now))());
   if (o.mode === "dry_run") {
     // Nothing is sent, and the book it met says the venue would have taken it.
     await patchRow(ctx, row, { state: "new", response: { dryRun: true, wouldBeRefused: crosses == null ? null : false } });
@@ -1188,7 +1241,7 @@ async function placeOrder(ctx: Ctx, o: {
     // A 429 is the rate limit turning the order away before the book saw it: the same order, same client id, once more.
     // It is a second POST, and the governor counts it as one (A4).
     if (!placed.ok && placed.status === 429) {
-      retriedAfter429 = true; ctx.posts[o.mode]++; countKey(ctx, o.mode, o.book, o.rungSide);
+      retriedAfter429 = true; ctx.posts[o.mode]++; countKey(ctx, o.mode, o.book, o.rungSide); ctx.sentAt?.push((ctx.clock ?? (() => d.now))());
       await ctx.pause(QUOTE_LIVE_429_WAIT_MS); placed = await send();
     }
   } catch (e) {
@@ -1347,9 +1400,12 @@ type RungNow = {
 async function turn(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLiveInstance): Promise<void> {
   const nowIso = iso(d.now), nowMinute = minuteOf(d.now), dayStart = Math.floor(d.now / DAY) * DAY;
   const h = makeCtxHelpers(d, report, inst);
-  const ctx: Ctx = { d, report, nowIso, inst, holdLease: h.holdLease, bookSeen: h.bookSeen, posts: report.posts, keyPosts: { dry_run: {}, live: {} }, pacePost: h.pacePost, pause: h.pause };
+  const ctx: Ctx = {
+    d, report, nowIso, inst, holdLease: h.holdLease, bookSeen: h.bookSeen, posts: report.posts, keyPosts: { dry_run: {}, live: {} }, pacePost: h.pacePost, pause: h.pause,
+    ...(inst.minutePosts != null ? { sentAt: [], clock: h.clock } : {}),
+  };
   /** The governor's level for a rung's key (`QuoteLiveInstance.govKey`): the live account's is every POST of the mode. */
-  const levelOf = (mode: LiveMode, book: QuoteBook, rungSide: Side | null) => governorLevel(keyCount(ctx, mode, book, rungSide));
+  const levelOf = (mode: LiveMode, book: QuoteBook, rungSide: Side | null) => governorLevel(keyCount(ctx, mode, book, rungSide), governorOf(inst));
   const multiKey = isMultiKey(inst);
 
   let cfg: LiveConfig | undefined;
@@ -1576,6 +1632,8 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLiveIn
   const recent = await d.db.selectAll<Pick<LiveOrderRow, "id" | "ts" | "mode" | "book" | "rung_side" | "k" | "leg" | "state" | "paper_oid" | "paper_live" | "response">>(
     inst.orders, `ts=gte.${enc(iso(d.now - 25 * H))}&select=id,ts,mode,book,rung_side,k,leg,state,paper_oid,paper_live,response&order=id.asc`);
   for (const r of recent) {
+    // The instance's last minute (`minutePosts`): each live POST at its row's time, a 429's resend as a second.
+    if (inst.minutePosts != null && r.mode === "live" && Date.parse(r.ts) > d.now - M) for (let n = postsOf(r); n > 0; n--) ctx.sentAt!.push(Date.parse(r.ts));
     if (Date.parse(r.ts) < dayStart) continue;
     for (let n = postsOf(r); n > 0; n--) { report.posts[r.mode]++; countKey(ctx, r.mode, r.book, r.rung_side); }
   }
@@ -2174,9 +2232,9 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLiveIn
       id: 1, updated_at: nowIso, last_error: report.errors.length ? report.errors.join(" | ").slice(0, 500) : null,
       state: {
         at: nowIso, minute: report.minute, entryBook: entry.book, why: entry.why, dryRun: cfg.dry_run, armed: !!cfg.live_confirmed_at, account: !!acct,
-        guards: report.guards, posts: report.posts, governor: { dry_run: governorLevel(report.posts.dry_run), live: governorLevel(report.posts.live) },
+        guards: report.guards, posts: report.posts, governor: { dry_run: governorLevel(report.posts.dry_run, governorOf(inst)), live: governorLevel(report.posts.live, governorOf(inst)) },
         // An instance with several keys (rule D's four, a book and a side each) also keeps each key's count and level.
-        ...(multiKey ? { keyPosts: ctx.keyPosts, keyGovernor: Object.fromEntries(Object.entries(ctx.keyPosts.live).map(([k, n]) => [k, governorLevel(n)])) } : {}),
+        ...(multiKey ? { keyPosts: ctx.keyPosts, keyGovernor: Object.fromEntries(Object.entries(ctx.keyPosts.live).map(([k, n]) => [k, governorLevel(n, governorOf(inst))])) } : {}),
         dayPnlGbp: report.dayPnlGbp, lossStopped, balances: bal, capitalGbp: capital,
         // The venue's own available and on-hold amounts, for the LIVE page (`venueBalancesOf`), when this turn read them.
         ...(bal && acct?.balanceDetail ? { venueBalances: venueBalancesOf(nowIso, acct.balanceDetail()) } : {}),
@@ -2278,7 +2336,7 @@ export async function runQuotesConvert(d: QuoteLiveDeps, body: unknown): Promise
     `mode=eq.live&ts=gte.${enc(iso(Math.floor(d.now / DAY) * DAY))}&select=id,response${multiKey ? ",book,rung_side" : ""}&order=id.asc`))
     .filter(wasSent).filter((r) => !multiKey || inst.govKey(r.book!, r.rung_side ?? null) === convKey);
   const postsToday = today.reduce((a, r) => a + postsOf(r), 0);
-  if (governorLevel(postsToday) !== "all") return { error: `the governor has closed entries: ${postsToday} POSTs today` };
+  if (governorLevel(postsToday, governorOf(inst)) !== "all") return { error: `the governor has closed entries: ${postsToday} POSTs today` };
   const order = {
     book, side: "buy", base, limit: price.toFixed(4), timeInForce: taker ? "ioc" : "gtc", postOnly: !taker, fair, bestBid: seen.bestBid, bestAsk: seen.bestAsk,
     coinBeyondLongs: beyond, asksNeed,

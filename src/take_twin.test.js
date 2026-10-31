@@ -86,11 +86,28 @@ describe("the drain for good and LIVE's twin taking as LIVE (2026-10-31, N1/N2),
     const s = dev.indexOf('### `docs/agents/reviews/2026-10-03-take-prereg.md`'), rest = dev.slice(s + 1), e = rest.search(/\n##/);
     const named = [...rest.slice(0, e < 0 ? undefined : e).matchAll(/\| `supabase\/functions\/agents\/quotes_live\.ts` \| ([0-9a-f]{64}) \|/g)].map((m) => m[1]);
     expect(s).toBeGreaterThan(0);
-    expect(named).toEqual([sha(live)]);
+    expect(named).toEqual(['99e6d8ef2d992434265b36219d4931f423a544129c87862d76af4348cc3cd1b2']);
     expect(dev).toContain('"同意"');
     expect(dev).toContain('the executor was `e70a8dd4733df4911bbac39c1767d0827f92e743599c27ac6adf336934277dd9` before this change');
     const src = read(live).toString('utf8');
     expect(src).toContain('export const QUOTE_LIVE_DRAIN_FROM = Date.parse("2026-10-31T08:00:00Z");');
     expect(src).toContain('!rebookOn(inst, now)');
+  });
+});
+
+describe("the sub-accounts' governor (2026-10-31), recorded apart", () => {
+  it("names the executor as it is under the take pre-registration's heading, quotes Davies, and take50 keeps 900 / 950", () => {
+    const dev = read('docs/agents/reviews/2026-10-31-subaccount-governor-deviation.md').toString('utf8');
+    const live = 'supabase/functions/agents/quotes_live.ts';
+    const s = dev.indexOf('### `docs/agents/reviews/2026-10-03-take-prereg.md`'), rest = dev.slice(s + 1), e = rest.search(/\n##/);
+    const named = [...rest.slice(0, e < 0 ? undefined : e).matchAll(/\| `supabase\/functions\/agents\/quotes_live\.ts` \| ([0-9a-f]{64}) \|/g)].map((m) => m[1]);
+    expect(s).toBeGreaterThan(0);
+    expect(named).toEqual([sha(live)]);
+    expect(dev).toContain('"那先把这两个live策略的的单日下单数量限制取消掉吧"');
+    expect(dev).toContain('"这两个都是sub accounts"');
+    expect(dev).toContain('the executor was `99e6d8ef2d992434265b36219d4931f423a544129c87862d76af4348cc3cd1b2` before this change');
+    const src = read(live).toString('utf8');
+    expect(src).toContain('export const QUOTE_LIVE_SUBACCOUNT_GOVERNOR: Governor = { entryPosts: 5_000, stopsOnlyPosts: 5_500 };');
+    expect(src).toContain('export const governorOf = (inst: QuoteLiveInstance): Governor => inst.governor ?? QUOTE_LIVE_GOVERNOR;');
   });
 });

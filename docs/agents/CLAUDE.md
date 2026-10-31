@@ -429,7 +429,9 @@ that follow from that evidence, in short:
   `_2`, capital £120, £10 a rung; £600, £50 a rung, since 2026-10-27 03:09 UTC; `0146`'s compounding of what it realises is built and OFF, Davies' switch) it carries out the paper engine's
   decisions order for order, at the paper's prices, under the design's
   limits (a POST governor at 900/950, raised from 600/700 on Davies' word
-  on 2026-10-01; a −1 % daily loss stop; de-peg and stale-input guards; a
+  on 2026-10-01, and on both Revolut X sub-accounts 5,000/5,500 with at most 600 a minute since 2026-10-31,
+  every twin still 900/950: "那先把这两个live策略的的单日下单数量限制取消掉吧", "这两个都是sub accounts",
+  `QuoteLiveInstance.governor`, `reviews/2026-10-31-subaccount-governor-deviation.md`; a −1 % daily loss stop; de-peg and stale-input guards; a
   bounded 24-hour stop; a refused exit sent again only after a newer print
   that is not through it; a post-only order the book it met shows crossing
   recorded refused and never sent, 2026-10-02, but for an exit, which from 2026-10-29 rests one tick inside the book

@@ -418,7 +418,14 @@ async function sixHours(instance?: Now.QuoteLiveInstance, o: { against?: Now.Quo
  */
 async function sixHoursSeen(instance?: Now.QuoteLiveInstance, o: { against?: Now.QuoteLiveInstance; operator?: boolean; untilExitCrosses?: boolean } = {}) {
   const operator = o.operator !== false;
-  const a = world(Now, instance), b = o.against ? world(Now, o.against) : world(Frozen);
+  // The replay drives the frozen file's governor (900 / 950) with 900 POSTs written at once, so today's executor runs with the
+  // governor every twin has and no minute's limit: LIVE's and the USDC/GBP executor's own since 2026-10-31 (5,000 / 5,500, 600
+  // a minute) are pinned on their own below.
+  const asTwins = (i?: Now.QuoteLiveInstance): Now.QuoteLiveInstance => {
+    const { minutePosts: _m, ...rest } = i ?? Now.QUOTE_LIVE_INSTANCE;
+    return { ...rest, governor: Now.QUOTE_LIVE_GOVERNOR };
+  };
+  const a = world(Now, asTwins(instance)), b = o.against ? world(Now, asTwins(o.against)) : world(Frozen);
   const both = async <T>(f: (w: ReturnType<typeof world>) => Promise<T>): Promise<[T, T]> => [await f(a), await f(b)];
   // An old long on USDT's 0.2 % bid, bought a day and a minute before the start: its 24-hour stop goes at the first turn.
   for (const w of [a, b]) {

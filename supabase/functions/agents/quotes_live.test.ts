@@ -20,6 +20,7 @@ import {
   deadmanWatchReason, QUOTE_LIVE_DEADMAN_WATCH_MS, pennyUp, faultLineKey, liveAlerts, QUOTE_LIVE_ALERT_EVERY_MS, QUOTE_LIVE_RECOVERED_AFTER_MS, type LiveFault,
   exitInsideOn, exitTicksOnBook, QUOTE_LIVE_EXIT_INSIDE_FROM,
   convertFirstAt, convertRepegDue, repegBase, CONVERT_REPEG_REASON, QUOTE_LIVE_CONVERT_REPEG_MS, QUOTE_LIVE_CONVERT_REST_MS, QUOTE_LIVE_INSTANCE, type QuoteLiveInstance,
+  governorOf, minuteRoom, QUOTE_LIVE_GOVERNOR, QUOTE_LIVE_MINUTE_POSTS, QUOTE_LIVE_SUBACCOUNT_GOVERNOR, QUOTE_RXU_INSTANCE,
 } from "./quotes_live.ts";
 import { ceilToStep, floorToStep } from "../_shared/agents_strategy.ts";
 import { bookLiveBuy } from "./tick.ts";
@@ -855,8 +856,15 @@ Deno.test("live: D11/D12 — a stop's buy-back whose coin fee is taken and not r
 
 // ------------------------------------------------------------------ the hard limits
 
+/**
+ * The live account's instance under the governor every twin keeps (900 / 950) and no minute's limit: the two pins below are
+ * that governor's. LIVE's and the USDC/GBP executor's own since 2026-10-31 are pinned after them.
+ */
+const { minutePosts: _noMinute, ...LIVE_RULES } = QUOTE_LIVE_INSTANCE;
+const TWIN_GOVERNED: QuoteLiveInstance = { ...LIVE_RULES, governor: QUOTE_LIVE_GOVERNOR };
+
 Deno.test("the governor: from 600 POSTs today the entry quotes are withdrawn (DELETEs only) and exits still go; from 700 only the 24-hour stop", async () => {
-  const w = makeWorld({ live: true, armed: true, balances: { GBP: 50, USDC: 5 } });
+  const w = makeWorld({ live: true, armed: true, balances: { GBP: 50, USDC: 5 }, instance: TWIN_GOVERNED });
   await w.step(T0);                                                   // six bids resting
   // A long on the USDC 0.2 % rung, filled an hour ago: its exit is due.
   await w.seed({ mode: "live", book: "USDC-GBP", rung_side: "bid", k: 0.002, leg: "entry", side: "buy", price: 0.7538, base_size: 5, filled_base: 5, avg_fill_price: 0.7538, ts: iso(T0 - H), filled_at: iso(T0 - H) });
@@ -880,7 +888,7 @@ Deno.test("the governor: from 600 POSTs today the entry quotes are withdrawn (DE
 });
 
 Deno.test("Davies' 900: with 700 POSTs today the six bids still go out (the old governor sent only stops from 700); at 900 they are withdrawn", async () => {
-  const w = makeWorld({ live: true, armed: true });
+  const w = makeWorld({ live: true, armed: true, instance: TWIN_GOVERNED });
   const filler = async (n: number) => { for (let i = 0; i < n; i++) await w.seed({ mode: "live", book: "USDT-GBP", rung_side: "ask", k: 0.003, leg: "entry", side: "sell", price: 0.76, base_size: 1, state: "rejected", ts: iso(T0 + M) }); };
   await filler(700);
   const r = await w.step(T0);
@@ -892,6 +900,77 @@ Deno.test("Davies' 900: with 700 POSTs today the six bids still go out (the old 
   assertEquals(r2.placed, []);
   assertEquals(w.rx.resting().length, 0);                             // every bid withdrawn, by DELETE
   assertEquals(w.deletes(), 6);
+});
+
+// The two Revolut X executors trade sub-accounts, which the venue's 1,000 orders a day does not bind (Davies, 2026-10-31 ~10:00
+// UTC: "那先把这两个live策略的的单日下单数量限制取消掉吧"; ~10:05: "这两个都是sub accounts"): a runaway guard at 5,000 / 5,500, and at
+// most 600 POSTs in any minute. Every twin keeps 900 / 950 and no minute's limit.
+Deno.test("the sub-accounts' governor: LIVE and the USDC/GBP executor at 5,000 / 5,500 and 600 a minute; the twins' 900 / 950 unchanged", () => {
+  assertEquals(QUOTE_LIVE_SUBACCOUNT_GOVERNOR, { entryPosts: 5_000, stopsOnlyPosts: 5_500 });
+  assertEquals([governorOf(QUOTE_LIVE_INSTANCE), governorOf(QUOTE_RXU_INSTANCE)], [QUOTE_LIVE_SUBACCOUNT_GOVERNOR, QUOTE_LIVE_SUBACCOUNT_GOVERNOR]);
+  assertEquals([QUOTE_LIVE_INSTANCE.minutePosts, QUOTE_RXU_INSTANCE.minutePosts, QUOTE_LIVE_MINUTE_POSTS], [600, 600, 600]);
+  assertEquals(QUOTE_LIVE_GOVERNOR, { entryPosts: 900, stopsOnlyPosts: 950 });
+  const g = QUOTE_LIVE_SUBACCOUNT_GOVERNOR;
+  assertEquals([governorLevel(901, g), governorLevel(4_999, g), governorLevel(5_000, g), governorLevel(5_499, g), governorLevel(5_500, g)],
+    ["all", "all", "no-entries", "no-entries", "stops-only"]);
+  // An instance that names none (every twin's, `specFromRow` builds no `governor`): 900 / 950, as before.
+  assertEquals([governorOf(TWIN_GOVERNED), governorOf({ ...LIVE_RULES, governor: undefined })], [QUOTE_LIVE_GOVERNOR, QUOTE_LIVE_GOVERNOR]);
+  assertEquals([governorLevel(899), governorLevel(900), governorLevel(950)], ["all", "no-entries", "stops-only"]);
+  // The minute: the POSTs of the last 60 s, none for an instance with no limit.
+  const now = T0 + 10 * M;
+  assertEquals(minuteRoom(QUOTE_LIVE_INSTANCE, [now - 61e3, now - 60e3, now - 59e3, now], now), 598);
+  assertEquals(minuteRoom(TWIN_GOVERNED, Array(5_000).fill(now), now), Infinity);
+});
+
+Deno.test("LIVE at 901 POSTs today still places its entries (the old governor withdrew them at 900); at 5,000 they are withdrawn", async () => {
+  const w = makeWorld({ live: true, armed: true });
+  // Written well before the turn, outside its minute: the day's count alone.
+  const filler = async (n: number) => { for (let i = 0; i < n; i++) await w.seed({ mode: "live", book: "USDT-GBP", rung_side: "ask", k: 0.003, leg: "entry", side: "sell", price: 0.76, base_size: 1, state: "rejected", ts: iso(T0 - 10 * M) }); };
+  await filler(901);
+  const r = await w.step(T0);
+  // LIVE quotes USDT-GBP alone: its three bids go out on 901 POSTs today.
+  const bids = r.placed.filter((p) => p.leg === "entry" && p.side === "buy").length;
+  assert(bids >= 3, JSON.stringify(r.placed));
+  assertEquals(r.posts.live, 901 + r.placed.filter((p) => p.state !== "rejected").length);
+  // The counterfactual: the same day under the twins' governor withdraws them.
+  const t = makeWorld({ live: true, armed: true, instance: TWIN_GOVERNED });
+  for (let i = 0; i < 901; i++) await t.seed({ mode: "live", book: "USDT-GBP", rung_side: "ask", k: 0.003, leg: "entry", side: "sell", price: 0.76, base_size: 1, state: "rejected", ts: iso(T0 - 10 * M) });
+  assertEquals((await t.step(T0)).placed.filter((p) => p.leg === "entry").length, 0);
+  // 5,000 POSTs today: LIVE's entries are withdrawn, by DELETE.
+  const resting = w.rx.resting().filter((o) => o.side === "buy").length;
+  assertEquals(resting, bids);
+  await filler(5_000 - r.posts.live);
+  const r2 = await w.step(T0 + M);
+  assertEquals(r2.placed.filter((p) => p.leg === "entry"), []);
+  assertEquals(w.rx.resting().filter((o) => o.side === "buy").length, 0);
+  assertEquals(w.deletes(), bids);
+});
+
+Deno.test("the minute's limit: LIVE with 599 POSTs in the last minute places nothing and says so; with them a minute old it places", async () => {
+  const seedAt = async (w: ReturnType<typeof makeWorld>, n: number, ts: number) => {
+    for (let i = 0; i < n; i++) await w.seed({ mode: "live", book: "USDT-GBP", rung_side: "ask", k: 0.003, leg: "entry", side: "sell", price: 0.76, base_size: 1, state: "rejected", ts: iso(ts) });
+  };
+  const turnAt = T0 + M + 30e3;                                        // `step(T0)`'s turn
+  const near = makeWorld({ live: true, armed: true });
+  await seedAt(near, 599, turnAt - 30e3);
+  const r = await near.step(T0);
+  assertEquals(r.placed, []);
+  assertEquals(near.rx.resting(), []);
+  assert(r.errors.some((e) => e.includes("600 POSTs in the last minute, the instance's most")), JSON.stringify(r.errors));
+  const old = makeWorld({ live: true, armed: true });
+  await seedAt(old, 599, turnAt - 61e3);
+  assert((await old.step(T0)).placed.some((p) => p.leg === "entry"));
+  // A twin's instance has no such limit: the same 599 in the minute, and its bids go out.
+  const twin = makeWorld({ live: true, armed: true, instance: TWIN_GOVERNED });
+  await seedAt(twin, 599, turnAt - 30e3);
+  assert((await twin.step(T0)).placed.some((p) => p.leg === "entry"));
+  // Within a turn the guard counts its own POSTs too, and keeps one in hand for a 429's resend: from 597 in the minute it
+  // sends two (598, 599) and stops.
+  const edge = makeWorld({ live: true, armed: true });
+  await seedAt(edge, 597, turnAt - 30e3);
+  const re = await edge.step(T0);
+  assertEquals(re.placed.filter((p) => p.state !== "rejected").length, 2, JSON.stringify(re.placed));
+  assertEquals(re.posts.live, 599);
 });
 
 Deno.test("exitMayGo: a refused exit waits for a newer print that is not through it; a refusal of an earlier holding, or a 429, holds nothing back", () => {

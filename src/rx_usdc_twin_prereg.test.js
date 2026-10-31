@@ -23,6 +23,12 @@ const namedTC = (head, f) => {
   const s = DTC.indexOf('### `docs/agents/reviews/' + head + '`'), rest = s < 0 ? '' : DTC.slice(s + 1), e = rest.search(/\n##/);
   return [...rest.slice(0, e < 0 ? undefined : e).matchAll(new RegExp('\\| `' + f.replace(/[.]/g, '\\.') + '` \\| ([0-9a-f]{64}) \\|', 'g'))].map((m) => m[1]);
 };
+/** The sub-accounts' governor deviation (2026-10-31), recorded apart: the files as they are, under a pre-registration's own heading. */
+const DGV = read('docs/agents/reviews/2026-10-31-subaccount-governor-deviation.md').toString('utf8');
+const namedGV = (head, f) => {
+  const s = DGV.indexOf('### `docs/agents/reviews/' + head + '`'), rest = s < 0 ? '' : DGV.slice(s + 1), e = rest.search(/\n##/);
+  return [...rest.slice(0, e < 0 ? undefined : e).matchAll(new RegExp('\\| `' + f.replace(/[.]/g, '\\.') + '` \\| ([0-9a-f]{64}) \\|', 'g'))].map((m) => m[1]);
+};
 /** The drain's deviation (2026-10-31, N2: coin sold back to pounds for good), recorded apart: the files as they are, under a pre-registration's own heading. */
 const DDR = read('docs/agents/reviews/2026-10-31-live-twin-take-drain-deviation.md').toString('utf8');
 const namedDR = (head, f) => {
@@ -75,7 +81,7 @@ describe("the USDC/GBP LIVE twin's pre-registration", () => {
     ]) expect(namedIn(DOC, f), f).toEqual([sha(f)]);
     // The executor as frozen, then as LIVE's exit-tick deviation (0181) names it under this pre-registration's heading.
     const live = 'supabase/functions/agents/quotes_live.ts';
-    expect([...namedIn(DOC, live), ...namedX1('2026-10-29-rx-usdc-live-prereg.md', live), ...namedTD('2026-10-29-rx-usdc-live-prereg.md', live), ...namedTC('2026-10-29-rx-usdc-live-prereg.md', live), ...namedDR('2026-10-29-rx-usdc-live-prereg.md', live)], live).toEqual(['d683bb5a4f1accf144c630a7d69bd565953a23879be847eade2ce2868d8bc86c', 'b6bdbd8cc1947b0949923322988290b6928f679798f7042c100b1776ffbcc3a1', '2ec5455b525f8f5d5d9996e994e9b512154cc0abfe4890df14dd33e786b06270', 'e70a8dd4733df4911bbac39c1767d0827f92e743599c27ac6adf336934277dd9', sha(live)]);
+    expect([...namedIn(DOC, live), ...namedX1('2026-10-29-rx-usdc-live-prereg.md', live), ...namedTD('2026-10-29-rx-usdc-live-prereg.md', live), ...namedTC('2026-10-29-rx-usdc-live-prereg.md', live), ...namedDR('2026-10-29-rx-usdc-live-prereg.md', live), ...namedGV('2026-10-29-rx-usdc-live-prereg.md', live)], live).toEqual(['d683bb5a4f1accf144c630a7d69bd565953a23879be847eade2ce2868d8bc86c', 'b6bdbd8cc1947b0949923322988290b6928f679798f7042c100b1776ffbcc3a1', '2ec5455b525f8f5d5d9996e994e9b512154cc0abfe4890df14dd33e786b06270', 'e70a8dd4733df4911bbac39c1767d0827f92e743599c27ac6adf336934277dd9', '99e6d8ef2d992434265b36219d4931f423a544129c87862d76af4348cc3cd1b2', sha(live)]);
   });
 
   it('holds its bar as written', () => {
@@ -95,7 +101,9 @@ describe("the USDC/GBP executor's deviation (0180)", () => {
       // Then the closure deviation (2026-10-31): the executor as it is.
       expect(namedTC(h, live), h).toEqual(['e70a8dd4733df4911bbac39c1767d0827f92e743599c27ac6adf336934277dd9']);
       // Then the drain's deviation (2026-10-31, N2): the executor as it is.
-      expect(namedDR(h, live), h).toEqual([sha(live)]);
+      expect(namedDR(h, live), h).toEqual(['99e6d8ef2d992434265b36219d4931f423a544129c87862d76af4348cc3cd1b2']);
+      // Then the sub-accounts' governor (2026-10-31): the executor as it is.
+      expect(namedGV(h, live), h).toEqual([sha(live)]);
     }
     expect(DX1).toContain('the executor was `d683bb5a4f1accf144c630a7d69bd565953a23879be847eade2ce2868d8bc86c` before this change');
     expect(DTD).toContain('the executor was `b6bdbd8cc1947b0949923322988290b6928f679798f7042c100b1776ffbcc3a1` before this change');

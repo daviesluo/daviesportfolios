@@ -596,3 +596,20 @@ switch holds it).
 **N1, the twin's take.** `live600` gets variant-2's take rule from 02:10:43 UTC, the minute LIVE's went live (`0190`); the shared
 take path governs it as it governs LIVE (TAKE-DEPTH, no take inside a closure, the fee and limit). From then to Sunday 21:00 UTC
 is a closure, so there is nothing to replay.
+
+## Addendum (2026-10-31, 10:30): the sub-accounts' governor
+
+Davies, 2026-10-31 ~10:00 UTC: "那先把这两个live策略的的单日下单数量限制取消掉吧", after reading that Revolut X's developer docs say
+the 1,000 orders a day "does not apply to sub-accounts" (the rate limits remain: place 10 a second, others 100 a second and 1,000 a
+minute, at most 300 active orders an account); ~10:05 UTC: "这两个都是sub accounts" (LIVE's key `_2` and the USDC/GBP executor's,
+`REVX_KEY_NAMES.revx`).
+
+The governor is an instance's (`QuoteLiveInstance.governor`, `governorOf`). LIVE and the USDC/GBP executor have
+`QUOTE_LIVE_SUBACCOUNT_GOVERNOR`: entries withdrawn from 5,000 POSTs a UTC day, nothing but the 24-hour stops from 5,500. It is a
+guard against a fault that sends in a loop, not a quota: LIVE's busiest UTC days were 950 POSTs on 10-07 (this governor's old
+stops-only level, in that day's database stall), 693 on 10-15 and 656 on 10-29 (the rebook's). Each
+also sends at most `QUOTE_LIVE_MINUTE_POSTS` (600) POSTs in any 60 s, under the venue's 1,000 (`minutePosts`, `minuteRoom`: an
+order past it is neither written nor sent that turn, and one is kept in hand for a 429's resend); a second was already held to
+8 by the 125 ms between POSTs (`QUOTE_LIVE_POST_GAP_MS`). Every twin keeps 900 / 950 and no minute's limit, so no twin turns
+differently; the pre-registrations' deviation is `reviews/2026-10-31-subaccount-governor-deviation.md`. Undo: a commit dropping
+`governor` and `minutePosts` from the two instances (no database switch holds them).

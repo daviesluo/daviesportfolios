@@ -18,7 +18,7 @@ import {
 } from "./quotes_twin.ts";
 import type { Db } from "./db.ts";
 import { RULED_ARMS } from "./quotes_ruled.ts";
-import { QUOTE_LIVE_INSTANCE, retiredAt } from "./quotes_live.ts";
+import { governorOf, QUOTE_LIVE_GOVERNOR, QUOTE_LIVE_INSTANCE, QUOTE_LIVE_SUBACCOUNT_GOVERNOR, retiredAt } from "./quotes_live.ts";
 import { inQuoteClosure } from "./quotes_weekend.ts";
 import TWIN_FIXTURE from "../../../src/e2e/quotes_twin_fixture.json" with { type: "json" };
 
@@ -841,4 +841,20 @@ Deno.test("LIVE's twin carries LIVE's take from 2026-10-31 02:10:43 UTC with its
   assert(spec.instance.weekend && spec.instance.weekend.from <= from);
   for (let t = from; t < Date.parse("2026-11-01T21:00:00Z"); t += 3600e3) assert(inQuoteClosure(t), new Date(t).toISOString());
   assertEquals(inQuoteClosure(Date.parse("2026-11-01T21:00:00Z")), false);
+});
+
+// The two Revolut X executors' governor moved to 5,000 / 5,500 and 600 a minute on 2026-10-31 (Davies: "那先把这两个live策略的的
+// 单日下单数量限制取消掉吧"; "这两个都是sub accounts"): a twin's instance is built from its row, never from LIVE's, and names neither,
+// so every twin keeps 900 / 950 and no minute's limit, and no rule key can set them.
+Deno.test("every twin keeps the governor of 900 / 950 and no minute's limit: LIVE's sub-account governor is not a twin rule", () => {
+  const rows: Array<Record<string, unknown>> = TWIN_FIXTURE.specs;
+  assert(rows.length > 5);
+  for (const r of rows) {
+    const inst = specFromRow(r as never).instance;
+    assertEquals([String(r.id), governorOf(inst), inst.minutePosts], [String(r.id), QUOTE_LIVE_GOVERNOR, undefined]);
+  }
+  assertEquals(governorOf(QUOTE_LIVE_INSTANCE), QUOTE_LIVE_SUBACCOUNT_GOVERNOR);
+  let why = "";
+  try { specFromRow({ ...(rows[0] as Record<string, unknown>), rules: { governor: { entryPosts: 5000, stopsOnlyPosts: 5500 } } } as never); } catch (e) { why = (e as Error).message; }
+  assert(why !== "", "a governor in a twin's rules is refused");
 });
