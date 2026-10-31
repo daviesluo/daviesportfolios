@@ -194,6 +194,7 @@ const NO_SECRET = 'MONITOR_SECRET is not set on the Worker, so the monitor funct
  */
 export const HEALTH_LABELS = {
   quotes: "PR5's executor last finished a turn",
+  cbLive: "Coinbase's live executor last finished a turn",
 };
 
 /** The loop check from the health action's answer. @returns {CheckResult} */

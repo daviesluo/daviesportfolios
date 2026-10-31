@@ -38,10 +38,10 @@ type Row = Record<string, unknown>;
  * PostgREST over the four tables the function touches, as the schema has them: an unknown column is a 400, and an events
  * row is held to 0052's checks and 0086's kinds. `down` makes every request throw, as a database that does not answer.
  */
-function fakeRest(o: { state?: Row[]; locks?: Row[]; beats?: Row[]; decisions?: Row[]; lp?: Row[]; dbBytes?: number } = {}) {
+function fakeRest(o: { state?: Row[]; locks?: Row[]; beats?: Row[]; decisions?: Row[]; lp?: Row[]; cb?: Row[]; dbBytes?: number } = {}) {
   const t: Record<string, Row[]> = {
     agent_quote_live_state: o.state ?? [], agent_locks: o.locks ?? [], edge_call_beats: o.beats ?? [], agent_decisions: o.decisions ?? [],
-    agent_quote_live_events: [], ops_errors: [], pm_lp_state: o.lp ?? [],
+    agent_quote_live_events: [], ops_errors: [], pm_lp_state: o.lp ?? [], cb_live_state: o.cb ?? [],
   };
   const COLS: Record<string, string[]> = {
     agent_quote_live_state: ["id", "state", "updated_at", "last_error"], agent_locks: ["name", "lease_until", "holder"],
@@ -49,6 +49,7 @@ function fakeRest(o: { state?: Row[]; locks?: Row[]; beats?: Row[]; decisions?: 
     agent_quote_live_events: ["mode", "minute", "book", "rung_side", "k", "kind", "detail"],
     ops_errors: ["id", "created_at", "kind", "symbol", "message", "context", "ip"],
     pm_lp_state: ["id", "state", "updated_at", "last_error"],
+    cb_live_state: ["id", "state", "updated_at", "last_error"],
   };
   const s = { down: false, status: 0, calls: [] as string[], t };
   const refuse = (row: Row, table: string): string | null => {
@@ -426,11 +427,11 @@ Deno.test("a cancel is read again after the executor's own pauses", () => {
 
 // ---------------------------------------------------------------------------------------------------- health
 
-Deno.test("health: PR5's executor is the one reading, against three minutes; a late, failed or empty read fails", () => {
-  assertEquals(HEALTH_LIMITS_S, { quotes: 180 });
-  const ok: Record<string, Reading> = { quotes: { ok: true, at: iso(T0 - 35e3) } };
+Deno.test("health: PR5's executor against three minutes and Coinbase's against five; a late, failed or empty read fails", () => {
+  assertEquals(HEALTH_LIMITS_S, { quotes: 180, cbLive: 300 });
+  const ok: Record<string, Reading> = { quotes: { ok: true, at: iso(T0 - 35e3) }, cbLive: { ok: true, at: iso(T0 - 250e3) } };
   const h = judgeHealth(T0, ok as never);
-  assertEquals([h.ok, h.checks.quotes.ageS], [true, 35]);
+  assertEquals([h.ok, h.checks.quotes.ageS, h.checks.cbLive.ageS], [true, 35, 250]);
   for (const name of HEALTH_NAMES) {
     const late = judgeHealth(T0, { ...ok, [name]: { ok: true, at: iso(T0 - (HEALTH_LIMITS_S[name] + 1) * 1e3) } } as never);
     assertEquals([late.ok, late.checks[name].ok], [false, false], name);
@@ -454,7 +455,7 @@ Deno.test("health: the one read goes to PR5's state, read-only, and the 10-02 st
   assertEquals(rest.calls.sort(), [...Object.values(HEALTH_QUERIES).map((q) => `GET ${q.path}`), `GET ${DB_SIZE_PATH}`].sort());
   // 13:05:02 less 12:57:27: the stall pages on PR5's executor alone.
   assertEquals([h.ok, h.checks.quotes.ok, h.checks.quotes.ageS], [false, false, 455]);
-  assertEquals(Object.keys(h.checks), ["quotes"]);
+  assertEquals(Object.keys(h.checks), ["quotes", "cbLive"]);
   assertEquals(rest.calls.some((c) => /agent_decisions|agent_locks|edge_call_beats/.test(c)), false);
   rest.down = true;
   const down = await runHealth(SB, "service-key", () => T0, rest.fetch);
@@ -463,7 +464,7 @@ Deno.test("health: the one read goes to PR5's state, read-only, and the 10-02 st
 
 // The database's size beside the reading (review F4, 0101): shown, and never failing the loop's reading.
 Deno.test("health: the database's size is read beside the reading and never fails it, over its watch line or unread", async () => {
-  const fresh = { state: [{ id: 1, updated_at: iso(T0 - 20e3) }] };
+  const fresh = { state: [{ id: 1, updated_at: iso(T0 - 20e3) }], cb: [{ id: 1, updated_at: iso(T0 - 30e3) }] };
   const small = await runHealth(SB, "service-key", () => T0, fakeRest({ ...fresh, dbBytes: 1_160_000_000 }).fetch);
   assertEquals([small.ok, small.size], [true, { ok: true, bytes: 1_160_000_000, limitBytes: DB_SIZE_WATCH_BYTES, over: false }]);
   const big = await runHealth(SB, "service-key", () => T0, fakeRest({ ...fresh, dbBytes: 4_200_000_000 }).fetch);
@@ -481,10 +482,20 @@ Deno.test("health: the database's size is read beside the reading and never fail
 Deno.test("health: with the tick switched off for days, a minute loop that runs PR5's executor is healthy (0158, 0160)", async () => {
   const rest = fakeRest({
     beats: [{ minute: iso(T0 - 3 * 86_400e3), path: "agents?action=tick" }], locks: [{ name: "tick", lease_until: iso(T0 - 3 * 86_400e3), holder: null }],
-    state: [{ id: 1, updated_at: iso(T0 - 20e3) }], decisions: [{ id: 9001, ts: iso(T0 - 4 * 86_400e3) }],
+    state: [{ id: 1, updated_at: iso(T0 - 20e3) }], decisions: [{ id: 9001, ts: iso(T0 - 4 * 86_400e3) }], cb: [{ id: 1, updated_at: iso(T0 - 30e3) }],
   });
   const h = await runHealth(SB, "service-key", () => T0, rest.fetch);
-  assertEquals([h.ok, Object.keys(h.checks)], [true, ["quotes"]]);
+  assertEquals([h.ok, Object.keys(h.checks)], [true, ["quotes", "cbLive"]]);
+});
+
+// 2026-10-31 audit: Coinbase's live executor (cb_live.ts, armed 10-29) had no reading and no dead-man of ours, so a stopped
+// turn paged nobody while PR5's minute ran on. Its own state is read, and a turn over five minutes old fails the loop.
+Deno.test("health: Coinbase's live executor stopped while PR5's runs fails the reading under its own name; four missed turns do not", async () => {
+  const stopped = await runHealth(SB, "service-key", () => T0, fakeRest({ state: [{ id: 1, updated_at: iso(T0 - 20e3) }], cb: [{ id: 1, updated_at: iso(T0 - 425e3) }] }).fetch);
+  assertEquals([stopped.ok, stopped.checks.quotes.ok, stopped.checks.cbLive.ok, stopped.checks.cbLive.ageS], [false, true, false, 425]);
+  const missed4 = await runHealth(SB, "service-key", () => T0, fakeRest({ state: [{ id: 1, updated_at: iso(T0 - 20e3) }], cb: [{ id: 1, updated_at: iso(T0 - 290e3) }] }).fetch);
+  assertEquals([missed4.ok, missed4.checks.cbLive.ageS], [true, 290]);
+  assertEquals(HEALTH_QUERIES.cbLive.path, "cb_live_state?id=eq.1&select=updated_at");
 });
 
 // ---------------------------------------------------------------------------------------------------- reports and auth

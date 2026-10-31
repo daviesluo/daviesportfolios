@@ -447,7 +447,8 @@ How the less obvious parts work, and why they are built the way they are.
   shell and app chunk, Supabase's minute loop (the `monitor` function's
   read-only health action: PR5's executor finished a turn within three
   minutes, the minute job's one call it reads since the tick's call
-  stopped) and PR5's dead-man switch, which cancels
+  stopped, and Coinbase's live executor within five, since nothing else
+  watched it) and PR5's dead-man switch, which cancels
   every resting order on PR5's Revolut X sub-account when its executor has
   missed three turns, or when its state cannot be read and no read in the
   last three minutes found it fresh (the Worker remembers that read in a

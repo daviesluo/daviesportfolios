@@ -47,14 +47,15 @@ function fakeKv() {
   return kv;
 }
 
-// The health action's answer as `monitor/health.ts` gives it since the tick's call was switched off (0160): one reading.
+// The health action's answer as `monitor/health.ts` gives it since the tick's call was switched off (0160), with Coinbase's
+// live executor beside PR5's since the 2026-10-31 audit.
 const HEALTHY = {
   at: 't', ok: true,
-  checks: { quotes: { ok: true, ageS: 35, limitS: 180 } },
+  checks: { quotes: { ok: true, ageS: 35, limitS: 180 }, cbLive: { ok: true, ageS: 40, limitS: 300 } },
 };
 const STALE_LOOP = {
   at: 't', ok: false,
-  checks: { quotes: { ok: false, ageS: 455, limitS: 180 } },
+  checks: { quotes: { ok: false, ageS: 455, limitS: 180 }, cbLive: { ok: true, ageS: 40, limitS: 300 } },
 };
 const FRESH = { verdict: 'fresh', why: "PR5's executor finished a turn 35 s ago", at: '2026-10-02T13:05:00.412Z', acted: false, listed: null, orders: [], error: null, recorded: null };
 /** 10-07's shape: the state's read timed out, and a read 2 min before had found the executor fresh. */
@@ -514,12 +515,15 @@ describe('the record it shares with the Edge Function', () => {
 
   // 0160 switched the tick's call off (2026-10-29): its beat and turn left the health action, which reads PR5's executor
   // alone. The Worker names each reading the function sends, and no other.
-  it("names the health action's readings, and only those: PR5's executor since the tick's call stopped (0160)", () => {
+  it("names the health action's readings, and only those: PR5's executor since the tick's call stopped (0160), Coinbase's beside it", () => {
     const limits = /export const HEALTH_LIMITS_S = \{([^}]*)\}/.exec(read('supabase/functions/monitor/health.ts'))?.[1] ?? '';
     const names = [...limits.matchAll(/(\w+):/g)].map((m) => m[1]);
-    expect(names).toEqual(['quotes']);
+    expect(names).toEqual(['quotes', 'cbLive']);
     expect(Object.keys(HEALTH_LABELS)).toEqual(names);
     expect(loopResult({ ok: true, status: 200, json: STALE_LOOP, text: '' })).toEqual({ ok: false, detail: "PR5's executor last finished a turn 7 min 35 s ago (limit 3 min 00 s)" });
+    // A stopped Coinbase executor pages under its own name (2026-10-31 audit: nothing watched it).
+    const cbStale = { at: 't', ok: false, checks: { quotes: { ok: true, ageS: 35, limitS: 180 }, cbLive: { ok: false, ageS: 425, limitS: 300 } } };
+    expect(loopResult({ ok: true, status: 200, json: cbStale, text: '' })).toEqual({ ok: false, detail: "Coinbase's live executor last finished a turn 7 min 05 s ago (limit 5 min 00 s)" });
     expect(loopResult({ ok: true, status: 200, json: HEALTHY, text: '' })).toEqual({ ok: true, detail: 'every reading within its limit' });
   });
 });

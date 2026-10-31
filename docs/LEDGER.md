@@ -813,6 +813,11 @@ and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 0
   Past the first page it now asks `PAGE_WAVE` (4) pages at once and joins them in order; a one-page read is still one request.
   Pin in `db.test.ts` (counterfactual: the old loop never has more than one page in flight). No rule, no frozen file.
   Moved the 02:55, 03:05 (10-30) sections to handover (thirty-eighth).
+- **Coinbase's live executor joins the monitor's health readings** (`monitor/health.ts` `cbLive`, 300 s; the Worker's label).
+  Armed since 10-29 21:45 with no reading and no dead-man of ours (Coinbase's 20-minute order ends are its only one), its call
+  has no watchdog retry (0177) and missed 188 of 1,440 minutes on 10-30/31 to the `agents` boot failures, at most four in a row
+  since armed. A turn over five minutes old now fails the loop check (two minutes running pages). Pins in
+  `monitor/index.test.ts` and `monitor_worker.test.js` (counterfactual: four health tests fail on the old file).
 
 ### [2026-10-31 02:16 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Coinbase USDC/GBP take shadow, records only** (sub-agent; commit, not pushed; Davies, 10-31 ~02:00: "Coinbase USDC/GBP也做好加开

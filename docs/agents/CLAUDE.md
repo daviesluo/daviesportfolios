@@ -96,7 +96,7 @@ that follow from that evidence, in short:
   retired row that holds something keeps its exits (`windingDown`) and a live exit is a real sell. **The tick's call is
   off since `0160` (2026-10-29; Davies, on the tick: "你来决定")**: it decided nothing, and what it still recorded (the
   venues' quotes, the basis, Kraken's candles) nothing live or pre-registered read. The monitor stopped reading its beat
-  and lease first and watches the minute loop by PR5's executor alone (`monitor/health.ts`); turning the tick back on is
+  and lease first and watches the minute loop by PR5's executor (`monitor/health.ts`; Coinbase's live executor beside it since 2026-10-31); turning the tick back on is
   a migration, with a monitor reading of it in the same push. Its code, tables and records stay; the daily prune keeps
   the basis and the observations to 30 days as before. EX-GAP and MX-1 closed the same
   day, undecided (`reviews/2026-10-28-trend-rows-retired.md`). The paragraphs below are the loop's history while it ran.

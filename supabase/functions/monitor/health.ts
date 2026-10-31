@@ -11,6 +11,13 @@
 //                 here within three minutes, whether pg_cron did not fire, the call's worker did not start, or the
 //                 database stalled under it. The day PR5's call is switched off, another reading takes its place in
 //                 the same commit, or the Worker pages three minutes later and has nothing left to watch the loop by.
+//   * cbLive    — Coinbase's live executor, "Stablecoin quotes USDC/GBP" (`cb_live.ts`, armed 2026-10-29 21:45 UTC),
+//                 finished a turn (`cb_live_state.updated_at`, the turn's clock, written at its end). It is a call of its
+//                 own (`agents?action=cblive`) with no watchdog retry (0177), and no dead-man of ours: Coinbase ends its
+//                 orders within 20 minutes by itself, but a stopped executor manages no fill, no exit and no 24-hour stop,
+//                 and nothing paged on one (2026-10-31 audit). Five minutes, not three: without the retry its turn misses
+//                 the minute whenever the function fails to boot (188 of 1,440 minutes on 10-30/31, at most four in a
+//                 row since it was armed), and only a stop longer than that is news.
 //   (tickBeat and tickTurn, the tick's newest beat and its lease, were read here from 2026-10-02 until 2026-10-29, when
 //    the tick's call was switched off (`0160`): Davies retired its last strategy rows the day before (`0158`) and left
 //    the tick to the session ("你来决定"). A call that no longer runs has no freshness to watch.)
@@ -33,7 +40,7 @@ const msg = (e: unknown) => (e instanceof Error ? e.message : String(e)).slice(0
 
 export const HEALTH_READ_TIMEOUT_MS = 5_000;
 /** How old each reading may be, in seconds. */
-export const HEALTH_LIMITS_S = { quotes: 180 } as const;
+export const HEALTH_LIMITS_S = { quotes: 180, cbLive: 300 } as const;
 export type HealthName = keyof typeof HEALTH_LIMITS_S;
 export const HEALTH_NAMES = Object.keys(HEALTH_LIMITS_S) as HealthName[];
 
@@ -64,6 +71,7 @@ export function judgeHealth(now: number, readings: Record<HealthName, Reading>):
 /** The select, as a PostgREST path, and the column the reading takes its time from. */
 export const HEALTH_QUERIES: Record<HealthName, { path: string; column: string }> = {
   quotes: { path: "agent_quote_live_state?id=eq.1&select=updated_at", column: "updated_at" },
+  cbLive: { path: "cb_live_state?id=eq.1&select=updated_at", column: "updated_at" },
 };
 
 /** One reading over PostgREST with the service key. */
