@@ -48009,3 +48009,25 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
 - **LIVE's take is 'live' since 02:10:43 UTC** (Davies: "RX USDT/GBP上"), after the closure guard deployed (7b3d28cd, 02:09);
   RXU's take 'shadow' since 02:00:12. Undo: LIVE 'shadow', RXU 'off'. First possible live take: Sun 11-01 21:00 UTC. The live
   design's addendum of 2026-10-31 has both statements. Coinbase take shadow: a sub-agent is building it.
+
+## LEDGER.md, archived 2026-10-31 (forty-fifth) — the 2026-10-31 02:16, 2026-10-31 02:49 UTC history sections, oldest first
+
+### [2026-10-31 02:16 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Coinbase USDC/GBP take shadow, records only** (sub-agent; commit, not pushed; Davies, 10-31 ~02:00: "Coinbase USDC/GBP也做好加开
+  shadow记录"). `0187`: `cb_live_config.take_mode` 'off'|'shadow' (no 'live'), set 'shadow'. Per rung it would enter, outside
+  closures and blackouts: limit k + the SPOT `transaction_summary` taker fee (a day's cache), `product_book` read only when
+  `best_bid_ask` is through it, deeper than the £1 line → a `take_shadow` event in `cb_live_events`. Nothing sent. Caution: the
+  spot tier may not be the stable pair's price (maker fills paid 0); read the first events' `fee`. Design §11, ref item 68.
+
+### [2026-10-31 02:49 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Agents module audit (sub-agent; commits, not pushed; Davies, 10-31: "…仔细深度全面审核下整个网站的agents…确保一切细节完美与最优").**
+  First fix: `selectAll` (`agents/db.ts`, every function's `makeDb`) read a big table's pages one after another; LIVE's
+  10,443 orders were eleven reads on every dashboard call (`quotesLive`, its slowest stage, 1,536 ms of `serverMs` 1,536).
+  Past the first page it now asks `PAGE_WAVE` (4) pages at once and joins them in order; a one-page read is still one request.
+  Pin in `db.test.ts` (counterfactual: the old loop never has more than one page in flight). No rule, no frozen file.
+  Moved the 02:55, 03:05 (10-30) sections to handover (thirty-eighth).
+- **Coinbase's live executor joins the monitor's health readings** (`monitor/health.ts` `cbLive`, 300 s; the Worker's label).
+  Armed since 10-29 21:45 with no reading and no dead-man of ours (Coinbase's 20-minute order ends are its only one), its call
+  has no watchdog retry (0177) and missed 188 of 1,440 minutes on 10-30/31 to the `agents` boot failures, at most four in a row
+  since armed. A turn over five minutes old now fails the loop check (two minutes running pages). Pins in
+  `monitor/index.test.ts` and `monitor_worker.test.js` (counterfactual: four health tests fail on the old file).
