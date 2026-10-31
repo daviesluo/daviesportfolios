@@ -825,6 +825,9 @@ and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 0
   £9.84 short of the bids'). `planCbDrain`: only when a bid lacks pounds and no ask lacks USDC; the coin beyond each ask's at fair
   (rounded up) and every held bid's; at most what the bids lack and the day's cap; post-only a tick inside the ask, never under
   fair; cancelled the turn an ask lacks USDC or no bid lacks pounds. Design §12, reference item 68; pins in `cb_live.test.ts`.
+- **`skip_inventory` once a skip** (cb_live): an event when a rung's skip for funds starts, changes leg or side, or its need or funds
+  move over 5 %, not every minute (1,748 of `cb_live_events`' 1,938 rows were one bid repeating). The last told skip per rung is kept
+  in the state (`skips`); pin in `cb_live.test.ts` (old code: five events where one is news).
 
 ### [2026-10-31 03:07 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Agents-module audit, round 1 landed** (fa07448e paged reads in waves, 80bb0fcd monitor reads Coinbase LIVE). Davies on its

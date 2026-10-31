@@ -141,6 +141,20 @@ export function planCbDrain(i: {
 export function cbDrainReserve(askRungs: number, rungGbp: number, fair: number, step: number, heldBidCoin: number): number {
   return askRungs * Math.ceil(rungGbp / fair / step - 1e-9) * step + heldBidCoin;
 }
+/** A rung skipped for want of funds, as its last `skip_inventory` event said it. */
+export type CbSkip = { leg: string; side: string; need: number; have: number | null };
+/** A skip's need or funds moving by more than this share (or a cent) since its last event is news again. */
+export const CB_SKIP_MOVE = 0.05;
+/**
+ * Pure: is this turn's skip of a rung news (`skip_inventory` once when it starts, not every minute: 2026-10-31 audit, 1,748 of the
+ * table's 1,938 rows were one bid saying the same thing each minute)? A skip that starts, changes leg or side, or whose need or
+ * funds moved by more than CB_SKIP_MOVE since the event that last told it, is; one that goes on as it was is not.
+ */
+export function skipIsNews(prev: CbSkip | undefined, now: CbSkip): boolean {
+  if (!prev || prev.leg !== now.leg || prev.side !== now.side) return true;
+  const moved = (a: number | null, b: number | null) => (a == null) !== (b == null) || (a != null && b != null && Math.abs(a - b) > Math.max(0.01, CB_SKIP_MOVE * Math.abs(a)));
+  return moved(prev.need, now.need) || moved(prev.have, now.have);
+}
 /** Is a conversion row a drain (a SELL of USDC for pounds)? A top-up is a BUY. */
 export const isCbDrain = (o: { leg: string; side: string }) => o.leg === "convert" && o.side === "SELL";
 /** Fills older than this are not read back into the turn: the 24-hour stop closes every trip well inside it. */
@@ -526,7 +540,10 @@ export async function runCbLive(d: CbLiveDeps): Promise<CbLiveReport> {
   if (!held.length) return { ...rep, skipped: "another run holds the lease" };
   const evs: Array<{ at: string; kind: string; detail: Record<string, unknown> }> = [];
   const ev = (kind: string, detail: Record<string, unknown> = {}) => { evs.push({ at: iso(now), kind, detail }); rep.events.push(kind); };
-  let stateRow: { fault?: { key: string; at: number }; balances?: VenueBalances; self?: CbLiveSelf | null; takeFee?: CbTakeFee | null; takeFeeFault?: { why: string; at: string } | null } = {};
+  let stateRow: { fault?: { key: string; at: number }; balances?: VenueBalances; self?: CbLiveSelf | null; takeFee?: CbTakeFee | null; takeFeeFault?: { why: string; at: string } | null;
+    skips?: Record<string, CbSkip> } = {};
+  // The rungs skipped for funds, as their last events told them; undefined until this turn reaches its placements (the stored kept).
+  let skips: Record<string, CbSkip> | undefined;
   // The take shadow's fee and the last reason it could not be read: kept in the state across turns (0187).
   let takeFee: CbTakeFee | null | undefined, takeFeeFault: { why: string; at: string } | null | undefined;
   let self: CbLiveSelf | null = null;
@@ -844,12 +861,16 @@ export async function runCbLive(d: CbLiveDeps): Promise<CbLiveReport> {
       if (!covered(w)) {
         if (w.leg === "entry" && w.side === "SELL") usdcShort += w.size;
         if (w.side === "BUY") gbpSkipped += w.price * w.size;
-        ev("skip_inventory", { key, leg: w.leg, side: w.side, need: w.side === "SELL" ? w.size : w.size * w.price, have: w.side === "SELL" ? freeUsdc : freeGbp });
+        const sk: CbSkip = { leg: w.leg, side: w.side, need: w.side === "SELL" ? w.size : w.size * w.price, have: w.side === "SELL" ? freeUsdc : freeGbp };
+        const before = stateRow.skips?.[key];
+        if (skipIsNews(before, sk)) { ev("skip_inventory", { key, ...sk }); (skips ??= {})[key] = sk; }
+        else (skips ??= {})[key] = before!;
         continue;
       }
       await place(w);
     }
 
+    skips ??= {};
     // 6. Live and paused alike: an order on no rung (a top-up) is cancelled under the pause; an armed account tops its USDC up.
     // A top-up of the other mode is not this mode's: armed, a dry one is withdrawn; disarmed, a live one is cancelled.
     const convMode: OrderRow["mode"] = armed ? "live" : "dry_run";
@@ -1005,8 +1026,9 @@ export async function runCbLive(d: CbLiveDeps): Promise<CbLiveReport> {
       const keep = self ?? stateRow.self ?? null;
       // The take shadow's fee and its last fault as this turn left them (undefined: not reached, the stored ones kept).
       const fee = takeFee === undefined ? stateRow.takeFee ?? null : takeFee, feeFault = takeFeeFault === undefined ? stateRow.takeFeeFault ?? null : takeFeeFault;
+      const sk = skips === undefined ? stateRow.skips : skips;
       await d.db.upsert(CB_LIVE_TABLES.state, [{ id: 1, state: { fault, lastReport: { ...rep, events: rep.events.slice(0, 50) }, ...(bal ? { balances: bal } : {}), ...(keep ? { self: keep } : {}),
-        ...(fee ? { takeFee: fee } : {}), ...(feeFault ? { takeFeeFault: feeFault } : {}) }, updated_at: iso(now), last_error: rep.errors.length ? rep.errors.join(" | ").slice(0, 500) : null }], "id");
+        ...(fee ? { takeFee: fee } : {}), ...(feeFault ? { takeFeeFault: feeFault } : {}), ...(sk && Object.keys(sk).length ? { skips: sk } : {}) }, updated_at: iso(now), last_error: rep.errors.length ? rep.errors.join(" | ").slice(0, 500) : null }], "id");
     } catch { /* the lease still expires */ }
     try { await d.db.update("agent_locks", `name=eq.${CB_LIVE_LEASE}&holder=eq.${encodeURIComponent(d.holder)}`, { lease_until: iso(now), holder: null }); } catch { /* it expires */ }
   }

@@ -16,7 +16,7 @@
 import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { b64ToBytes } from "../_shared/bytes.ts";
 import { CB_KEY_NAME_SECRET, CB_PRIVATE_KEY_SECRET } from "../_shared/coinbase.ts";
-import { CB_LIVE_DRAIN_FROM, CB_LIVE_GTD_MS, CB_LIVE_NAME, cbDrainReserve, isCbDrain, planCbDrain, cbTakeClosed, cbTakeFeeOf, cbTakeLimitTicks, cbTakeLine, convertSpentGbp, isDust, venueBalances, readCbLive, runCbLive, rungQty, tripPnl, tripsOf, type CbLiveSelf, type FillRow } from "./cb_live.ts";
+import { CB_LIVE_DRAIN_FROM, CB_LIVE_GTD_MS, CB_LIVE_NAME, cbDrainReserve, isCbDrain, planCbDrain, skipIsNews, cbTakeClosed, cbTakeFeeOf, cbTakeLimitTicks, cbTakeLine, convertSpentGbp, isDust, venueBalances, readCbLive, runCbLive, rungQty, tripPnl, tripsOf, type CbLiveSelf, type FillRow } from "./cb_live.ts";
 import { exitTicks, newBookState, quoteTicks, QUOTE_TICK, type BookState } from "./quotes.ts";
 import { CB_NUDGE_ARM, runCbNudge } from "./cb_nudge.ts";
 import { cbUsdcArmNewState } from "./cb_usdc.ts";
@@ -800,4 +800,30 @@ Deno.test("planCbDrain: the least of the surplus, what is free, what the bids la
   assertEquals((planCbDrain({ ...base, touch: { bid: 0.7490, ask: 0.7520 } }) as { price: number }).price, 0.7519);
   assertEquals((planCbDrain({ ...base, touch: { bid: 0.7480, ask: 0.7490 } }) as { price: number }).price, 0.75);
   assertEquals(isCbDrain({ leg: "convert", side: "SELL" }) && !isCbDrain({ leg: "convert", side: "BUY" }), true);
+});
+
+// `skip_inventory` once when a skip starts, not every minute (2026-10-31 audit: 1,748 of `cb_live_events`' 1,938 rows were the
+// 0.3 % bid saying the same thing each minute since 10-29 20:34).
+Deno.test("skip_inventory: one event when a rung's skip starts, none while it goes on as it was, one when its numbers move or it starts again", async () => {
+  const t = CB_LIVE_DRAIN_FROM - 2 * H;                                  // no drain: the skip goes on
+  const w = world({ dry: false, armed: true, book: paperBook(FAIR, t), last: t - M }), v = venue({ post: true, gbp: 50, usdc: 93.7 });
+  const skipsOf = () => evsOf(w, "skip_inventory").length;
+  await turn(w, v, t + 10e3);
+  assertEquals(skipsOf(), 1);
+  // The two bids rest (their pounds on hold now, the account's available what is left): the third is skipped the same way.
+  v.bal.GBP = 50 - rows(w).filter((x) => x.leg === "entry" && x.side === "BUY").reduce((s, x) => s + Number(x.price) * Number(x.base_size), 0);
+  for (let i = 1; i <= 3; i++) await turn(w, v, t + i * M + 10e3);
+  assertEquals(skipsOf(), 1);
+  // Its funds move by more than 5 %: news.
+  v.bal.GBP = 15;
+  await turn(w, v, t + 4 * M + 10e3);
+  assertEquals(skipsOf(), 2);
+  // The pounds arrive: it rests, and its skip leaves the state, so a skip of it later starts again as news.
+  v.bal.GBP = 40;
+  await turn(w, v, t + 5 * M + 10e3);
+  assertEquals(skipsOf(), 2);
+  assertEquals((w.tables.cb_live_state[0].state as { skips?: unknown }).skips, undefined);
+  assert(skipIsNews(undefined, { leg: "entry", side: "BUY", need: 20, have: 10 }));
+  assertEquals(skipIsNews({ leg: "entry", side: "BUY", need: 20, have: 10 }, { leg: "entry", side: "BUY", need: 20.1, have: 10.2 }), false);
+  assertEquals(skipIsNews({ leg: "entry", side: "BUY", need: 20, have: 10 }, { leg: "exit", side: "BUY", need: 20, have: 10 }), true);
 });
