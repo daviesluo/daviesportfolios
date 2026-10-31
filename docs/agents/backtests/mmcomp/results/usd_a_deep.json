@@ -1,0 +1,7754 @@
+{
+ "flow": {
+  "USDC-USD": {
+   "buy_2bps_from_par": 2805,
+   "buy_5bps_from_par": 1404,
+   "buy_all": 20135,
+   "sell_10bps_from_par": 15365,
+   "sell_2bps_from_par": 21408,
+   "sell_5bps_from_par": 16229,
+   "sell_all": 28339
+  },
+  "USDT-USD": {
+   "buy_2bps_from_par": 231,
+   "buy_5bps_from_par": 231,
+   "buy_all": 23527,
+   "sell_10bps_from_par": 38435,
+   "sell_2bps_from_par": 50022,
+   "sell_5bps_from_par": 47064,
+   "sell_all": 50026
+  }
+ },
+ "rows": {
+  "USDC-USD|cbgbp|improve|two|m2|Q100|C1610|fx0|batch2000": {
+   "best_day": 1.641,
+   "boot_all": [
+    -0.55,
+    0.324,
+    0.6271
+   ],
+   "boot_first_half": [
+    -0.693,
+    0.542,
+    0.5676
+   ],
+   "boot_second_half": [
+    -0.694,
+    0.302,
+    0.679
+   ],
+   "bot_prints_at_our_price": 0,
+   "bps_fill_mean": 6.74,
+   "bps_maker_absent": 6.5,
+   "bps_maker_present": 6.79,
+   "buys": 104,
+   "coins_to_move_a_day": 273,
+   "days": 18,
+   "days_positive": 12,
+   "fills": 132,
+   "fills_a_day": 7.3,
+   "fills_at_price": 40,
+   "fills_maker_absent": 23,
+   "fills_maker_present": 109,
+   "markout_1m_bps": [
+    0.0,
+    2.5,
+    6.01
+   ],
+   "markout_5m_bps": [
+    0.0,
+    2.5,
+    5.51
+   ],
+   "max_drawdown": -4.056,
+   "orders_a_day_max": 560,
+   "orders_a_day_mean": 325.5,
+   "sells": 28,
+   "transfer_cost_a_day": 0.451,
+   "transfers": 2,
+   "transit_max_usd": 1923,
+   "usd_a_day": -0.101,
+   "usd_a_day_halves": [
+    -0.054,
+    -0.147
+   ],
+   "usd_filled_a_day": 537,
+   "worst_day": -4.056
+  },
+  "USDC-USD|cbgbp|improve|two|m2|Q100|C1610|fx0|batch2000|lat0": {
+   "best_day": 1.618,
+   "boot_all": [
+    -0.552,
+    0.326,
+    0.6261
+   ],
+   "boot_first_half": [
+    -0.688,
+    0.546,
+    0.5676
+   ],
+   "boot_second_half": [
+    -0.691,
+    0.3,
+    0.679
+   ],
+   "bot_prints_at_our_price": 1,
+   "bps_fill_mean": 6.67,
+   "bps_maker_absent": 6.49,
+   "bps_maker_present": 6.72,
+   "buys": 102,
+   "coins_to_move_a_day": 283,
+   "days": 18,
+   "days_positive": 11,
+   "fills": 131,
+   "fills_a_day": 7.3,
+   "fills_at_price": 44,
+   "fills_maker_absent": 27,
+   "fills_maker_present": 104,
+   "markout_1m_bps": [
+    0.0,
+    2.5,
+    6.01
+   ],
+   "markout_5m_bps": [
+    -0.0,
+    2.5,
+    5.51
+   ],
+   "max_drawdown": -4.056,
+   "orders_a_day_max": 720,
+   "orders_a_day_mean": 390.9,
+   "sells": 29,
+   "transfer_cost_a_day": 0.451,
+   "transfers": 2,
+   "transit_max_usd": 1970,
+   "usd_a_day": -0.1,
+   "usd_a_day_halves": [
+    -0.046,
+    -0.153
+   ],
+   "usd_filled_a_day": 537,
+   "worst_day": -4.056
+  },
+  "USDC-USD|cbgbp|improve|two|m2|Q100|C1610|fx0|batch2000|lat90": {
+   "best_day": 1.706,
+   "boot_all": [
+    -0.545,
+    0.334,
+    0.615
+   ],
+   "boot_first_half": [
+    -0.687,
+    0.572,
+    0.5484
+   ],
+   "boot_second_half": [
+    -0.695,
+    0.307,
+    0.679
+   ],
+   "bot_prints_at_our_price": 0,
+   "bps_fill_mean": 6.79,
+   "bps_maker_absent": 6.95,
+   "bps_maker_present": 6.76,
+   "buys": 105,
+   "coins_to_move_a_day": 273,
+   "days": 18,
+   "days_positive": 12,
+   "fills": 132,
+   "fills_a_day": 7.3,
+   "fills_at_price": 41,
+   "fills_maker_absent": 22,
+   "fills_maker_present": 110,
+   "markout_1m_bps": [
+    0.0,
+    2.5,
+    6.01
+   ],
+   "markout_5m_bps": [
+    -0.0,
+    2.5,
+    5.51
+   ],
+   "max_drawdown": -4.056,
+   "orders_a_day_max": 558,
+   "orders_a_day_mean": 327.2,
+   "sells": 27,
+   "transfer_cost_a_day": 0.451,
+   "transfers": 2,
+   "transit_max_usd": 1904,
+   "usd_a_day": -0.093,
+   "usd_a_day_halves": [
+    -0.034,
+    -0.151
+   ],
+   "usd_filled_a_day": 547,
+   "worst_day": -4.056
+  },
+  "USDC-USD|cbgbp|improve|two|m2|Q100|C1610|fx0|batch5000": {
+   "best_day": 1.641,
+   "boot_all": [
+    0.216,
+    0.486,
+    0.0
+   ],
+   "boot_first_half": [
+    0.214,
+    0.561,
+    0.0
+   ],
+   "boot_second_half": [
+    0.166,
+    0.467,
+    0.0
+   ],
+   "bot_prints_at_our_price": 0,
+   "bps_fill_mean": 6.74,
+   "bps_maker_absent": 6.5,
+   "bps_maker_present": 6.79,
+   "buys": 104,
+   "coins_to_move_a_day": 273,
+   "days": 18,
+   "days_positive": 13,
+   "fills": 132,
+   "fills_a_day": 7.3,
+   "fills_at_price": 40,
+   "fills_maker_absent": 23,
+   "fills_maker_present": 109,
+   "markout_1m_bps": [
+    0.0,
+    2.5,
+    6.01
+   ],
+   "markout_5m_bps": [
+    0.0,
+    2.5,
+    5.51
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 560,
+   "orders_a_day_mean": 325.5,
+   "sells": 28,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 4556,
+   "usd_a_day": 0.35,
+   "usd_a_day_halves": [
+    0.396,
+    0.304
+   ],
+   "usd_filled_a_day": 537,
+   "worst_day": 0.0
+  },
+  "USDC-USD|cbgbp|improve|two|m2|Q100|C1610|fx0|batchNone": {
+   "best_day": 1.641,
+   "boot_all": [
+    0.216,
+    0.486,
+    0.0
+   ],
+   "boot_first_half": [
+    0.214,
+    0.561,
+    0.0
+   ],
+   "boot_second_half": [
+    0.166,
+    0.467,
+    0.0
+   ],
+   "bot_prints_at_our_price": 0,
+   "bps_fill_mean": 6.74,
+   "bps_maker_absent": 6.5,
+   "bps_maker_present": 6.79,
+   "buys": 104,
+   "coins_to_move_a_day": 273,
+   "days": 18,
+   "days_positive": 13,
+   "fills": 132,
+   "fills_a_day": 7.3,
+   "fills_at_price": 40,
+   "fills_maker_absent": 23,
+   "fills_maker_present": 109,
+   "markout_1m_bps": [
+    0.0,
+    2.5,
+    6.01
+   ],
+   "markout_5m_bps": [
+    0.0,
+    2.5,
+    5.51
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 560,
+   "orders_a_day_mean": 325.5,
+   "sells": 28,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 4556,
+   "usd_a_day": 0.35,
+   "usd_a_day_halves": [
+    0.396,
+    0.304
+   ],
+   "usd_filled_a_day": 537,
+   "worst_day": 0.0
+  },
+  "USDC-USD|cbgbp|improve|two|m2|Q100|C1610|fx20|batch2000": {
+   "best_day": 0.0,
+   "boot_all": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "boot_first_half": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "boot_second_half": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "bot_prints_at_our_price": 0,
+   "bps_fill_mean": null,
+   "bps_maker_absent": null,
+   "bps_maker_present": null,
+   "buys": 0,
+   "coins_to_move_a_day": 0,
+   "days": 18,
+   "days_positive": 0,
+   "fills": 0,
+   "fills_a_day": 0.0,
+   "fills_at_price": 0,
+   "fills_maker_absent": 0,
+   "fills_maker_present": 0,
+   "markout_1m_bps": null,
+   "markout_5m_bps": null,
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 770,
+   "orders_a_day_mean": 423.4,
+   "sells": 0,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 0,
+   "usd_a_day": 0.0,
+   "usd_a_day_halves": [
+    0.0,
+    0.0
+   ],
+   "usd_filled_a_day": 0,
+   "worst_day": 0.0
+  },
+  "USDC-USD|cbgbp|improve|two|m2|Q100|C1610|fx20|batch5000": {
+   "best_day": 0.0,
+   "boot_all": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "boot_first_half": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "boot_second_half": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "bot_prints_at_our_price": 0,
+   "bps_fill_mean": null,
+   "bps_maker_absent": null,
+   "bps_maker_present": null,
+   "buys": 0,
+   "coins_to_move_a_day": 0,
+   "days": 18,
+   "days_positive": 0,
+   "fills": 0,
+   "fills_a_day": 0.0,
+   "fills_at_price": 0,
+   "fills_maker_absent": 0,
+   "fills_maker_present": 0,
+   "markout_1m_bps": null,
+   "markout_5m_bps": null,
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 770,
+   "orders_a_day_mean": 423.4,
+   "sells": 0,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 0,
+   "usd_a_day": 0.0,
+   "usd_a_day_halves": [
+    0.0,
+    0.0
+   ],
+   "usd_filled_a_day": 0,
+   "worst_day": 0.0
+  },
+  "USDC-USD|cbgbp|improve|two|m2|Q100|C1610|fx20|batchNone": {
+   "best_day": 0.0,
+   "boot_all": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "boot_first_half": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "boot_second_half": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "bot_prints_at_our_price": 0,
+   "bps_fill_mean": null,
+   "bps_maker_absent": null,
+   "bps_maker_present": null,
+   "buys": 0,
+   "coins_to_move_a_day": 0,
+   "days": 18,
+   "days_positive": 0,
+   "fills": 0,
+   "fills_a_day": 0.0,
+   "fills_at_price": 0,
+   "fills_maker_absent": 0,
+   "fills_maker_present": 0,
+   "markout_1m_bps": null,
+   "markout_5m_bps": null,
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 770,
+   "orders_a_day_mean": 423.4,
+   "sells": 0,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 0,
+   "usd_a_day": 0.0,
+   "usd_a_day_halves": [
+    0.0,
+    0.0
+   ],
+   "usd_filled_a_day": 0,
+   "worst_day": 0.0
+  },
+  "USDC-USD|cbgbp|improve|two|m2|Q100|C1610|fx5|batch2000": {
+   "best_day": 0.556,
+   "boot_all": [
+    -0.752,
+    0.124,
+    0.9101
+   ],
+   "boot_first_half": [
+    0.062,
+    0.215,
+    0.0016
+   ],
+   "boot_second_half": [
+    -1.721,
+    0.163,
+    0.817
+   ],
+   "bot_prints_at_our_price": 0,
+   "bps_fill_mean": 4.82,
+   "bps_maker_absent": 4.92,
+   "bps_maker_present": 4.79,
+   "buys": 71,
+   "coins_to_move_a_day": 269,
+   "days": 18,
+   "days_positive": 8,
+   "fills": 74,
+   "fills_a_day": 4.1,
+   "fills_at_price": 12,
+   "fills_maker_absent": 13,
+   "fills_maker_present": 61,
+   "markout_1m_bps": [
+    0.5,
+    4.0,
+    6.01
+   ],
+   "markout_5m_bps": [
+    0.5,
+    3.5,
+    5.51
+   ],
+   "max_drawdown": -6.787,
+   "orders_a_day_max": 602,
+   "orders_a_day_mean": 345.8,
+   "sells": 3,
+   "transfer_cost_a_day": 0.451,
+   "transfers": 2,
+   "transit_max_usd": 1826,
+   "usd_a_day": -0.305,
+   "usd_a_day_halves": [
+    0.143,
+    -0.754
+   ],
+   "usd_filled_a_day": 303,
+   "worst_day": -3.973
+  },
+  "USDC-USD|cbgbp|improve|two|m2|Q100|C1610|fx5|batch5000": {
+   "best_day": 0.556,
+   "boot_all": [
+    0.081,
+    0.21,
+    0.0
+   ],
+   "boot_first_half": [
+    0.062,
+    0.215,
+    0.0016
+   ],
+   "boot_second_half": [
+    0.07,
+    0.239,
+    0.0
+   ],
+   "bot_prints_at_our_price": 0,
+   "bps_fill_mean": 4.82,
+   "bps_maker_absent": 4.92,
+   "bps_maker_present": 4.79,
+   "buys": 71,
+   "coins_to_move_a_day": 269,
+   "days": 18,
+   "days_positive": 10,
+   "fills": 74,
+   "fills_a_day": 4.1,
+   "fills_at_price": 12,
+   "fills_maker_absent": 13,
+   "fills_maker_present": 61,
+   "markout_1m_bps": [
+    0.5,
+    4.0,
+    6.01
+   ],
+   "markout_5m_bps": [
+    0.5,
+    3.5,
+    5.51
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 602,
+   "orders_a_day_mean": 345.8,
+   "sells": 3,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 4628,
+   "usd_a_day": 0.146,
+   "usd_a_day_halves": [
+    0.143,
+    0.148
+   ],
+   "usd_filled_a_day": 303,
+   "worst_day": 0.0
+  },
+  "USDC-USD|cbgbp|improve|two|m2|Q100|C1610|fx5|batchNone": {
+   "best_day": 0.556,
+   "boot_all": [
+    0.081,
+    0.21,
+    0.0
+   ],
+   "boot_first_half": [
+    0.062,
+    0.215,
+    0.0016
+   ],
+   "boot_second_half": [
+    0.07,
+    0.239,
+    0.0
+   ],
+   "bot_prints_at_our_price": 0,
+   "bps_fill_mean": 4.82,
+   "bps_maker_absent": 4.92,
+   "bps_maker_present": 4.79,
+   "buys": 71,
+   "coins_to_move_a_day": 269,
+   "days": 18,
+   "days_positive": 10,
+   "fills": 74,
+   "fills_a_day": 4.1,
+   "fills_at_price": 12,
+   "fills_maker_absent": 13,
+   "fills_maker_present": 61,
+   "markout_1m_bps": [
+    0.5,
+    4.0,
+    6.01
+   ],
+   "markout_5m_bps": [
+    0.5,
+    3.5,
+    5.51
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 602,
+   "orders_a_day_mean": 345.8,
+   "sells": 3,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 4628,
+   "usd_a_day": 0.146,
+   "usd_a_day_halves": [
+    0.143,
+    0.148
+   ],
+   "usd_filled_a_day": 303,
+   "worst_day": 0.0
+  },
+  "USDC-USD|cbgbp|improve|two|m2|Q100|C805|fx0|batch2000": {
+   "best_day": 1.059,
+   "boot_all": [
+    -0.375,
+    0.287,
+    0.4305
+   ],
+   "boot_first_half": [
+    0.15,
+    0.364,
+    0.0
+   ],
+   "boot_second_half": [
+    -0.674,
+    0.16,
+    0.7002
+   ],
+   "bot_prints_at_our_price": 0,
+   "bps_fill_mean": 6.46,
+   "bps_maker_absent": 6.52,
+   "bps_maker_present": 6.45,
+   "buys": 63,
+   "coins_to_move_a_day": 158,
+   "days": 18,
+   "days_positive": 12,
+   "fills": 87,
+   "fills_a_day": 4.8,
+   "fills_at_price": 27,
+   "fills_maker_absent": 17,
+   "fills_maker_present": 70,
+   "markout_1m_bps": [
+    0.0,
+    2.0,
+    5.51
+   ],
+   "markout_5m_bps": [
+    0.0,
+    2.0,
+    5.51
+   ],
+   "max_drawdown": -3.605,
+   "orders_a_day_max": 560,
+   "orders_a_day_mean": 307.3,
+   "sells": 24,
+   "transfer_cost_a_day": 0.226,
+   "transfers": 1,
+   "transit_max_usd": 1678,
+   "usd_a_day": 0.01,
+   "usd_a_day_halves": [
+    0.265,
+    -0.245
+   ],
+   "usd_filled_a_day": 377,
+   "worst_day": -3.605
+  },
+  "USDC-USD|cbgbp|improve|two|m2|Q100|C805|fx0|batch2000|lat0": {
+   "best_day": 1.157,
+   "boot_all": [
+    -0.365,
+    0.308,
+    0.408
+   ],
+   "boot_first_half": [
+    0.161,
+    0.404,
+    0.0
+   ],
+   "boot_second_half": [
+    -0.675,
+    0.16,
+    0.7002
+   ],
+   "bot_prints_at_our_price": 1,
+   "bps_fill_mean": 6.49,
+   "bps_maker_absent": 6.22,
+   "bps_maker_present": 6.57,
+   "buys": 64,
+   "coins_to_move_a_day": 158,
+   "days": 18,
+   "days_positive": 11,
+   "fills": 91,
+   "fills_a_day": 5.1,
+   "fills_at_price": 30,
+   "fills_maker_absent": 21,
+   "fills_maker_present": 70,
+   "markout_1m_bps": [
+    0.0,
+    2.5,
+    6.01
+   ],
+   "markout_5m_bps": [
+    -0.0,
+    2.5,
+    6.01
+   ],
+   "max_drawdown": -3.61,
+   "orders_a_day_max": 719,
+   "orders_a_day_mean": 369.2,
+   "sells": 27,
+   "transfer_cost_a_day": 0.226,
+   "transfers": 1,
+   "transit_max_usd": 1668,
+   "usd_a_day": 0.02,
+   "usd_a_day_halves": [
+    0.292,
+    -0.252
+   ],
+   "usd_filled_a_day": 390,
+   "worst_day": -3.61
+  },
+  "USDC-USD|cbgbp|improve|two|m2|Q100|C805|fx0|batch2000|lat90": {
+   "best_day": 1.079,
+   "boot_all": [
+    -0.368,
+    0.307,
+    0.402
+   ],
+   "boot_first_half": [
+    0.171,
+    0.398,
+    0.0
+   ],
+   "boot_second_half": [
+    -0.676,
+    0.16,
+    0.7002
+   ],
+   "bot_prints_at_our_price": 0,
+   "bps_fill_mean": 6.56,
+   "bps_maker_absent": 6.95,
+   "bps_maker_present": 6.48,
+   "buys": 64,
+   "coins_to_move_a_day": 161,
+   "days": 18,
+   "days_positive": 12,
+   "fills": 87,
+   "fills_a_day": 4.8,
+   "fills_at_price": 29,
+   "fills_maker_absent": 16,
+   "fills_maker_present": 71,
+   "markout_1m_bps": [
+    -0.0,
+    2.5,
+    5.51
+   ],
+   "markout_5m_bps": [
+    0.0,
+    2.5,
+    5.51
+   ],
+   "max_drawdown": -3.615,
+   "orders_a_day_max": 558,
+   "orders_a_day_mean": 316.8,
+   "sells": 23,
+   "transfer_cost_a_day": 0.226,
+   "transfers": 1,
+   "transit_max_usd": 1734,
+   "usd_a_day": 0.02,
+   "usd_a_day_halves": [
+    0.292,
+    -0.251
+   ],
+   "usd_filled_a_day": 391,
+   "worst_day": -3.615
+  },
+  "USDC-USD|cbgbp|improve|two|m2|Q100|C805|fx0|batch5000": {
+   "best_day": 1.059,
+   "boot_all": [
+    0.15,
+    0.327,
+    0.0
+   ],
+   "boot_first_half": [
+    0.15,
+    0.364,
+    0.0
+   ],
+   "boot_second_half": [
+    0.118,
+    0.31,
+    0.0
+   ],
+   "bot_prints_at_our_price": 0,
+   "bps_fill_mean": 6.46,
+   "bps_maker_absent": 6.52,
+   "bps_maker_present": 6.45,
+   "buys": 63,
+   "coins_to_move_a_day": 158,
+   "days": 18,
+   "days_positive": 13,
+   "fills": 87,
+   "fills_a_day": 4.8,
+   "fills_at_price": 27,
+   "fills_maker_absent": 17,
+   "fills_maker_present": 70,
+   "markout_1m_bps": [
+    0.0,
+    2.0,
+    5.51
+   ],
+   "markout_5m_bps": [
+    0.0,
+    2.0,
+    5.51
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 560,
+   "orders_a_day_mean": 307.3,
+   "sells": 24,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 2479,
+   "usd_a_day": 0.236,
+   "usd_a_day_halves": [
+    0.265,
+    0.208
+   ],
+   "usd_filled_a_day": 377,
+   "worst_day": 0.0
+  },
+  "USDC-USD|cbgbp|improve|two|m2|Q100|C805|fx0|batchNone": {
+   "best_day": 1.059,
+   "boot_all": [
+    0.15,
+    0.327,
+    0.0
+   ],
+   "boot_first_half": [
+    0.15,
+    0.364,
+    0.0
+   ],
+   "boot_second_half": [
+    0.118,
+    0.31,
+    0.0
+   ],
+   "bot_prints_at_our_price": 0,
+   "bps_fill_mean": 6.46,
+   "bps_maker_absent": 6.52,
+   "bps_maker_present": 6.45,
+   "buys": 63,
+   "coins_to_move_a_day": 158,
+   "days": 18,
+   "days_positive": 13,
+   "fills": 87,
+   "fills_a_day": 4.8,
+   "fills_at_price": 27,
+   "fills_maker_absent": 17,
+   "fills_maker_present": 70,
+   "markout_1m_bps": [
+    0.0,
+    2.0,
+    5.51
+   ],
+   "markout_5m_bps": [
+    0.0,
+    2.0,
+    5.51
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 560,
+   "orders_a_day_mean": 307.3,
+   "sells": 24,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 2479,
+   "usd_a_day": 0.236,
+   "usd_a_day_halves": [
+    0.265,
+    0.208
+   ],
+   "usd_filled_a_day": 377,
+   "worst_day": 0.0
+  },
+  "USDC-USD|cbgbp|improve|two|m2|Q100|C805|fx20|batch2000": {
+   "best_day": 0.0,
+   "boot_all": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "boot_first_half": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "boot_second_half": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "bot_prints_at_our_price": 0,
+   "bps_fill_mean": null,
+   "bps_maker_absent": null,
+   "bps_maker_present": null,
+   "buys": 0,
+   "coins_to_move_a_day": 0,
+   "days": 18,
+   "days_positive": 0,
+   "fills": 0,
+   "fills_a_day": 0.0,
+   "fills_at_price": 0,
+   "fills_maker_absent": 0,
+   "fills_maker_present": 0,
+   "markout_1m_bps": null,
+   "markout_5m_bps": null,
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 770,
+   "orders_a_day_mean": 423.4,
+   "sells": 0,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 0,
+   "usd_a_day": 0.0,
+   "usd_a_day_halves": [
+    0.0,
+    0.0
+   ],
+   "usd_filled_a_day": 0,
+   "worst_day": 0.0
+  },
+  "USDC-USD|cbgbp|improve|two|m2|Q100|C805|fx20|batch5000": {
+   "best_day": 0.0,
+   "boot_all": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "boot_first_half": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "boot_second_half": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "bot_prints_at_our_price": 0,
+   "bps_fill_mean": null,
+   "bps_maker_absent": null,
+   "bps_maker_present": null,
+   "buys": 0,
+   "coins_to_move_a_day": 0,
+   "days": 18,
+   "days_positive": 0,
+   "fills": 0,
+   "fills_a_day": 0.0,
+   "fills_at_price": 0,
+   "fills_maker_absent": 0,
+   "fills_maker_present": 0,
+   "markout_1m_bps": null,
+   "markout_5m_bps": null,
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 770,
+   "orders_a_day_mean": 423.4,
+   "sells": 0,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 0,
+   "usd_a_day": 0.0,
+   "usd_a_day_halves": [
+    0.0,
+    0.0
+   ],
+   "usd_filled_a_day": 0,
+   "worst_day": 0.0
+  },
+  "USDC-USD|cbgbp|improve|two|m2|Q100|C805|fx20|batchNone": {
+   "best_day": 0.0,
+   "boot_all": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "boot_first_half": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "boot_second_half": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "bot_prints_at_our_price": 0,
+   "bps_fill_mean": null,
+   "bps_maker_absent": null,
+   "bps_maker_present": null,
+   "buys": 0,
+   "coins_to_move_a_day": 0,
+   "days": 18,
+   "days_positive": 0,
+   "fills": 0,
+   "fills_a_day": 0.0,
+   "fills_at_price": 0,
+   "fills_maker_absent": 0,
+   "fills_maker_present": 0,
+   "markout_1m_bps": null,
+   "markout_5m_bps": null,
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 770,
+   "orders_a_day_mean": 423.4,
+   "sells": 0,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 0,
+   "usd_a_day": 0.0,
+   "usd_a_day_halves": [
+    0.0,
+    0.0
+   ],
+   "usd_filled_a_day": 0,
+   "worst_day": 0.0
+  },
+  "USDC-USD|cbgbp|improve|two|m2|Q100|C805|fx5|batch2000": {
+   "best_day": 0.341,
+   "boot_all": [
+    -0.583,
+    0.128,
+    0.6738
+   ],
+   "boot_first_half": [
+    0.04,
+    0.133,
+    0.0016
+   ],
+   "boot_second_half": [
+    -0.853,
+    0.15,
+    0.7016
+   ],
+   "bot_prints_at_our_price": 0,
+   "bps_fill_mean": 4.77,
+   "bps_maker_absent": 4.37,
+   "bps_maker_present": 4.86,
+   "buys": 45,
+   "coins_to_move_a_day": 170,
+   "days": 18,
+   "days_positive": 10,
+   "fills": 48,
+   "fills_a_day": 2.7,
+   "fills_at_price": 5,
+   "fills_maker_absent": 9,
+   "fills_maker_present": 39,
+   "markout_1m_bps": [
+    0.5,
+    4.5,
+    6.0
+   ],
+   "markout_5m_bps": [
+    0.5,
+    4.0,
+    5.51
+   ],
+   "max_drawdown": -4.056,
+   "orders_a_day_max": 595,
+   "orders_a_day_mean": 339.2,
+   "sells": 3,
+   "transfer_cost_a_day": 0.225,
+   "transfers": 1,
+   "transit_max_usd": 1722,
+   "usd_a_day": -0.13,
+   "usd_a_day_halves": [
+    0.09,
+    -0.351
+   ],
+   "usd_filled_a_day": 203,
+   "worst_day": -4.056
+  },
+  "USDC-USD|cbgbp|improve|two|m2|Q100|C805|fx5|batch5000": {
+   "best_day": 0.341,
+   "boot_all": [
+    0.057,
+    0.134,
+    0.0
+   ],
+   "boot_first_half": [
+    0.04,
+    0.133,
+    0.0016
+   ],
+   "boot_second_half": [
+    0.052,
+    0.15,
+    0.0
+   ],
+   "bot_prints_at_our_price": 0,
+   "bps_fill_mean": 4.77,
+   "bps_maker_absent": 4.37,
+   "bps_maker_present": 4.86,
+   "buys": 45,
+   "coins_to_move_a_day": 170,
+   "days": 18,
+   "days_positive": 10,
+   "fills": 48,
+   "fills_a_day": 2.7,
+   "fills_at_price": 5,
+   "fills_maker_absent": 9,
+   "fills_maker_present": 39,
+   "markout_1m_bps": [
+    0.5,
+    4.5,
+    6.0
+   ],
+   "markout_5m_bps": [
+    0.5,
+    4.0,
+    5.51
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 595,
+   "orders_a_day_mean": 339.2,
+   "sells": 3,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 2838,
+   "usd_a_day": 0.095,
+   "usd_a_day_halves": [
+    0.09,
+    0.1
+   ],
+   "usd_filled_a_day": 203,
+   "worst_day": 0.0
+  },
+  "USDC-USD|cbgbp|improve|two|m2|Q100|C805|fx5|batchNone": {
+   "best_day": 0.341,
+   "boot_all": [
+    0.057,
+    0.134,
+    0.0
+   ],
+   "boot_first_half": [
+    0.04,
+    0.133,
+    0.0016
+   ],
+   "boot_second_half": [
+    0.052,
+    0.15,
+    0.0
+   ],
+   "bot_prints_at_our_price": 0,
+   "bps_fill_mean": 4.77,
+   "bps_maker_absent": 4.37,
+   "bps_maker_present": 4.86,
+   "buys": 45,
+   "coins_to_move_a_day": 170,
+   "days": 18,
+   "days_positive": 10,
+   "fills": 48,
+   "fills_a_day": 2.7,
+   "fills_at_price": 5,
+   "fills_maker_absent": 9,
+   "fills_maker_present": 39,
+   "markout_1m_bps": [
+    0.5,
+    4.5,
+    6.0
+   ],
+   "markout_5m_bps": [
+    0.5,
+    4.0,
+    5.51
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 595,
+   "orders_a_day_mean": 339.2,
+   "sells": 3,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 2838,
+   "usd_a_day": 0.095,
+   "usd_a_day_halves": [
+    0.09,
+    0.1
+   ],
+   "usd_filled_a_day": 203,
+   "worst_day": 0.0
+  },
+  "USDC-USD|cbgbp|join|two|m2|Q100|C1610|fx0|batch2000": {
+   "best_day": 0.683,
+   "boot_all": [
+    0.033,
+    0.158,
+    0.0
+   ],
+   "boot_first_half": [
+    0.057,
+    0.221,
+    0.0016
+   ],
+   "boot_second_half": [
+    0.03,
+    0.057,
+    0.0
+   ],
+   "bot_prints_at_our_price": 1,
+   "bps_fill_mean": 6.07,
+   "bps_maker_absent": 5.46,
+   "bps_maker_present": 6.15,
+   "buys": 24,
+   "coins_to_move_a_day": 55,
+   "days": 18,
+   "days_positive": 9,
+   "fills": 35,
+   "fills_a_day": 1.9,
+   "fills_at_price": 3,
+   "fills_maker_absent": 4,
+   "fills_maker_present": 31,
+   "markout_1m_bps": [
+    -2.0,
+    3.5,
+    7.01
+   ],
+   "markout_5m_bps": [
+    -2.0,
+    4.0,
+    5.51
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 557,
+   "orders_a_day_mean": 314.1,
+   "sells": 11,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 892,
+   "usd_a_day": 0.093,
+   "usd_a_day_halves": [
+    0.145,
+    0.042
+   ],
+   "usd_filled_a_day": 165,
+   "worst_day": 0.0
+  },
+  "USDC-USD|cbgbp|join|two|m2|Q100|C1610|fx0|batch5000": {
+   "best_day": 0.683,
+   "boot_all": [
+    0.033,
+    0.158,
+    0.0
+   ],
+   "boot_first_half": [
+    0.057,
+    0.221,
+    0.0016
+   ],
+   "boot_second_half": [
+    0.03,
+    0.057,
+    0.0
+   ],
+   "bot_prints_at_our_price": 1,
+   "bps_fill_mean": 6.07,
+   "bps_maker_absent": 5.46,
+   "bps_maker_present": 6.15,
+   "buys": 24,
+   "coins_to_move_a_day": 55,
+   "days": 18,
+   "days_positive": 9,
+   "fills": 35,
+   "fills_a_day": 1.9,
+   "fills_at_price": 3,
+   "fills_maker_absent": 4,
+   "fills_maker_present": 31,
+   "markout_1m_bps": [
+    -2.0,
+    3.5,
+    7.01
+   ],
+   "markout_5m_bps": [
+    -2.0,
+    4.0,
+    5.51
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 557,
+   "orders_a_day_mean": 314.1,
+   "sells": 11,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 892,
+   "usd_a_day": 0.093,
+   "usd_a_day_halves": [
+    0.145,
+    0.042
+   ],
+   "usd_filled_a_day": 165,
+   "worst_day": 0.0
+  },
+  "USDC-USD|cbgbp|join|two|m2|Q100|C1610|fx0|batchNone": {
+   "best_day": 0.683,
+   "boot_all": [
+    0.033,
+    0.158,
+    0.0
+   ],
+   "boot_first_half": [
+    0.057,
+    0.221,
+    0.0016
+   ],
+   "boot_second_half": [
+    0.03,
+    0.057,
+    0.0
+   ],
+   "bot_prints_at_our_price": 1,
+   "bps_fill_mean": 6.07,
+   "bps_maker_absent": 5.46,
+   "bps_maker_present": 6.15,
+   "buys": 24,
+   "coins_to_move_a_day": 55,
+   "days": 18,
+   "days_positive": 9,
+   "fills": 35,
+   "fills_a_day": 1.9,
+   "fills_at_price": 3,
+   "fills_maker_absent": 4,
+   "fills_maker_present": 31,
+   "markout_1m_bps": [
+    -2.0,
+    3.5,
+    7.01
+   ],
+   "markout_5m_bps": [
+    -2.0,
+    4.0,
+    5.51
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 557,
+   "orders_a_day_mean": 314.1,
+   "sells": 11,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 892,
+   "usd_a_day": 0.093,
+   "usd_a_day_halves": [
+    0.145,
+    0.042
+   ],
+   "usd_filled_a_day": 165,
+   "worst_day": 0.0
+  },
+  "USDC-USD|cbgbp|join|two|m2|Q100|C1610|fx20|batch2000": {
+   "best_day": 0.0,
+   "boot_all": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "boot_first_half": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "boot_second_half": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "bot_prints_at_our_price": 0,
+   "bps_fill_mean": null,
+   "bps_maker_absent": null,
+   "bps_maker_present": null,
+   "buys": 0,
+   "coins_to_move_a_day": 0,
+   "days": 18,
+   "days_positive": 0,
+   "fills": 0,
+   "fills_a_day": 0.0,
+   "fills_at_price": 0,
+   "fills_maker_absent": 0,
+   "fills_maker_present": 0,
+   "markout_1m_bps": null,
+   "markout_5m_bps": null,
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 770,
+   "orders_a_day_mean": 423.4,
+   "sells": 0,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 0,
+   "usd_a_day": 0.0,
+   "usd_a_day_halves": [
+    0.0,
+    0.0
+   ],
+   "usd_filled_a_day": 0,
+   "worst_day": 0.0
+  },
+  "USDC-USD|cbgbp|join|two|m2|Q100|C1610|fx20|batch5000": {
+   "best_day": 0.0,
+   "boot_all": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "boot_first_half": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "boot_second_half": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "bot_prints_at_our_price": 0,
+   "bps_fill_mean": null,
+   "bps_maker_absent": null,
+   "bps_maker_present": null,
+   "buys": 0,
+   "coins_to_move_a_day": 0,
+   "days": 18,
+   "days_positive": 0,
+   "fills": 0,
+   "fills_a_day": 0.0,
+   "fills_at_price": 0,
+   "fills_maker_absent": 0,
+   "fills_maker_present": 0,
+   "markout_1m_bps": null,
+   "markout_5m_bps": null,
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 770,
+   "orders_a_day_mean": 423.4,
+   "sells": 0,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 0,
+   "usd_a_day": 0.0,
+   "usd_a_day_halves": [
+    0.0,
+    0.0
+   ],
+   "usd_filled_a_day": 0,
+   "worst_day": 0.0
+  },
+  "USDC-USD|cbgbp|join|two|m2|Q100|C1610|fx20|batchNone": {
+   "best_day": 0.0,
+   "boot_all": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "boot_first_half": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "boot_second_half": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "bot_prints_at_our_price": 0,
+   "bps_fill_mean": null,
+   "bps_maker_absent": null,
+   "bps_maker_present": null,
+   "buys": 0,
+   "coins_to_move_a_day": 0,
+   "days": 18,
+   "days_positive": 0,
+   "fills": 0,
+   "fills_a_day": 0.0,
+   "fills_at_price": 0,
+   "fills_maker_absent": 0,
+   "fills_maker_present": 0,
+   "markout_1m_bps": null,
+   "markout_5m_bps": null,
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 770,
+   "orders_a_day_mean": 423.4,
+   "sells": 0,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 0,
+   "usd_a_day": 0.0,
+   "usd_a_day_halves": [
+    0.0,
+    0.0
+   ],
+   "usd_filled_a_day": 0,
+   "worst_day": 0.0
+  },
+  "USDC-USD|cbgbp|join|two|m2|Q100|C1610|fx5|batch2000": {
+   "best_day": 0.317,
+   "boot_all": [
+    0.017,
+    0.076,
+    0.0
+   ],
+   "boot_first_half": [
+    0.028,
+    0.105,
+    0.0105
+   ],
+   "boot_second_half": [
+    0.011,
+    0.031,
+    0.0
+   ],
+   "bot_prints_at_our_price": 1,
+   "bps_fill_mean": 3.95,
+   "bps_maker_absent": 2.62,
+   "bps_maker_present": 4.27,
+   "buys": 23,
+   "coins_to_move_a_day": 88,
+   "days": 18,
+   "days_positive": 7,
+   "fills": 26,
+   "fills_a_day": 1.4,
+   "fills_at_price": 0,
+   "fills_maker_absent": 5,
+   "fills_maker_present": 21,
+   "markout_1m_bps": [
+    1.5,
+    5.01,
+    7.01
+   ],
+   "markout_5m_bps": [
+    1.5,
+    4.51,
+    6.5
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 729,
+   "orders_a_day_mean": 354.5,
+   "sells": 3,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 1484,
+   "usd_a_day": 0.045,
+   "usd_a_day_halves": [
+    0.07,
+    0.021
+   ],
+   "usd_filled_a_day": 121,
+   "worst_day": 0.0
+  },
+  "USDC-USD|cbgbp|join|two|m2|Q100|C1610|fx5|batch5000": {
+   "best_day": 0.317,
+   "boot_all": [
+    0.017,
+    0.076,
+    0.0
+   ],
+   "boot_first_half": [
+    0.028,
+    0.105,
+    0.0105
+   ],
+   "boot_second_half": [
+    0.011,
+    0.031,
+    0.0
+   ],
+   "bot_prints_at_our_price": 1,
+   "bps_fill_mean": 3.95,
+   "bps_maker_absent": 2.62,
+   "bps_maker_present": 4.27,
+   "buys": 23,
+   "coins_to_move_a_day": 88,
+   "days": 18,
+   "days_positive": 7,
+   "fills": 26,
+   "fills_a_day": 1.4,
+   "fills_at_price": 0,
+   "fills_maker_absent": 5,
+   "fills_maker_present": 21,
+   "markout_1m_bps": [
+    1.5,
+    5.01,
+    7.01
+   ],
+   "markout_5m_bps": [
+    1.5,
+    4.51,
+    6.5
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 729,
+   "orders_a_day_mean": 354.5,
+   "sells": 3,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 1484,
+   "usd_a_day": 0.045,
+   "usd_a_day_halves": [
+    0.07,
+    0.021
+   ],
+   "usd_filled_a_day": 121,
+   "worst_day": 0.0
+  },
+  "USDC-USD|cbgbp|join|two|m2|Q100|C1610|fx5|batchNone": {
+   "best_day": 0.317,
+   "boot_all": [
+    0.017,
+    0.076,
+    0.0
+   ],
+   "boot_first_half": [
+    0.028,
+    0.105,
+    0.0105
+   ],
+   "boot_second_half": [
+    0.011,
+    0.031,
+    0.0
+   ],
+   "bot_prints_at_our_price": 1,
+   "bps_fill_mean": 3.95,
+   "bps_maker_absent": 2.62,
+   "bps_maker_present": 4.27,
+   "buys": 23,
+   "coins_to_move_a_day": 88,
+   "days": 18,
+   "days_positive": 7,
+   "fills": 26,
+   "fills_a_day": 1.4,
+   "fills_at_price": 0,
+   "fills_maker_absent": 5,
+   "fills_maker_present": 21,
+   "markout_1m_bps": [
+    1.5,
+    5.01,
+    7.01
+   ],
+   "markout_5m_bps": [
+    1.5,
+    4.51,
+    6.5
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 729,
+   "orders_a_day_mean": 354.5,
+   "sells": 3,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 1484,
+   "usd_a_day": 0.045,
+   "usd_a_day_halves": [
+    0.07,
+    0.021
+   ],
+   "usd_filled_a_day": 121,
+   "worst_day": 0.0
+  },
+  "USDC-USD|cbgbp|join|two|m2|Q100|C805|fx0|batch2000": {
+   "best_day": 0.683,
+   "boot_all": [
+    0.033,
+    0.158,
+    0.0
+   ],
+   "boot_first_half": [
+    0.057,
+    0.221,
+    0.0016
+   ],
+   "boot_second_half": [
+    0.03,
+    0.057,
+    0.0
+   ],
+   "bot_prints_at_our_price": 1,
+   "bps_fill_mean": 6.07,
+   "bps_maker_absent": 5.46,
+   "bps_maker_present": 6.15,
+   "buys": 24,
+   "coins_to_move_a_day": 55,
+   "days": 18,
+   "days_positive": 9,
+   "fills": 35,
+   "fills_a_day": 1.9,
+   "fills_at_price": 3,
+   "fills_maker_absent": 4,
+   "fills_maker_present": 31,
+   "markout_1m_bps": [
+    -2.0,
+    3.5,
+    7.01
+   ],
+   "markout_5m_bps": [
+    -2.0,
+    4.0,
+    5.51
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 557,
+   "orders_a_day_mean": 313.3,
+   "sells": 11,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 892,
+   "usd_a_day": 0.093,
+   "usd_a_day_halves": [
+    0.145,
+    0.042
+   ],
+   "usd_filled_a_day": 165,
+   "worst_day": 0.0
+  },
+  "USDC-USD|cbgbp|join|two|m2|Q100|C805|fx0|batch5000": {
+   "best_day": 0.683,
+   "boot_all": [
+    0.033,
+    0.158,
+    0.0
+   ],
+   "boot_first_half": [
+    0.057,
+    0.221,
+    0.0016
+   ],
+   "boot_second_half": [
+    0.03,
+    0.057,
+    0.0
+   ],
+   "bot_prints_at_our_price": 1,
+   "bps_fill_mean": 6.07,
+   "bps_maker_absent": 5.46,
+   "bps_maker_present": 6.15,
+   "buys": 24,
+   "coins_to_move_a_day": 55,
+   "days": 18,
+   "days_positive": 9,
+   "fills": 35,
+   "fills_a_day": 1.9,
+   "fills_at_price": 3,
+   "fills_maker_absent": 4,
+   "fills_maker_present": 31,
+   "markout_1m_bps": [
+    -2.0,
+    3.5,
+    7.01
+   ],
+   "markout_5m_bps": [
+    -2.0,
+    4.0,
+    5.51
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 557,
+   "orders_a_day_mean": 313.3,
+   "sells": 11,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 892,
+   "usd_a_day": 0.093,
+   "usd_a_day_halves": [
+    0.145,
+    0.042
+   ],
+   "usd_filled_a_day": 165,
+   "worst_day": 0.0
+  },
+  "USDC-USD|cbgbp|join|two|m2|Q100|C805|fx0|batchNone": {
+   "best_day": 0.683,
+   "boot_all": [
+    0.033,
+    0.158,
+    0.0
+   ],
+   "boot_first_half": [
+    0.057,
+    0.221,
+    0.0016
+   ],
+   "boot_second_half": [
+    0.03,
+    0.057,
+    0.0
+   ],
+   "bot_prints_at_our_price": 1,
+   "bps_fill_mean": 6.07,
+   "bps_maker_absent": 5.46,
+   "bps_maker_present": 6.15,
+   "buys": 24,
+   "coins_to_move_a_day": 55,
+   "days": 18,
+   "days_positive": 9,
+   "fills": 35,
+   "fills_a_day": 1.9,
+   "fills_at_price": 3,
+   "fills_maker_absent": 4,
+   "fills_maker_present": 31,
+   "markout_1m_bps": [
+    -2.0,
+    3.5,
+    7.01
+   ],
+   "markout_5m_bps": [
+    -2.0,
+    4.0,
+    5.51
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 557,
+   "orders_a_day_mean": 313.3,
+   "sells": 11,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 892,
+   "usd_a_day": 0.093,
+   "usd_a_day_halves": [
+    0.145,
+    0.042
+   ],
+   "usd_filled_a_day": 165,
+   "worst_day": 0.0
+  },
+  "USDC-USD|cbgbp|join|two|m2|Q100|C805|fx20|batch2000": {
+   "best_day": 0.0,
+   "boot_all": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "boot_first_half": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "boot_second_half": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "bot_prints_at_our_price": 0,
+   "bps_fill_mean": null,
+   "bps_maker_absent": null,
+   "bps_maker_present": null,
+   "buys": 0,
+   "coins_to_move_a_day": 0,
+   "days": 18,
+   "days_positive": 0,
+   "fills": 0,
+   "fills_a_day": 0.0,
+   "fills_at_price": 0,
+   "fills_maker_absent": 0,
+   "fills_maker_present": 0,
+   "markout_1m_bps": null,
+   "markout_5m_bps": null,
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 770,
+   "orders_a_day_mean": 423.4,
+   "sells": 0,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 0,
+   "usd_a_day": 0.0,
+   "usd_a_day_halves": [
+    0.0,
+    0.0
+   ],
+   "usd_filled_a_day": 0,
+   "worst_day": 0.0
+  },
+  "USDC-USD|cbgbp|join|two|m2|Q100|C805|fx20|batch5000": {
+   "best_day": 0.0,
+   "boot_all": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "boot_first_half": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "boot_second_half": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "bot_prints_at_our_price": 0,
+   "bps_fill_mean": null,
+   "bps_maker_absent": null,
+   "bps_maker_present": null,
+   "buys": 0,
+   "coins_to_move_a_day": 0,
+   "days": 18,
+   "days_positive": 0,
+   "fills": 0,
+   "fills_a_day": 0.0,
+   "fills_at_price": 0,
+   "fills_maker_absent": 0,
+   "fills_maker_present": 0,
+   "markout_1m_bps": null,
+   "markout_5m_bps": null,
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 770,
+   "orders_a_day_mean": 423.4,
+   "sells": 0,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 0,
+   "usd_a_day": 0.0,
+   "usd_a_day_halves": [
+    0.0,
+    0.0
+   ],
+   "usd_filled_a_day": 0,
+   "worst_day": 0.0
+  },
+  "USDC-USD|cbgbp|join|two|m2|Q100|C805|fx20|batchNone": {
+   "best_day": 0.0,
+   "boot_all": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "boot_first_half": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "boot_second_half": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "bot_prints_at_our_price": 0,
+   "bps_fill_mean": null,
+   "bps_maker_absent": null,
+   "bps_maker_present": null,
+   "buys": 0,
+   "coins_to_move_a_day": 0,
+   "days": 18,
+   "days_positive": 0,
+   "fills": 0,
+   "fills_a_day": 0.0,
+   "fills_at_price": 0,
+   "fills_maker_absent": 0,
+   "fills_maker_present": 0,
+   "markout_1m_bps": null,
+   "markout_5m_bps": null,
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 770,
+   "orders_a_day_mean": 423.4,
+   "sells": 0,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 0,
+   "usd_a_day": 0.0,
+   "usd_a_day_halves": [
+    0.0,
+    0.0
+   ],
+   "usd_filled_a_day": 0,
+   "worst_day": 0.0
+  },
+  "USDC-USD|cbgbp|join|two|m2|Q100|C805|fx5|batch2000": {
+   "best_day": 0.265,
+   "boot_all": [
+    0.017,
+    0.068,
+    0.0
+   ],
+   "boot_first_half": [
+    0.025,
+    0.095,
+    0.0105
+   ],
+   "boot_second_half": [
+    0.011,
+    0.031,
+    0.0
+   ],
+   "bot_prints_at_our_price": 1,
+   "bps_fill_mean": 3.86,
+   "bps_maker_absent": 2.62,
+   "bps_maker_present": 4.22,
+   "buys": 19,
+   "coins_to_move_a_day": 77,
+   "days": 18,
+   "days_positive": 7,
+   "fills": 22,
+   "fills_a_day": 1.2,
+   "fills_at_price": 0,
+   "fills_maker_absent": 5,
+   "fills_maker_present": 17,
+   "markout_1m_bps": [
+    1.5,
+    4.51,
+    7.01
+   ],
+   "markout_5m_bps": [
+    1.5,
+    4.0,
+    6.5
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 600,
+   "orders_a_day_mean": 342.8,
+   "sells": 3,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 1284,
+   "usd_a_day": 0.041,
+   "usd_a_day_halves": [
+    0.062,
+    0.021
+   ],
+   "usd_filled_a_day": 110,
+   "worst_day": 0.0
+  },
+  "USDC-USD|cbgbp|join|two|m2|Q100|C805|fx5|batch5000": {
+   "best_day": 0.265,
+   "boot_all": [
+    0.017,
+    0.068,
+    0.0
+   ],
+   "boot_first_half": [
+    0.025,
+    0.095,
+    0.0105
+   ],
+   "boot_second_half": [
+    0.011,
+    0.031,
+    0.0
+   ],
+   "bot_prints_at_our_price": 1,
+   "bps_fill_mean": 3.86,
+   "bps_maker_absent": 2.62,
+   "bps_maker_present": 4.22,
+   "buys": 19,
+   "coins_to_move_a_day": 77,
+   "days": 18,
+   "days_positive": 7,
+   "fills": 22,
+   "fills_a_day": 1.2,
+   "fills_at_price": 0,
+   "fills_maker_absent": 5,
+   "fills_maker_present": 17,
+   "markout_1m_bps": [
+    1.5,
+    4.51,
+    7.01
+   ],
+   "markout_5m_bps": [
+    1.5,
+    4.0,
+    6.5
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 600,
+   "orders_a_day_mean": 342.8,
+   "sells": 3,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 1284,
+   "usd_a_day": 0.041,
+   "usd_a_day_halves": [
+    0.062,
+    0.021
+   ],
+   "usd_filled_a_day": 110,
+   "worst_day": 0.0
+  },
+  "USDC-USD|cbgbp|join|two|m2|Q100|C805|fx5|batchNone": {
+   "best_day": 0.265,
+   "boot_all": [
+    0.017,
+    0.068,
+    0.0
+   ],
+   "boot_first_half": [
+    0.025,
+    0.095,
+    0.0105
+   ],
+   "boot_second_half": [
+    0.011,
+    0.031,
+    0.0
+   ],
+   "bot_prints_at_our_price": 1,
+   "bps_fill_mean": 3.86,
+   "bps_maker_absent": 2.62,
+   "bps_maker_present": 4.22,
+   "buys": 19,
+   "coins_to_move_a_day": 77,
+   "days": 18,
+   "days_positive": 7,
+   "fills": 22,
+   "fills_a_day": 1.2,
+   "fills_at_price": 0,
+   "fills_maker_absent": 5,
+   "fills_maker_present": 17,
+   "markout_1m_bps": [
+    1.5,
+    4.51,
+    7.01
+   ],
+   "markout_5m_bps": [
+    1.5,
+    4.0,
+    6.5
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 600,
+   "orders_a_day_mean": 342.8,
+   "sells": 3,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 1284,
+   "usd_a_day": 0.041,
+   "usd_a_day_halves": [
+    0.062,
+    0.021
+   ],
+   "usd_filled_a_day": 110,
+   "worst_day": 0.0
+  },
+  "USDC-USD|par|improve|bidall|m2|Q100|C1610": {
+   "best_day": 1.84,
+   "boot_all": [
+    0.198,
+    0.527,
+    0.0
+   ],
+   "boot_first_half": [
+    0.057,
+    0.098,
+    0.0
+   ],
+   "boot_second_half": [
+    0.454,
+    0.806,
+    0.0
+   ],
+   "bot_prints_at_our_price": 3,
+   "bps_fill_mean": 6.4,
+   "bps_maker_absent": 7.6,
+   "bps_maker_present": 6.21,
+   "buys": 257,
+   "coins_to_move_a_day": 535,
+   "days": 32,
+   "days_positive": 30,
+   "fills": 257,
+   "fills_a_day": 8.0,
+   "fills_at_price": 99,
+   "fills_maker_absent": 34,
+   "fills_maker_present": 223,
+   "markout_1m_bps": [
+    0.0,
+    1.0,
+    5.51
+   ],
+   "markout_5m_bps": [
+    0.0,
+    1.0,
+    5.01
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 126,
+   "orders_a_day_mean": 21.4,
+   "sells": 0,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 16772,
+   "usd_a_day": 0.356,
+   "usd_a_day_halves": [
+    0.078,
+    0.634
+   ],
+   "usd_filled_a_day": 535,
+   "worst_day": 0.0
+  },
+  "USDC-USD|par|improve|bidall|m2|Q100|C805": {
+   "best_day": 1.172,
+   "boot_all": [
+    0.157,
+    0.391,
+    0.0
+   ],
+   "boot_first_half": [
+    0.055,
+    0.092,
+    0.0
+   ],
+   "boot_second_half": [
+    0.332,
+    0.598,
+    0.0
+   ],
+   "bot_prints_at_our_price": 2,
+   "bps_fill_mean": 5.7,
+   "bps_maker_absent": 6.44,
+   "bps_maker_present": 5.61,
+   "buys": 218,
+   "coins_to_move_a_day": 445,
+   "days": 32,
+   "days_positive": 30,
+   "fills": 218,
+   "fills_a_day": 6.8,
+   "fills_at_price": 89,
+   "fills_maker_absent": 23,
+   "fills_maker_present": 195,
+   "markout_1m_bps": [
+    0.0,
+    1.0,
+    5.01
+   ],
+   "markout_5m_bps": [
+    0.0,
+    1.0,
+    5.01
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 126,
+   "orders_a_day_mean": 18.7,
+   "sells": 0,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 13889,
+   "usd_a_day": 0.268,
+   "usd_a_day_halves": [
+    0.074,
+    0.461
+   ],
+   "usd_filled_a_day": 445,
+   "worst_day": 0.0
+  },
+  "USDC-USD|par|improve|bid|m2|Q100|C1610": {
+   "best_day": 1.172,
+   "boot_all": [
+    0.157,
+    0.391,
+    0.0
+   ],
+   "boot_first_half": [
+    0.055,
+    0.092,
+    0.0
+   ],
+   "boot_second_half": [
+    0.332,
+    0.598,
+    0.0
+   ],
+   "bot_prints_at_our_price": 2,
+   "bps_fill_mean": 5.7,
+   "bps_maker_absent": 6.44,
+   "bps_maker_present": 5.61,
+   "buys": 218,
+   "coins_to_move_a_day": 445,
+   "days": 32,
+   "days_positive": 30,
+   "fills": 218,
+   "fills_a_day": 6.8,
+   "fills_at_price": 89,
+   "fills_maker_absent": 23,
+   "fills_maker_present": 195,
+   "markout_1m_bps": [
+    0.0,
+    1.0,
+    5.01
+   ],
+   "markout_5m_bps": [
+    0.0,
+    1.0,
+    5.01
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 126,
+   "orders_a_day_mean": 18.7,
+   "sells": 0,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 13889,
+   "usd_a_day": 0.268,
+   "usd_a_day_halves": [
+    0.074,
+    0.461
+   ],
+   "usd_filled_a_day": 445,
+   "worst_day": 0.0
+  },
+  "USDC-USD|par|improve|bid|m2|Q100|C805": {
+   "best_day": 0.571,
+   "boot_all": [
+    0.104,
+    0.228,
+    0.0
+   ],
+   "boot_first_half": [
+    0.044,
+    0.072,
+    0.0
+   ],
+   "boot_second_half": [
+    0.197,
+    0.338,
+    0.0
+   ],
+   "bot_prints_at_our_price": 2,
+   "bps_fill_mean": 5.21,
+   "bps_maker_absent": 4.86,
+   "bps_maker_present": 5.25,
+   "buys": 146,
+   "coins_to_move_a_day": 310,
+   "days": 32,
+   "days_positive": 30,
+   "fills": 146,
+   "fills_a_day": 4.6,
+   "fills_at_price": 62,
+   "fills_maker_absent": 14,
+   "fills_maker_present": 132,
+   "markout_1m_bps": [
+    0.0,
+    1.0,
+    5.01
+   ],
+   "markout_5m_bps": [
+    0.0,
+    1.0,
+    5.01
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 110,
+   "orders_a_day_mean": 12.4,
+   "sells": 0,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 9563,
+   "usd_a_day": 0.163,
+   "usd_a_day_halves": [
+    0.058,
+    0.268
+   ],
+   "usd_filled_a_day": 310,
+   "worst_day": 0.0
+  },
+  "USDC-USD|par|improve|two|m0|Q100|C1610": {
+   "best_day": 1.963,
+   "boot_all": [
+    0.195,
+    0.483,
+    0.0
+   ],
+   "boot_first_half": [
+    0.072,
+    0.108,
+    0.0
+   ],
+   "boot_second_half": [
+    0.421,
+    0.726,
+    0.0
+   ],
+   "bot_prints_at_our_price": 17,
+   "bps_fill_mean": 2.12,
+   "bps_maker_absent": 3.03,
+   "bps_maker_present": 2.01,
+   "buys": 376,
+   "coins_to_move_a_day": 47,
+   "days": 32,
+   "days_positive": 32,
+   "fills": 718,
+   "fills_a_day": 22.4,
+   "fills_at_price": 243,
+   "fills_maker_absent": 80,
+   "fills_maker_present": 638,
+   "markout_1m_bps": [
+    0.0,
+    0.5,
+    5.01
+   ],
+   "markout_5m_bps": [
+    -0.0,
+    0.5,
+    4.51
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 126,
+   "orders_a_day_mean": 47.0,
+   "sells": 342,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 3818,
+   "usd_a_day": 0.334,
+   "usd_a_day_halves": [
+    0.089,
+    0.579
+   ],
+   "usd_filled_a_day": 1513,
+   "worst_day": 0.02
+  },
+  "USDC-USD|par|improve|two|m0|Q100|C805": {
+   "best_day": 0.791,
+   "boot_all": [
+    0.145,
+    0.323,
+    0.0
+   ],
+   "boot_first_half": [
+    0.061,
+    0.096,
+    0.0
+   ],
+   "boot_second_half": [
+    0.288,
+    0.478,
+    0.0
+   ],
+   "bot_prints_at_our_price": 15,
+   "bps_fill_mean": 1.67,
+   "bps_maker_absent": 2.02,
+   "bps_maker_present": 1.62,
+   "buys": 328,
+   "coins_to_move_a_day": 51,
+   "days": 32,
+   "days_positive": 32,
+   "fills": 609,
+   "fills_a_day": 19.0,
+   "fills_at_price": 218,
+   "fills_maker_absent": 68,
+   "fills_maker_present": 541,
+   "markout_1m_bps": [
+    0.0,
+    0.5,
+    4.51
+   ],
+   "markout_5m_bps": [
+    0.0,
+    0.5,
+    4.51
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 110,
+   "orders_a_day_mean": 41.2,
+   "sells": 281,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 1660,
+   "usd_a_day": 0.23,
+   "usd_a_day_halves": [
+    0.077,
+    0.384
+   ],
+   "usd_filled_a_day": 1325,
+   "worst_day": 0.02
+  },
+  "USDC-USD|par|improve|two|m2|Q100|C1610": {
+   "best_day": 1.822,
+   "boot_all": [
+    0.227,
+    0.488,
+    0.0
+   ],
+   "boot_first_half": [
+    0.119,
+    0.155,
+    0.0
+   ],
+   "boot_second_half": [
+    0.424,
+    0.711,
+    0.0
+   ],
+   "bot_prints_at_our_price": 5,
+   "bps_fill_mean": 4.91,
+   "bps_maker_absent": 5.46,
+   "bps_maker_present": 4.82,
+   "buys": 239,
+   "coins_to_move_a_day": 293,
+   "days": 32,
+   "days_positive": 32,
+   "fills": 330,
+   "fills_a_day": 10.3,
+   "fills_at_price": 171,
+   "fills_maker_absent": 48,
+   "fills_maker_present": 282,
+   "markout_1m_bps": [
+    0.0,
+    1.5,
+    5.01
+   ],
+   "markout_5m_bps": [
+    0.0,
+    1.5,
+    5.01
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 126,
+   "orders_a_day_mean": 23.0,
+   "sells": 91,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 9004,
+   "usd_a_day": 0.354,
+   "usd_a_day_halves": [
+    0.136,
+    0.571
+   ],
+   "usd_filled_a_day": 702,
+   "worst_day": 0.04
+  },
+  "USDC-USD|par|improve|two|m2|Q100|C1610|cbwindow": {
+   "best_day": 1.822,
+   "boot_all": [
+    0.366,
+    0.673,
+    0.0
+   ],
+   "boot_first_half": [
+    0.304,
+    0.703,
+    0.0
+   ],
+   "boot_second_half": [
+    0.329,
+    0.714,
+    0.0
+   ],
+   "bot_prints_at_our_price": 1,
+   "bps_fill_mean": 7.12,
+   "bps_maker_absent": 6.62,
+   "bps_maker_present": 7.23,
+   "buys": 161,
+   "coins_to_move_a_day": 501,
+   "days": 18,
+   "days_positive": 18,
+   "fills": 186,
+   "fills_a_day": 10.3,
+   "fills_at_price": 70,
+   "fills_maker_absent": 36,
+   "fills_maker_present": 150,
+   "markout_1m_bps": [
+    0.0,
+    1.5,
+    5.51
+   ],
+   "markout_5m_bps": [
+    0.0,
+    1.5,
+    5.51
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 126,
+   "orders_a_day_mean": 30.4,
+   "sells": 25,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 8649,
+   "usd_a_day": 0.524,
+   "usd_a_day_halves": [
+    0.516,
+    0.532
+   ],
+   "usd_filled_a_day": 745,
+   "worst_day": 0.08
+  },
+  "USDC-USD|par|improve|two|m2|Q100|C1610|maker_absent_only": {
+   "best_day": 1.182,
+   "boot_all": [
+    0.023,
+    0.136,
+    0.0
+   ],
+   "boot_first_half": [
+    0.004,
+    0.024,
+    0.0044
+   ],
+   "boot_second_half": [
+    0.042,
+    0.24,
+    0.0
+   ],
+   "bot_prints_at_our_price": 0,
+   "bps_fill_mean": 5.58,
+   "bps_maker_absent": 5.58,
+   "bps_maker_present": null,
+   "buys": 32,
+   "coins_to_move_a_day": 51,
+   "days": 32,
+   "days_positive": 15,
+   "fills": 47,
+   "fills_a_day": 1.5,
+   "fills_at_price": 28,
+   "fills_maker_absent": 47,
+   "fills_maker_present": 0,
+   "markout_1m_bps": [
+    0.0,
+    1.0,
+    2.5
+   ],
+   "markout_5m_bps": [
+    0.0,
+    1.5,
+    2.5
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 169,
+   "orders_a_day_mean": 48.5,
+   "sells": 15,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 1479,
+   "usd_a_day": 0.071,
+   "usd_a_day_halves": [
+    0.014,
+    0.128
+   ],
+   "usd_filled_a_day": 116,
+   "worst_day": 0.0
+  },
+  "USDC-USD|par|improve|two|m2|Q100|C1610|maker_present_only": {
+   "best_day": 1.251,
+   "boot_all": [
+    0.211,
+    0.436,
+    0.0
+   ],
+   "boot_first_half": [
+    0.114,
+    0.149,
+    0.0
+   ],
+   "boot_second_half": [
+    0.384,
+    0.626,
+    0.0
+   ],
+   "bot_prints_at_our_price": 5,
+   "bps_fill_mean": 4.99,
+   "bps_maker_absent": 6.41,
+   "bps_maker_present": 4.96,
+   "buys": 220,
+   "coins_to_move_a_day": 280,
+   "days": 32,
+   "days_positive": 32,
+   "fills": 296,
+   "fills_a_day": 9.2,
+   "fills_at_price": 147,
+   "fills_maker_absent": 5,
+   "fills_maker_present": 291,
+   "markout_1m_bps": [
+    0.5,
+    1.5,
+    5.51
+   ],
+   "markout_5m_bps": [
+    0.5,
+    1.5,
+    5.01
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 150,
+   "orders_a_day_mean": 59.6,
+   "sells": 76,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 8748,
+   "usd_a_day": 0.32,
+   "usd_a_day_halves": [
+    0.13,
+    0.51
+   ],
+   "usd_filled_a_day": 644,
+   "worst_day": 0.041
+  },
+  "USDC-USD|par|improve|two|m2|Q100|C805": {
+   "best_day": 1.051,
+   "boot_all": [
+    0.164,
+    0.311,
+    0.0
+   ],
+   "boot_first_half": [
+    0.1,
+    0.134,
+    0.0
+   ],
+   "boot_second_half": [
+    0.262,
+    0.439,
+    0.0
+   ],
+   "bot_prints_at_our_price": 5,
+   "bps_fill_mean": 4.13,
+   "bps_maker_absent": 4.65,
+   "bps_maker_present": 4.04,
+   "buys": 175,
+   "coins_to_move_a_day": 195,
+   "days": 32,
+   "days_positive": 32,
+   "fills": 254,
+   "fills_a_day": 7.9,
+   "fills_at_price": 147,
+   "fills_maker_absent": 37,
+   "fills_maker_present": 217,
+   "markout_1m_bps": [
+    0.0,
+    1.5,
+    4.51
+   ],
+   "markout_5m_bps": [
+    0.0,
+    1.5,
+    4.51
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 110,
+   "orders_a_day_mean": 16.7,
+   "sells": 79,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 5869,
+   "usd_a_day": 0.234,
+   "usd_a_day_halves": [
+    0.116,
+    0.351
+   ],
+   "usd_filled_a_day": 553,
+   "worst_day": 0.04
+  },
+  "USDC-USD|par|improve|two|m2|Q100|C805|cbwindow": {
+   "best_day": 1.051,
+   "boot_all": [
+    0.23,
+    0.416,
+    0.0
+   ],
+   "boot_first_half": [
+    0.214,
+    0.463,
+    0.0
+   ],
+   "boot_second_half": [
+    0.186,
+    0.396,
+    0.0
+   ],
+   "bot_prints_at_our_price": 1,
+   "bps_fill_mean": 6.06,
+   "bps_maker_absent": 5.78,
+   "bps_maker_present": 6.13,
+   "buys": 108,
+   "coins_to_move_a_day": 311,
+   "days": 18,
+   "days_positive": 18,
+   "fills": 131,
+   "fills_a_day": 7.3,
+   "fills_at_price": 60,
+   "fills_maker_absent": 26,
+   "fills_maker_present": 105,
+   "markout_1m_bps": [
+    0.0,
+    1.0,
+    5.51
+   ],
+   "markout_5m_bps": [
+    0.0,
+    1.0,
+    5.51
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 110,
+   "orders_a_day_mean": 22.3,
+   "sells": 23,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 5222,
+   "usd_a_day": 0.324,
+   "usd_a_day_halves": [
+    0.352,
+    0.297
+   ],
+   "usd_filled_a_day": 544,
+   "worst_day": 0.064
+  },
+  "USDC-USD|par|improve|two|m2|Q100|C805|maker_absent_only": {
+   "best_day": 0.821,
+   "boot_all": [
+    0.023,
+    0.105,
+    0.0
+   ],
+   "boot_first_half": [
+    0.004,
+    0.024,
+    0.0044
+   ],
+   "boot_second_half": [
+    0.042,
+    0.178,
+    0.0
+   ],
+   "bot_prints_at_our_price": 0,
+   "bps_fill_mean": 5.03,
+   "bps_maker_absent": 5.03,
+   "bps_maker_present": null,
+   "buys": 30,
+   "coins_to_move_a_day": 44,
+   "days": 32,
+   "days_positive": 15,
+   "fills": 45,
+   "fills_a_day": 1.4,
+   "fills_at_price": 28,
+   "fills_maker_absent": 45,
+   "fills_maker_present": 0,
+   "markout_1m_bps": [
+    0.0,
+    1.0,
+    2.5
+   ],
+   "markout_5m_bps": [
+    0.0,
+    1.0,
+    2.5
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 169,
+   "orders_a_day_mean": 48.3,
+   "sells": 15,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 1279,
+   "usd_a_day": 0.059,
+   "usd_a_day_halves": [
+    0.014,
+    0.105
+   ],
+   "usd_filled_a_day": 109,
+   "worst_day": 0.0
+  },
+  "USDC-USD|par|improve|two|m2|Q100|C805|maker_present_only": {
+   "best_day": 0.891,
+   "boot_all": [
+    0.153,
+    0.281,
+    0.0
+   ],
+   "boot_first_half": [
+    0.092,
+    0.133,
+    0.0
+   ],
+   "boot_second_half": [
+    0.24,
+    0.392,
+    0.0
+   ],
+   "bot_prints_at_our_price": 4,
+   "bps_fill_mean": 4.28,
+   "bps_maker_absent": 5.0,
+   "bps_maker_present": 4.26,
+   "buys": 165,
+   "coins_to_move_a_day": 191,
+   "days": 32,
+   "days_positive": 32,
+   "fills": 231,
+   "fills_a_day": 7.2,
+   "fills_at_price": 127,
+   "fills_maker_absent": 4,
+   "fills_maker_present": 227,
+   "markout_1m_bps": [
+    0.5,
+    1.5,
+    5.01
+   ],
+   "markout_5m_bps": [
+    0.5,
+    1.5,
+    5.01
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 150,
+   "orders_a_day_mean": 51.2,
+   "sells": 66,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 5891,
+   "usd_a_day": 0.214,
+   "usd_a_day_halves": [
+    0.112,
+    0.316
+   ],
+   "usd_filled_a_day": 509,
+   "worst_day": 0.041
+  },
+  "USDC-USD|par|improve|two|m2|Q250|C1610": {
+   "best_day": 2.077,
+   "boot_all": [
+    0.314,
+    0.599,
+    0.0
+   ],
+   "boot_first_half": [
+    0.185,
+    0.264,
+    0.0
+   ],
+   "boot_second_half": [
+    0.507,
+    0.848,
+    0.0
+   ],
+   "bot_prints_at_our_price": 4,
+   "bps_fill_mean": 3.94,
+   "bps_maker_absent": 4.19,
+   "bps_maker_present": 3.9,
+   "buys": 169,
+   "coins_to_move_a_day": 357,
+   "days": 32,
+   "days_positive": 32,
+   "fills": 242,
+   "fills_a_day": 7.6,
+   "fills_at_price": 146,
+   "fills_maker_absent": 33,
+   "fills_maker_present": 209,
+   "markout_1m_bps": [
+    0.0,
+    1.5,
+    3.5
+   ],
+   "markout_5m_bps": [
+    0.0,
+    1.5,
+    3.5
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 126,
+   "orders_a_day_mean": 15.4,
+   "sells": 73,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 10913,
+   "usd_a_day": 0.45,
+   "usd_a_day_halves": [
+    0.223,
+    0.677
+   ],
+   "usd_filled_a_day": 1107,
+   "worst_day": 0.084
+  },
+  "USDC-USD|par|improve|two|m2|Q250|C805": {
+   "best_day": 0.821,
+   "boot_all": [
+    0.156,
+    0.241,
+    0.0
+   ],
+   "boot_first_half": [
+    0.113,
+    0.193,
+    0.0
+   ],
+   "boot_second_half": [
+    0.189,
+    0.304,
+    0.0
+   ],
+   "bot_prints_at_our_price": 2,
+   "bps_fill_mean": 2.78,
+   "bps_maker_absent": 2.5,
+   "bps_maker_present": 2.84,
+   "buys": 97,
+   "coins_to_move_a_day": 161,
+   "days": 32,
+   "days_positive": 32,
+   "fills": 146,
+   "fills_a_day": 4.6,
+   "fills_at_price": 100,
+   "fills_maker_absent": 24,
+   "fills_maker_present": 122,
+   "markout_1m_bps": [
+    0.0,
+    1.5,
+    2.5
+   ],
+   "markout_5m_bps": [
+    0.0,
+    1.5,
+    2.5
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 25,
+   "orders_a_day_mean": 6.9,
+   "sells": 49,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 4829,
+   "usd_a_day": 0.197,
+   "usd_a_day_halves": [
+    0.15,
+    0.243
+   ],
+   "usd_filled_a_day": 694,
+   "worst_day": 0.05
+  },
+  "USDC-USD|par|improve|two|m5|Q100|C1610": {
+   "best_day": 1.432,
+   "boot_all": [
+    0.141,
+    0.424,
+    0.0
+   ],
+   "boot_first_half": [
+    0.016,
+    0.047,
+    0.0003
+   ],
+   "boot_second_half": [
+    0.381,
+    0.659,
+    0.0
+   ],
+   "bot_prints_at_our_price": 0,
+   "bps_fill_mean": 11.41,
+   "bps_maker_absent": 12.14,
+   "bps_maker_present": 11.28,
+   "buys": 99,
+   "coins_to_move_a_day": 202,
+   "days": 32,
+   "days_positive": 22,
+   "fills": 107,
+   "fills_a_day": 3.3,
+   "fills_at_price": 19,
+   "fills_maker_absent": 16,
+   "fills_maker_present": 91,
+   "markout_1m_bps": [
+    0.0,
+    4.0,
+    5.51
+   ],
+   "markout_5m_bps": [
+    0.5,
+    4.0,
+    5.51
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 126,
+   "orders_a_day_mean": 14.7,
+   "sells": 8,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 6095,
+   "usd_a_day": 0.278,
+   "usd_a_day_halves": [
+    0.031,
+    0.525
+   ],
+   "usd_filled_a_day": 252,
+   "worst_day": 0.0
+  },
+  "USDC-USD|par|improve|two|m5|Q100|C805": {
+   "best_day": 0.811,
+   "boot_all": [
+    0.105,
+    0.274,
+    0.0
+   ],
+   "boot_first_half": [
+    0.016,
+    0.047,
+    0.0003
+   ],
+   "boot_second_half": [
+    0.269,
+    0.412,
+    0.0
+   ],
+   "bot_prints_at_our_price": 0,
+   "bps_fill_mean": 10.59,
+   "bps_maker_absent": 10.56,
+   "bps_maker_present": 10.6,
+   "buys": 68,
+   "coins_to_move_a_day": 135,
+   "days": 32,
+   "days_positive": 22,
+   "fills": 76,
+   "fills_a_day": 2.4,
+   "fills_at_price": 13,
+   "fills_maker_absent": 11,
+   "fills_maker_present": 65,
+   "markout_1m_bps": [
+    -1.5,
+    4.0,
+    5.51
+   ],
+   "markout_5m_bps": [
+    0.0,
+    4.0,
+    5.51
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 110,
+   "orders_a_day_mean": 11.3,
+   "sells": 8,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 3941,
+   "usd_a_day": 0.187,
+   "usd_a_day_halves": [
+    0.031,
+    0.343
+   ],
+   "usd_filled_a_day": 185,
+   "worst_day": 0.0
+  },
+  "USDC-USD|par|join|bidall|m2|Q100|C1610": {
+   "best_day": 0.881,
+   "boot_all": [
+    0.049,
+    0.153,
+    0.0
+   ],
+   "boot_first_half": [
+    0.016,
+    0.041,
+    0.0
+   ],
+   "boot_second_half": [
+    0.092,
+    0.246,
+    0.0
+   ],
+   "bot_prints_at_our_price": 3,
+   "bps_fill_mean": 5.91,
+   "bps_maker_absent": 6.44,
+   "bps_maker_present": 5.85,
+   "buys": 64,
+   "coins_to_move_a_day": 172,
+   "days": 32,
+   "days_positive": 25,
+   "fills": 64,
+   "fills_a_day": 2.0,
+   "fills_at_price": 18,
+   "fills_maker_absent": 7,
+   "fills_maker_present": 57,
+   "markout_1m_bps": [
+    -5.0,
+    1.0,
+    7.01
+   ],
+   "markout_5m_bps": [
+    -4.5,
+    1.0,
+    5.01
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 130,
+   "orders_a_day_mean": 22.4,
+   "sells": 0,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 5417,
+   "usd_a_day": 0.097,
+   "usd_a_day_halves": [
+    0.028,
+    0.166
+   ],
+   "usd_filled_a_day": 172,
+   "worst_day": 0.0
+  },
+  "USDC-USD|par|join|bidall|m2|Q100|C805": {
+   "best_day": 0.751,
+   "boot_all": [
+    0.049,
+    0.143,
+    0.0
+   ],
+   "boot_first_half": [
+    0.016,
+    0.041,
+    0.0
+   ],
+   "boot_second_half": [
+    0.092,
+    0.229,
+    0.0
+   ],
+   "bot_prints_at_our_price": 3,
+   "bps_fill_mean": 5.8,
+   "bps_maker_absent": 6.44,
+   "bps_maker_present": 5.72,
+   "buys": 63,
+   "coins_to_move_a_day": 169,
+   "days": 32,
+   "days_positive": 25,
+   "fills": 63,
+   "fills_a_day": 2.0,
+   "fills_at_price": 18,
+   "fills_maker_absent": 7,
+   "fills_maker_present": 56,
+   "markout_1m_bps": [
+    -5.0,
+    1.0,
+    7.01
+   ],
+   "markout_5m_bps": [
+    -4.5,
+    1.0,
+    4.51
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 130,
+   "orders_a_day_mean": 22.0,
+   "sells": 0,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 5317,
+   "usd_a_day": 0.093,
+   "usd_a_day_halves": [
+    0.028,
+    0.158
+   ],
+   "usd_filled_a_day": 169,
+   "worst_day": 0.0
+  },
+  "USDC-USD|par|join|two|m0|Q100|C1610": {
+   "best_day": 0.931,
+   "boot_all": [
+    0.061,
+    0.164,
+    0.0
+   ],
+   "boot_first_half": [
+    0.035,
+    0.061,
+    0.0
+   ],
+   "boot_second_half": [
+    0.091,
+    0.255,
+    0.0
+   ],
+   "bot_prints_at_our_price": 18,
+   "bps_fill_mean": 2.58,
+   "bps_maker_absent": 2.38,
+   "bps_maker_present": 2.61,
+   "buys": 77,
+   "coins_to_move_a_day": -11,
+   "days": 32,
+   "days_positive": 30,
+   "fills": 161,
+   "fills_a_day": 5.0,
+   "fills_at_price": 48,
+   "fills_maker_absent": 21,
+   "fills_maker_present": 140,
+   "markout_1m_bps": [
+    -1.0,
+    0.5,
+    5.5
+   ],
+   "markout_5m_bps": [
+    -0.5,
+    0.5,
+    4.51
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 134,
+   "orders_a_day_mean": 45.3,
+   "sells": 84,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 1786,
+   "usd_a_day": 0.108,
+   "usd_a_day_halves": [
+    0.046,
+    0.17
+   ],
+   "usd_filled_a_day": 429,
+   "worst_day": 0.0
+  },
+  "USDC-USD|par|join|two|m0|Q100|C805": {
+   "best_day": 0.931,
+   "boot_all": [
+    0.061,
+    0.161,
+    0.0
+   ],
+   "boot_first_half": [
+    0.035,
+    0.061,
+    0.0
+   ],
+   "boot_second_half": [
+    0.091,
+    0.25,
+    0.0
+   ],
+   "bot_prints_at_our_price": 18,
+   "bps_fill_mean": 2.62,
+   "bps_maker_absent": 2.4,
+   "bps_maker_present": 2.65,
+   "buys": 75,
+   "coins_to_move_a_day": -11,
+   "days": 32,
+   "days_positive": 30,
+   "fills": 157,
+   "fills_a_day": 4.9,
+   "fills_at_price": 47,
+   "fills_maker_absent": 20,
+   "fills_maker_present": 137,
+   "markout_1m_bps": [
+    -0.5,
+    0.5,
+    5.5
+   ],
+   "markout_5m_bps": [
+    -0.5,
+    0.5,
+    4.51
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 134,
+   "orders_a_day_mean": 43.6,
+   "sells": 82,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 1786,
+   "usd_a_day": 0.107,
+   "usd_a_day_halves": [
+    0.046,
+    0.168
+   ],
+   "usd_filled_a_day": 417,
+   "worst_day": 0.0
+  },
+  "USDC-USD|par|join|two|m2|Q100|C1610": {
+   "best_day": 0.961,
+   "boot_all": [
+    0.064,
+    0.172,
+    0.0
+   ],
+   "boot_first_half": [
+    0.033,
+    0.068,
+    0.0
+   ],
+   "boot_second_half": [
+    0.097,
+    0.266,
+    0.0
+   ],
+   "bot_prints_at_our_price": 7,
+   "bps_fill_mean": 4.7,
+   "bps_maker_absent": 4.39,
+   "bps_maker_present": 4.75,
+   "buys": 64,
+   "coins_to_move_a_day": 91,
+   "days": 32,
+   "days_positive": 27,
+   "fills": 93,
+   "fills_a_day": 2.9,
+   "fills_at_price": 35,
+   "fills_maker_absent": 13,
+   "fills_maker_present": 80,
+   "markout_1m_bps": [
+    -4.5,
+    1.5,
+    6.01
+   ],
+   "markout_5m_bps": [
+    -0.5,
+    1.5,
+    4.51
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 130,
+   "orders_a_day_mean": 27.8,
+   "sells": 29,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 2831,
+   "usd_a_day": 0.113,
+   "usd_a_day_halves": [
+    0.048,
+    0.179
+   ],
+   "usd_filled_a_day": 253,
+   "worst_day": 0.0
+  },
+  "USDC-USD|par|join|two|m2|Q100|C805": {
+   "best_day": 0.831,
+   "boot_all": [
+    0.064,
+    0.16,
+    0.0
+   ],
+   "boot_first_half": [
+    0.033,
+    0.068,
+    0.0
+   ],
+   "boot_second_half": [
+    0.097,
+    0.244,
+    0.0
+   ],
+   "bot_prints_at_our_price": 7,
+   "bps_fill_mean": 4.67,
+   "bps_maker_absent": 4.59,
+   "bps_maker_present": 4.68,
+   "buys": 61,
+   "coins_to_move_a_day": 82,
+   "days": 32,
+   "days_positive": 27,
+   "fills": 90,
+   "fills_a_day": 2.8,
+   "fills_at_price": 34,
+   "fills_maker_absent": 12,
+   "fills_maker_present": 78,
+   "markout_1m_bps": [
+    -4.5,
+    1.5,
+    6.51
+   ],
+   "markout_5m_bps": [
+    -0.5,
+    1.5,
+    4.51
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 130,
+   "orders_a_day_mean": 27.0,
+   "sells": 29,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 2531,
+   "usd_a_day": 0.108,
+   "usd_a_day_halves": [
+    0.048,
+    0.168
+   ],
+   "usd_filled_a_day": 244,
+   "worst_day": 0.0
+  },
+  "USDC-USD|par|join|two|m5|Q100|C1610": {
+   "best_day": 1.021,
+   "boot_all": [
+    0.051,
+    0.164,
+    0.0
+   ],
+   "boot_first_half": [
+    0.016,
+    0.047,
+    0.0003
+   ],
+   "boot_second_half": [
+    0.091,
+    0.266,
+    0.0
+   ],
+   "bot_prints_at_our_price": 1,
+   "bps_fill_mean": 9.15,
+   "bps_maker_absent": 8.15,
+   "bps_maker_present": 9.34,
+   "buys": 35,
+   "coins_to_move_a_day": 68,
+   "days": 32,
+   "days_positive": 19,
+   "fills": 43,
+   "fills_a_day": 1.3,
+   "fills_at_price": 4,
+   "fills_maker_absent": 7,
+   "fills_maker_present": 36,
+   "markout_1m_bps": [
+    -2.5,
+    4.51,
+    7.01
+   ],
+   "markout_5m_bps": [
+    -2.0,
+    4.5,
+    6.0
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 130,
+   "orders_a_day_mean": 17.1,
+   "sells": 8,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 2085,
+   "usd_a_day": 0.103,
+   "usd_a_day_halves": [
+    0.031,
+    0.175
+   ],
+   "usd_filled_a_day": 118,
+   "worst_day": 0.0
+  },
+  "USDC-USD|par|join|two|m5|Q100|C805": {
+   "best_day": 0.751,
+   "boot_all": [
+    0.051,
+    0.142,
+    0.0
+   ],
+   "boot_first_half": [
+    0.016,
+    0.047,
+    0.0003
+   ],
+   "boot_second_half": [
+    0.091,
+    0.223,
+    0.0
+   ],
+   "bot_prints_at_our_price": 1,
+   "bps_fill_mean": 8.77,
+   "bps_maker_absent": 8.15,
+   "bps_maker_present": 8.91,
+   "buys": 30,
+   "coins_to_move_a_day": 59,
+   "days": 32,
+   "days_positive": 19,
+   "fills": 38,
+   "fills_a_day": 1.2,
+   "fills_at_price": 4,
+   "fills_maker_absent": 7,
+   "fills_maker_present": 31,
+   "markout_1m_bps": [
+    -3.0,
+    4.0,
+    7.01
+   ],
+   "markout_5m_bps": [
+    -2.0,
+    4.0,
+    6.0
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 130,
+   "orders_a_day_mean": 16.3,
+   "sells": 8,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 1785,
+   "usd_a_day": 0.093,
+   "usd_a_day_halves": [
+    0.031,
+    0.155
+   ],
+   "usd_filled_a_day": 109,
+   "worst_day": 0.0
+  },
+  "USDC-USD|par|through|two|m0|Q100|C1610": {
+   "best_day": 0.921,
+   "boot_all": [
+    0.049,
+    0.152,
+    0.0
+   ],
+   "boot_first_half": [
+    0.025,
+    0.043,
+    0.0
+   ],
+   "boot_second_half": [
+    0.083,
+    0.244,
+    0.0
+   ],
+   "bot_prints_at_our_price": 18,
+   "bps_fill_mean": 3.04,
+   "bps_maker_absent": 3.27,
+   "bps_maker_present": 3.01,
+   "buys": 64,
+   "coins_to_move_a_day": 12,
+   "days": 32,
+   "days_positive": 28,
+   "fills": 124,
+   "fills_a_day": 3.9,
+   "fills_at_price": 0,
+   "fills_maker_absent": 15,
+   "fills_maker_present": 109,
+   "markout_1m_bps": [
+    -1.0,
+    0.5,
+    5.5
+   ],
+   "markout_5m_bps": [
+    -0.5,
+    0.5,
+    4.51
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 134,
+   "orders_a_day_mean": 44.5,
+   "sells": 60,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 886,
+   "usd_a_day": 0.097,
+   "usd_a_day_halves": [
+    0.033,
+    0.161
+   ],
+   "usd_filled_a_day": 338,
+   "worst_day": 0.0
+  },
+  "USDC-USD|par|through|two|m0|Q100|C805": {
+   "best_day": 0.921,
+   "boot_all": [
+    0.049,
+    0.152,
+    0.0
+   ],
+   "boot_first_half": [
+    0.025,
+    0.042,
+    0.0
+   ],
+   "boot_second_half": [
+    0.083,
+    0.244,
+    0.0
+   ],
+   "bot_prints_at_our_price": 18,
+   "bps_fill_mean": 3.1,
+   "bps_maker_absent": 3.27,
+   "bps_maker_present": 3.08,
+   "buys": 64,
+   "coins_to_move_a_day": 17,
+   "days": 32,
+   "days_positive": 28,
+   "fills": 121,
+   "fills_a_day": 3.8,
+   "fills_at_price": 0,
+   "fills_maker_absent": 15,
+   "fills_maker_present": 106,
+   "markout_1m_bps": [
+    -1.0,
+    0.5,
+    5.51
+   ],
+   "markout_5m_bps": [
+    -0.5,
+    0.5,
+    4.51
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 134,
+   "orders_a_day_mean": 42.8,
+   "sells": 57,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 800,
+   "usd_a_day": 0.097,
+   "usd_a_day_halves": [
+    0.033,
+    0.161
+   ],
+   "usd_filled_a_day": 332,
+   "worst_day": 0.0
+  },
+  "USDC-USD|par|through|two|m2|Q100|C1610": {
+   "best_day": 0.901,
+   "boot_all": [
+    0.05,
+    0.151,
+    0.0
+   ],
+   "boot_first_half": [
+    0.021,
+    0.049,
+    0.0
+   ],
+   "boot_second_half": [
+    0.085,
+    0.241,
+    0.0
+   ],
+   "bot_prints_at_our_price": 7,
+   "bps_fill_mean": 6.06,
+   "bps_maker_absent": 6.44,
+   "bps_maker_present": 6.01,
+   "buys": 46,
+   "coins_to_move_a_day": 81,
+   "days": 32,
+   "days_positive": 23,
+   "fills": 61,
+   "fills_a_day": 1.9,
+   "fills_at_price": 0,
+   "fills_maker_absent": 7,
+   "fills_maker_present": 54,
+   "markout_1m_bps": [
+    -5.0,
+    2.0,
+    7.01
+   ],
+   "markout_5m_bps": [
+    -4.5,
+    2.0,
+    5.51
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 130,
+   "orders_a_day_mean": 27.1,
+   "sells": 15,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 2485,
+   "usd_a_day": 0.096,
+   "usd_a_day_halves": [
+    0.033,
+    0.16
+   ],
+   "usd_filled_a_day": 174,
+   "worst_day": 0.0
+  },
+  "USDC-USD|par|through|two|m2|Q100|C805": {
+   "best_day": 0.631,
+   "boot_all": [
+    0.05,
+    0.13,
+    0.0
+   ],
+   "boot_first_half": [
+    0.021,
+    0.049,
+    0.0
+   ],
+   "boot_second_half": [
+    0.083,
+    0.203,
+    0.0
+   ],
+   "bot_prints_at_our_price": 7,
+   "bps_fill_mean": 5.58,
+   "bps_maker_absent": 6.44,
+   "bps_maker_present": 5.45,
+   "buys": 41,
+   "coins_to_move_a_day": 71,
+   "days": 32,
+   "days_positive": 23,
+   "fills": 56,
+   "fills_a_day": 1.8,
+   "fills_at_price": 0,
+   "fills_maker_absent": 7,
+   "fills_maker_present": 49,
+   "markout_1m_bps": [
+    -5.0,
+    1.5,
+    6.51
+   ],
+   "markout_5m_bps": [
+    -4.5,
+    1.5,
+    5.01
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 130,
+   "orders_a_day_mean": 26.2,
+   "sells": 15,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 2184,
+   "usd_a_day": 0.087,
+   "usd_a_day_halves": [
+    0.033,
+    0.142
+   ],
+   "usd_filled_a_day": 165,
+   "worst_day": 0.0
+  },
+  "USDC-USD|par|through|two|m5|Q100|C1610": {
+   "best_day": 1.021,
+   "boot_all": [
+    0.05,
+    0.163,
+    0.0
+   ],
+   "boot_first_half": [
+    0.015,
+    0.041,
+    0.0003
+   ],
+   "boot_second_half": [
+    0.091,
+    0.266,
+    0.0
+   ],
+   "bot_prints_at_our_price": 1,
+   "bps_fill_mean": 9.25,
+   "bps_maker_absent": 8.15,
+   "bps_maker_present": 9.47,
+   "buys": 34,
+   "coins_to_move_a_day": 65,
+   "days": 32,
+   "days_positive": 19,
+   "fills": 42,
+   "fills_a_day": 1.3,
+   "fills_at_price": 0,
+   "fills_maker_absent": 7,
+   "fills_maker_present": 35,
+   "markout_1m_bps": [
+    -2.5,
+    4.51,
+    7.01
+   ],
+   "markout_5m_bps": [
+    -2.0,
+    4.5,
+    6.0
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 130,
+   "orders_a_day_mean": 17.1,
+   "sells": 8,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 1985,
+   "usd_a_day": 0.101,
+   "usd_a_day_halves": [
+    0.028,
+    0.175
+   ],
+   "usd_filled_a_day": 115,
+   "worst_day": 0.0
+  },
+  "USDC-USD|par|through|two|m5|Q100|C805": {
+   "best_day": 0.751,
+   "boot_all": [
+    0.049,
+    0.14,
+    0.0
+   ],
+   "boot_first_half": [
+    0.015,
+    0.041,
+    0.0003
+   ],
+   "boot_second_half": [
+    0.091,
+    0.223,
+    0.0
+   ],
+   "bot_prints_at_our_price": 1,
+   "bps_fill_mean": 8.87,
+   "bps_maker_absent": 8.15,
+   "bps_maker_present": 9.04,
+   "buys": 29,
+   "coins_to_move_a_day": 56,
+   "days": 32,
+   "days_positive": 19,
+   "fills": 37,
+   "fills_a_day": 1.2,
+   "fills_at_price": 0,
+   "fills_maker_absent": 7,
+   "fills_maker_present": 30,
+   "markout_1m_bps": [
+    -3.0,
+    4.5,
+    7.01
+   ],
+   "markout_5m_bps": [
+    -2.0,
+    4.0,
+    6.0
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 130,
+   "orders_a_day_mean": 16.2,
+   "sells": 8,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 1684,
+   "usd_a_day": 0.091,
+   "usd_a_day_halves": [
+    0.028,
+    0.155
+   ],
+   "usd_filled_a_day": 106,
+   "worst_day": 0.0
+  },
+  "USDT-USD|cbgbp|improve|two|m2|Q100|C1610|fx0|batch2000": {
+   "best_day": 0.966,
+   "boot_all": [
+    -1.086,
+    0.115,
+    0.9023
+   ],
+   "boot_first_half": [
+    -0.955,
+    0.399,
+    0.7016
+   ],
+   "boot_second_half": [
+    -1.443,
+    0.011,
+    0.9331
+   ],
+   "bot_prints_at_our_price": 2864,
+   "bps_fill_mean": 6.94,
+   "bps_maker_absent": 6.27,
+   "bps_maker_present": 7.01,
+   "buys": 139,
+   "coins_to_move_a_day": 422,
+   "days": 18,
+   "days_positive": 11,
+   "fills": 157,
+   "fills_a_day": 8.7,
+   "fills_at_price": 36,
+   "fills_maker_absent": 14,
+   "fills_maker_present": 143,
+   "markout_1m_bps": [
+    0.5,
+    2.0,
+    5.51
+   ],
+   "markout_5m_bps": [
+    0.5,
+    2.01,
+    5.51
+   ],
+   "max_drawdown": -12.142,
+   "orders_a_day_max": 792,
+   "orders_a_day_mean": 296.7,
+   "sells": 18,
+   "transfer_cost_a_day": 0.887,
+   "transfers": 3,
+   "transit_max_usd": 1606,
+   "usd_a_day": -0.478,
+   "usd_a_day_halves": [
+    -0.246,
+    -0.709
+   ],
+   "usd_filled_a_day": 585,
+   "worst_day": -5.32
+  },
+  "USDT-USD|cbgbp|improve|two|m2|Q100|C1610|fx0|batch2000|lat0": {
+   "best_day": 0.978,
+   "boot_all": [
+    -1.081,
+    0.115,
+    0.9015
+   ],
+   "boot_first_half": [
+    -0.931,
+    0.39,
+    0.7016
+   ],
+   "boot_second_half": [
+    -1.446,
+    0.01,
+    0.9331
+   ],
+   "bot_prints_at_our_price": 2873,
+   "bps_fill_mean": 6.98,
+   "bps_maker_absent": 6.89,
+   "bps_maker_present": 6.98,
+   "buys": 138,
+   "coins_to_move_a_day": 415,
+   "days": 18,
+   "days_positive": 11,
+   "fills": 157,
+   "fills_a_day": 8.7,
+   "fills_at_price": 40,
+   "fills_maker_absent": 14,
+   "fills_maker_present": 143,
+   "markout_1m_bps": [
+    0.5,
+    2.5,
+    5.51
+   ],
+   "markout_5m_bps": [
+    0.5,
+    2.5,
+    5.51
+   ],
+   "max_drawdown": -12.073,
+   "orders_a_day_max": 842,
+   "orders_a_day_mean": 349.4,
+   "sells": 19,
+   "transfer_cost_a_day": 0.887,
+   "transfers": 3,
+   "transit_max_usd": 1573,
+   "usd_a_day": -0.476,
+   "usd_a_day_halves": [
+    -0.241,
+    -0.712
+   ],
+   "usd_filled_a_day": 598,
+   "worst_day": -5.32
+  },
+  "USDT-USD|cbgbp|improve|two|m2|Q100|C1610|fx0|batch2000|lat90": {
+   "best_day": 0.983,
+   "boot_all": [
+    -1.069,
+    0.128,
+    0.8992
+   ],
+   "boot_first_half": [
+    -0.928,
+    0.411,
+    0.6968
+   ],
+   "boot_second_half": [
+    -1.441,
+    0.022,
+    0.9214
+   ],
+   "bot_prints_at_our_price": 2883,
+   "bps_fill_mean": 6.85,
+   "bps_maker_absent": 6.68,
+   "bps_maker_present": 6.86,
+   "buys": 141,
+   "coins_to_move_a_day": 408,
+   "days": 18,
+   "days_positive": 11,
+   "fills": 164,
+   "fills_a_day": 9.1,
+   "fills_at_price": 42,
+   "fills_maker_absent": 14,
+   "fills_maker_present": 150,
+   "markout_1m_bps": [
+    0.5,
+    2.0,
+    5.51
+   ],
+   "markout_5m_bps": [
+    0.5,
+    2.0,
+    5.51
+   ],
+   "max_drawdown": -12.004,
+   "orders_a_day_max": 749,
+   "orders_a_day_mean": 290.4,
+   "sells": 23,
+   "transfer_cost_a_day": 0.887,
+   "transfers": 3,
+   "transit_max_usd": 1553,
+   "usd_a_day": -0.463,
+   "usd_a_day_halves": [
+    -0.223,
+    -0.704
+   ],
+   "usd_filled_a_day": 614,
+   "worst_day": -5.32
+  },
+  "USDT-USD|cbgbp|improve|two|m2|Q100|C1610|fx0|batch5000": {
+   "best_day": 0.966,
+   "boot_all": [
+    -0.435,
+    0.484,
+    0.2963
+   ],
+   "boot_first_half": [
+    0.195,
+    0.489,
+    0.0
+   ],
+   "boot_second_half": [
+    -0.925,
+    0.579,
+    0.6621
+   ],
+   "bot_prints_at_our_price": 2864,
+   "bps_fill_mean": 6.94,
+   "bps_maker_absent": 6.27,
+   "bps_maker_present": 7.01,
+   "buys": 139,
+   "coins_to_move_a_day": 422,
+   "days": 18,
+   "days_positive": 12,
+   "fills": 157,
+   "fills_a_day": 8.7,
+   "fills_at_price": 36,
+   "fills_maker_absent": 14,
+   "fills_maker_present": 143,
+   "markout_1m_bps": [
+    0.5,
+    2.0,
+    5.51
+   ],
+   "markout_5m_bps": [
+    0.5,
+    2.01,
+    5.51
+   ],
+   "max_drawdown": -4.719,
+   "orders_a_day_max": 792,
+   "orders_a_day_mean": 296.7,
+   "sells": 18,
+   "transfer_cost_a_day": 0.298,
+   "transfers": 1,
+   "transit_max_usd": 4950,
+   "usd_a_day": 0.111,
+   "usd_a_day_halves": [
+    0.342,
+    -0.12
+   ],
+   "usd_filled_a_day": 585,
+   "worst_day": -4.719
+  },
+  "USDT-USD|cbgbp|improve|two|m2|Q100|C1610|fx0|batchNone": {
+   "best_day": 0.966,
+   "boot_all": [
+    0.289,
+    0.53,
+    0.0
+   ],
+   "boot_first_half": [
+    0.195,
+    0.489,
+    0.0
+   ],
+   "boot_second_half": [
+    0.311,
+    0.61,
+    0.0
+   ],
+   "bot_prints_at_our_price": 2864,
+   "bps_fill_mean": 6.94,
+   "bps_maker_absent": 6.27,
+   "bps_maker_present": 7.01,
+   "buys": 139,
+   "coins_to_move_a_day": 422,
+   "days": 18,
+   "days_positive": 13,
+   "fills": 157,
+   "fills_a_day": 8.7,
+   "fills_at_price": 36,
+   "fills_maker_absent": 14,
+   "fills_maker_present": 143,
+   "markout_1m_bps": [
+    0.5,
+    2.0,
+    5.51
+   ],
+   "markout_5m_bps": [
+    0.5,
+    2.01,
+    5.51
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 792,
+   "orders_a_day_mean": 296.7,
+   "sells": 18,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 7604,
+   "usd_a_day": 0.409,
+   "usd_a_day_halves": [
+    0.342,
+    0.476
+   ],
+   "usd_filled_a_day": 585,
+   "worst_day": 0.0
+  },
+  "USDT-USD|cbgbp|improve|two|m2|Q100|C1610|fx20|batch2000": {
+   "best_day": 0.0,
+   "boot_all": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "boot_first_half": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "boot_second_half": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "bot_prints_at_our_price": 0,
+   "bps_fill_mean": null,
+   "bps_maker_absent": null,
+   "bps_maker_present": null,
+   "buys": 0,
+   "coins_to_move_a_day": 0,
+   "days": 18,
+   "days_positive": 0,
+   "fills": 0,
+   "fills_a_day": 0.0,
+   "fills_at_price": 0,
+   "fills_maker_absent": 0,
+   "fills_maker_present": 0,
+   "markout_1m_bps": null,
+   "markout_5m_bps": null,
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 830,
+   "orders_a_day_mean": 476.2,
+   "sells": 0,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 0,
+   "usd_a_day": 0.0,
+   "usd_a_day_halves": [
+    0.0,
+    0.0
+   ],
+   "usd_filled_a_day": 0,
+   "worst_day": 0.0
+  },
+  "USDT-USD|cbgbp|improve|two|m2|Q100|C1610|fx20|batch5000": {
+   "best_day": 0.0,
+   "boot_all": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "boot_first_half": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "boot_second_half": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "bot_prints_at_our_price": 0,
+   "bps_fill_mean": null,
+   "bps_maker_absent": null,
+   "bps_maker_present": null,
+   "buys": 0,
+   "coins_to_move_a_day": 0,
+   "days": 18,
+   "days_positive": 0,
+   "fills": 0,
+   "fills_a_day": 0.0,
+   "fills_at_price": 0,
+   "fills_maker_absent": 0,
+   "fills_maker_present": 0,
+   "markout_1m_bps": null,
+   "markout_5m_bps": null,
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 830,
+   "orders_a_day_mean": 476.2,
+   "sells": 0,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 0,
+   "usd_a_day": 0.0,
+   "usd_a_day_halves": [
+    0.0,
+    0.0
+   ],
+   "usd_filled_a_day": 0,
+   "worst_day": 0.0
+  },
+  "USDT-USD|cbgbp|improve|two|m2|Q100|C1610|fx20|batchNone": {
+   "best_day": 0.0,
+   "boot_all": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "boot_first_half": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "boot_second_half": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "bot_prints_at_our_price": 0,
+   "bps_fill_mean": null,
+   "bps_maker_absent": null,
+   "bps_maker_present": null,
+   "buys": 0,
+   "coins_to_move_a_day": 0,
+   "days": 18,
+   "days_positive": 0,
+   "fills": 0,
+   "fills_a_day": 0.0,
+   "fills_at_price": 0,
+   "fills_maker_absent": 0,
+   "fills_maker_present": 0,
+   "markout_1m_bps": null,
+   "markout_5m_bps": null,
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 830,
+   "orders_a_day_mean": 476.2,
+   "sells": 0,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 0,
+   "usd_a_day": 0.0,
+   "usd_a_day_halves": [
+    0.0,
+    0.0
+   ],
+   "usd_filled_a_day": 0,
+   "worst_day": 0.0
+  },
+  "USDT-USD|cbgbp|improve|two|m2|Q100|C1610|fx5|batch2000": {
+   "best_day": 0.681,
+   "boot_all": [
+    -1.309,
+    -0.119,
+    0.9838
+   ],
+   "boot_first_half": [
+    0.05,
+    0.241,
+    0.0
+   ],
+   "boot_second_half": [
+    -2.715,
+    -0.41,
+    0.9888
+   ],
+   "bot_prints_at_our_price": 1883,
+   "bps_fill_mean": 4.45,
+   "bps_maker_absent": 3.3,
+   "bps_maker_present": 4.56,
+   "buys": 102,
+   "coins_to_move_a_day": 359,
+   "days": 18,
+   "days_positive": 10,
+   "fills": 104,
+   "fills_a_day": 5.8,
+   "fills_at_price": 33,
+   "fills_maker_absent": 9,
+   "fills_maker_present": 95,
+   "markout_1m_bps": [
+    0.5,
+    2.51,
+    6.51
+   ],
+   "markout_5m_bps": [
+    0.5,
+    2.51,
+    6.51
+   ],
+   "max_drawdown": -14.148,
+   "orders_a_day_max": 842,
+   "orders_a_day_mean": 377.2,
+   "sells": 2,
+   "transfer_cost_a_day": 0.889,
+   "transfers": 3,
+   "transit_max_usd": 1841,
+   "usd_a_day": -0.716,
+   "usd_a_day_halves": [
+    0.14,
+    -1.572
+   ],
+   "usd_filled_a_day": 371,
+   "worst_day": -5.269
+  },
+  "USDT-USD|cbgbp|improve|two|m2|Q100|C1610|fx5|batch5000": {
+   "best_day": 0.681,
+   "boot_all": [
+    -0.672,
+    0.213,
+    0.6524
+   ],
+   "boot_first_half": [
+    0.05,
+    0.241,
+    0.0
+   ],
+   "boot_second_half": [
+    -1.005,
+    0.239,
+    0.7002
+   ],
+   "bot_prints_at_our_price": 1883,
+   "bps_fill_mean": 4.45,
+   "bps_maker_absent": 3.3,
+   "bps_maker_present": 4.56,
+   "buys": 102,
+   "coins_to_move_a_day": 359,
+   "days": 18,
+   "days_positive": 12,
+   "fills": 104,
+   "fills_a_day": 5.8,
+   "fills_at_price": 33,
+   "fills_maker_absent": 9,
+   "fills_maker_present": 95,
+   "markout_1m_bps": [
+    0.5,
+    2.51,
+    6.51
+   ],
+   "markout_5m_bps": [
+    0.5,
+    2.51,
+    6.51
+   ],
+   "max_drawdown": -4.905,
+   "orders_a_day_max": 842,
+   "orders_a_day_mean": 377.2,
+   "sells": 2,
+   "transfer_cost_a_day": 0.297,
+   "transfers": 1,
+   "transit_max_usd": 4910,
+   "usd_a_day": -0.123,
+   "usd_a_day_halves": [
+    0.14,
+    -0.386
+   ],
+   "usd_filled_a_day": 371,
+   "worst_day": -4.905
+  },
+  "USDT-USD|cbgbp|improve|two|m2|Q100|C1610|fx5|batchNone": {
+   "best_day": 0.681,
+   "boot_all": [
+    0.105,
+    0.241,
+    0.0
+   ],
+   "boot_first_half": [
+    0.05,
+    0.241,
+    0.0
+   ],
+   "boot_second_half": [
+    0.134,
+    0.269,
+    0.0
+   ],
+   "bot_prints_at_our_price": 1883,
+   "bps_fill_mean": 4.45,
+   "bps_maker_absent": 3.3,
+   "bps_maker_present": 4.56,
+   "buys": 102,
+   "coins_to_move_a_day": 359,
+   "days": 18,
+   "days_positive": 13,
+   "fills": 104,
+   "fills_a_day": 5.8,
+   "fills_at_price": 33,
+   "fills_maker_absent": 9,
+   "fills_maker_present": 95,
+   "markout_1m_bps": [
+    0.5,
+    2.51,
+    6.51
+   ],
+   "markout_5m_bps": [
+    0.5,
+    2.51,
+    6.51
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 842,
+   "orders_a_day_mean": 377.2,
+   "sells": 2,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 6277,
+   "usd_a_day": 0.173,
+   "usd_a_day_halves": [
+    0.14,
+    0.207
+   ],
+   "usd_filled_a_day": 371,
+   "worst_day": 0.0
+  },
+  "USDT-USD|cbgbp|improve|two|m2|Q100|C805|fx0|batch2000": {
+   "best_day": 0.585,
+   "boot_all": [
+    -0.597,
+    0.243,
+    0.6549
+   ],
+   "boot_first_half": [
+    0.134,
+    0.249,
+    0.0
+   ],
+   "boot_second_half": [
+    -0.958,
+    0.307,
+    0.7059
+   ],
+   "bot_prints_at_our_price": 2105,
+   "bps_fill_mean": 6.45,
+   "bps_maker_absent": 6.14,
+   "bps_maker_present": 6.48,
+   "buys": 84,
+   "coins_to_move_a_day": 195,
+   "days": 18,
+   "days_positive": 12,
+   "fills": 102,
+   "fills_a_day": 5.7,
+   "fills_at_price": 21,
+   "fills_maker_absent": 9,
+   "fills_maker_present": 93,
+   "markout_1m_bps": [
+    0.5,
+    2.51,
+    5.51
+   ],
+   "markout_5m_bps": [
+    0.5,
+    2.5,
+    5.51
+   ],
+   "max_drawdown": -4.993,
+   "orders_a_day_max": 792,
+   "orders_a_day_mean": 285.1,
+   "sells": 18,
+   "transfer_cost_a_day": 0.297,
+   "transfers": 1,
+   "transit_max_usd": 1605,
+   "usd_a_day": -0.069,
+   "usd_a_day_halves": [
+    0.196,
+    -0.333
+   ],
+   "usd_filled_a_day": 357,
+   "worst_day": -4.993
+  },
+  "USDT-USD|cbgbp|improve|two|m2|Q100|C805|fx0|batch2000|lat0": {
+   "best_day": 0.587,
+   "boot_all": [
+    -0.603,
+    0.248,
+    0.6556
+   ],
+   "boot_first_half": [
+    0.149,
+    0.268,
+    0.0
+   ],
+   "boot_second_half": [
+    -0.968,
+    0.313,
+    0.7059
+   ],
+   "bot_prints_at_our_price": 2141,
+   "bps_fill_mean": 6.42,
+   "bps_maker_absent": 6.72,
+   "bps_maker_present": 6.38,
+   "buys": 86,
+   "coins_to_move_a_day": 190,
+   "days": 18,
+   "days_positive": 12,
+   "fills": 105,
+   "fills_a_day": 5.8,
+   "fills_at_price": 27,
+   "fills_maker_absent": 10,
+   "fills_maker_present": 95,
+   "markout_1m_bps": [
+    0.5,
+    2.51,
+    5.51
+   ],
+   "markout_5m_bps": [
+    0.5,
+    2.51,
+    5.51
+   ],
+   "max_drawdown": -5.051,
+   "orders_a_day_max": 842,
+   "orders_a_day_mean": 337.4,
+   "sells": 19,
+   "transfer_cost_a_day": 0.297,
+   "transfers": 1,
+   "transit_max_usd": 1628,
+   "usd_a_day": -0.067,
+   "usd_a_day_halves": [
+    0.205,
+    -0.339
+   ],
+   "usd_filled_a_day": 373,
+   "worst_day": -5.051
+  },
+  "USDT-USD|cbgbp|improve|two|m2|Q100|C805|fx0|batch2000|lat90": {
+   "best_day": 0.63,
+   "boot_all": [
+    -0.589,
+    0.259,
+    0.6409
+   ],
+   "boot_first_half": [
+    0.153,
+    0.288,
+    0.0
+   ],
+   "boot_second_half": [
+    -0.962,
+    0.303,
+    0.7059
+   ],
+   "bot_prints_at_our_price": 2171,
+   "bps_fill_mean": 6.16,
+   "bps_maker_absent": 6.3,
+   "bps_maker_present": 6.14,
+   "buys": 89,
+   "coins_to_move_a_day": 193,
+   "days": 18,
+   "days_positive": 12,
+   "fills": 112,
+   "fills_a_day": 6.2,
+   "fills_at_price": 27,
+   "fills_maker_absent": 10,
+   "fills_maker_present": 102,
+   "markout_1m_bps": [
+    0.5,
+    2.51,
+    5.51
+   ],
+   "markout_5m_bps": [
+    0.5,
+    2.5,
+    5.51
+   ],
+   "max_drawdown": -5.008,
+   "orders_a_day_max": 749,
+   "orders_a_day_mean": 280.3,
+   "sells": 23,
+   "transfer_cost_a_day": 0.297,
+   "transfers": 1,
+   "transit_max_usd": 1668,
+   "usd_a_day": -0.057,
+   "usd_a_day_halves": [
+    0.221,
+    -0.335
+   ],
+   "usd_filled_a_day": 399,
+   "worst_day": -5.008
+  },
+  "USDT-USD|cbgbp|improve|two|m2|Q100|C805|fx0|batch5000": {
+   "best_day": 0.585,
+   "boot_all": [
+    0.163,
+    0.292,
+    0.0
+   ],
+   "boot_first_half": [
+    0.134,
+    0.249,
+    0.0
+   ],
+   "boot_second_half": [
+    0.164,
+    0.346,
+    0.0
+   ],
+   "bot_prints_at_our_price": 2105,
+   "bps_fill_mean": 6.45,
+   "bps_maker_absent": 6.14,
+   "bps_maker_present": 6.48,
+   "buys": 84,
+   "coins_to_move_a_day": 195,
+   "days": 18,
+   "days_positive": 13,
+   "fills": 102,
+   "fills_a_day": 5.7,
+   "fills_at_price": 21,
+   "fills_maker_absent": 9,
+   "fills_maker_present": 93,
+   "markout_1m_bps": [
+    0.5,
+    2.51,
+    5.51
+   ],
+   "markout_5m_bps": [
+    0.5,
+    2.5,
+    5.51
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 792,
+   "orders_a_day_mean": 285.1,
+   "sells": 18,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 3504,
+   "usd_a_day": 0.228,
+   "usd_a_day_halves": [
+    0.196,
+    0.261
+   ],
+   "usd_filled_a_day": 357,
+   "worst_day": 0.0
+  },
+  "USDT-USD|cbgbp|improve|two|m2|Q100|C805|fx0|batchNone": {
+   "best_day": 0.585,
+   "boot_all": [
+    0.163,
+    0.292,
+    0.0
+   ],
+   "boot_first_half": [
+    0.134,
+    0.249,
+    0.0
+   ],
+   "boot_second_half": [
+    0.164,
+    0.346,
+    0.0
+   ],
+   "bot_prints_at_our_price": 2105,
+   "bps_fill_mean": 6.45,
+   "bps_maker_absent": 6.14,
+   "bps_maker_present": 6.48,
+   "buys": 84,
+   "coins_to_move_a_day": 195,
+   "days": 18,
+   "days_positive": 13,
+   "fills": 102,
+   "fills_a_day": 5.7,
+   "fills_at_price": 21,
+   "fills_maker_absent": 9,
+   "fills_maker_present": 93,
+   "markout_1m_bps": [
+    0.5,
+    2.51,
+    5.51
+   ],
+   "markout_5m_bps": [
+    0.5,
+    2.5,
+    5.51
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 792,
+   "orders_a_day_mean": 285.1,
+   "sells": 18,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 3504,
+   "usd_a_day": 0.228,
+   "usd_a_day_halves": [
+    0.196,
+    0.261
+   ],
+   "usd_filled_a_day": 357,
+   "worst_day": 0.0
+  },
+  "USDT-USD|cbgbp|improve|two|m2|Q100|C805|fx20|batch2000": {
+   "best_day": 0.0,
+   "boot_all": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "boot_first_half": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "boot_second_half": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "bot_prints_at_our_price": 0,
+   "bps_fill_mean": null,
+   "bps_maker_absent": null,
+   "bps_maker_present": null,
+   "buys": 0,
+   "coins_to_move_a_day": 0,
+   "days": 18,
+   "days_positive": 0,
+   "fills": 0,
+   "fills_a_day": 0.0,
+   "fills_at_price": 0,
+   "fills_maker_absent": 0,
+   "fills_maker_present": 0,
+   "markout_1m_bps": null,
+   "markout_5m_bps": null,
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 830,
+   "orders_a_day_mean": 476.2,
+   "sells": 0,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 0,
+   "usd_a_day": 0.0,
+   "usd_a_day_halves": [
+    0.0,
+    0.0
+   ],
+   "usd_filled_a_day": 0,
+   "worst_day": 0.0
+  },
+  "USDT-USD|cbgbp|improve|two|m2|Q100|C805|fx20|batch5000": {
+   "best_day": 0.0,
+   "boot_all": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "boot_first_half": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "boot_second_half": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "bot_prints_at_our_price": 0,
+   "bps_fill_mean": null,
+   "bps_maker_absent": null,
+   "bps_maker_present": null,
+   "buys": 0,
+   "coins_to_move_a_day": 0,
+   "days": 18,
+   "days_positive": 0,
+   "fills": 0,
+   "fills_a_day": 0.0,
+   "fills_at_price": 0,
+   "fills_maker_absent": 0,
+   "fills_maker_present": 0,
+   "markout_1m_bps": null,
+   "markout_5m_bps": null,
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 830,
+   "orders_a_day_mean": 476.2,
+   "sells": 0,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 0,
+   "usd_a_day": 0.0,
+   "usd_a_day_halves": [
+    0.0,
+    0.0
+   ],
+   "usd_filled_a_day": 0,
+   "worst_day": 0.0
+  },
+  "USDT-USD|cbgbp|improve|two|m2|Q100|C805|fx20|batchNone": {
+   "best_day": 0.0,
+   "boot_all": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "boot_first_half": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "boot_second_half": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "bot_prints_at_our_price": 0,
+   "bps_fill_mean": null,
+   "bps_maker_absent": null,
+   "bps_maker_present": null,
+   "buys": 0,
+   "coins_to_move_a_day": 0,
+   "days": 18,
+   "days_positive": 0,
+   "fills": 0,
+   "fills_a_day": 0.0,
+   "fills_at_price": 0,
+   "fills_maker_absent": 0,
+   "fills_maker_present": 0,
+   "markout_1m_bps": null,
+   "markout_5m_bps": null,
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 830,
+   "orders_a_day_mean": 476.2,
+   "sells": 0,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 0,
+   "usd_a_day": 0.0,
+   "usd_a_day_halves": [
+    0.0,
+    0.0
+   ],
+   "usd_filled_a_day": 0,
+   "worst_day": 0.0
+  },
+  "USDT-USD|cbgbp|improve|two|m2|Q100|C805|fx5|batch2000": {
+   "best_day": 0.364,
+   "boot_all": [
+    -0.757,
+    0.118,
+    0.6633
+   ],
+   "boot_first_half": [
+    0.05,
+    0.16,
+    0.0
+   ],
+   "boot_second_half": [
+    -1.091,
+    0.115,
+    0.7059
+   ],
+   "bot_prints_at_our_price": 1332,
+   "bps_fill_mean": 4.15,
+   "bps_maker_absent": 3.36,
+   "bps_maker_present": 4.24,
+   "buys": 67,
+   "coins_to_move_a_day": 226,
+   "days": 18,
+   "days_positive": 12,
+   "fills": 69,
+   "fills_a_day": 3.8,
+   "fills_at_price": 24,
+   "fills_maker_absent": 7,
+   "fills_maker_present": 62,
+   "markout_1m_bps": [
+    0.5,
+    3.01,
+    6.51
+   ],
+   "markout_5m_bps": [
+    0.5,
+    3.01,
+    6.52
+   ],
+   "max_drawdown": -5.159,
+   "orders_a_day_max": 842,
+   "orders_a_day_mean": 338.3,
+   "sells": 2,
+   "transfer_cost_a_day": 0.297,
+   "transfers": 1,
+   "transit_max_usd": 1887,
+   "usd_a_day": -0.192,
+   "usd_a_day_halves": [
+    0.102,
+    -0.487
+   ],
+   "usd_filled_a_day": 239,
+   "worst_day": -5.159
+  },
+  "USDT-USD|cbgbp|improve|two|m2|Q100|C805|fx5|batch5000": {
+   "best_day": 0.364,
+   "boot_all": [
+    0.069,
+    0.141,
+    0.0
+   ],
+   "boot_first_half": [
+    0.05,
+    0.16,
+    0.0
+   ],
+   "boot_second_half": [
+    0.07,
+    0.139,
+    0.0
+   ],
+   "bot_prints_at_our_price": 1332,
+   "bps_fill_mean": 4.15,
+   "bps_maker_absent": 3.36,
+   "bps_maker_present": 4.24,
+   "buys": 67,
+   "coins_to_move_a_day": 226,
+   "days": 18,
+   "days_positive": 13,
+   "fills": 69,
+   "fills_a_day": 3.8,
+   "fills_at_price": 24,
+   "fills_maker_absent": 7,
+   "fills_maker_present": 62,
+   "markout_1m_bps": [
+    0.5,
+    3.01,
+    6.51
+   ],
+   "markout_5m_bps": [
+    0.5,
+    3.01,
+    6.52
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 842,
+   "orders_a_day_mean": 338.3,
+   "sells": 2,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 3887,
+   "usd_a_day": 0.105,
+   "usd_a_day_halves": [
+    0.102,
+    0.108
+   ],
+   "usd_filled_a_day": 239,
+   "worst_day": 0.0
+  },
+  "USDT-USD|cbgbp|improve|two|m2|Q100|C805|fx5|batchNone": {
+   "best_day": 0.364,
+   "boot_all": [
+    0.069,
+    0.141,
+    0.0
+   ],
+   "boot_first_half": [
+    0.05,
+    0.16,
+    0.0
+   ],
+   "boot_second_half": [
+    0.07,
+    0.139,
+    0.0
+   ],
+   "bot_prints_at_our_price": 1332,
+   "bps_fill_mean": 4.15,
+   "bps_maker_absent": 3.36,
+   "bps_maker_present": 4.24,
+   "buys": 67,
+   "coins_to_move_a_day": 226,
+   "days": 18,
+   "days_positive": 13,
+   "fills": 69,
+   "fills_a_day": 3.8,
+   "fills_at_price": 24,
+   "fills_maker_absent": 7,
+   "fills_maker_present": 62,
+   "markout_1m_bps": [
+    0.5,
+    3.01,
+    6.51
+   ],
+   "markout_5m_bps": [
+    0.5,
+    3.01,
+    6.52
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 842,
+   "orders_a_day_mean": 338.3,
+   "sells": 2,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 3887,
+   "usd_a_day": 0.105,
+   "usd_a_day_halves": [
+    0.102,
+    0.108
+   ],
+   "usd_filled_a_day": 239,
+   "worst_day": 0.0
+  },
+  "USDT-USD|cbgbp|join|two|m2|Q100|C1610|fx0|batch2000": {
+   "best_day": 0.485,
+   "boot_all": [
+    -0.738,
+    0.145,
+    0.6629
+   ],
+   "boot_first_half": [
+    0.026,
+    0.149,
+    0.0
+   ],
+   "boot_second_half": [
+    -1.044,
+    0.157,
+    0.6964
+   ],
+   "bot_prints_at_our_price": 3537,
+   "bps_fill_mean": 6.56,
+   "bps_maker_absent": 8.1,
+   "bps_maker_present": 6.35,
+   "buys": 29,
+   "coins_to_move_a_day": 123,
+   "days": 18,
+   "days_positive": 12,
+   "fills": 34,
+   "fills_a_day": 1.9,
+   "fills_at_price": 3,
+   "fills_maker_absent": 4,
+   "fills_maker_present": 30,
+   "markout_1m_bps": [
+    -0.5,
+    2.51,
+    6.51
+   ],
+   "markout_5m_bps": [
+    -0.5,
+    2.51,
+    7.01
+   ],
+   "max_drawdown": -5.284,
+   "orders_a_day_max": 678,
+   "orders_a_day_mean": 285.6,
+   "sells": 5,
+   "transfer_cost_a_day": 0.296,
+   "transfers": 1,
+   "transit_max_usd": 1907,
+   "usd_a_day": -0.178,
+   "usd_a_day_halves": [
+    0.088,
+    -0.444
+   ],
+   "usd_filled_a_day": 168,
+   "worst_day": -5.284
+  },
+  "USDT-USD|cbgbp|join|two|m2|Q100|C1610|fx0|batch5000": {
+   "best_day": 0.485,
+   "boot_all": [
+    0.066,
+    0.169,
+    0.0
+   ],
+   "boot_first_half": [
+    0.026,
+    0.149,
+    0.0
+   ],
+   "boot_second_half": [
+    0.083,
+    0.205,
+    0.0
+   ],
+   "bot_prints_at_our_price": 3537,
+   "bps_fill_mean": 6.56,
+   "bps_maker_absent": 8.1,
+   "bps_maker_present": 6.35,
+   "buys": 29,
+   "coins_to_move_a_day": 123,
+   "days": 18,
+   "days_positive": 13,
+   "fills": 34,
+   "fills_a_day": 1.9,
+   "fills_at_price": 3,
+   "fills_maker_absent": 4,
+   "fills_maker_present": 30,
+   "markout_1m_bps": [
+    -0.5,
+    2.51,
+    6.51
+   ],
+   "markout_5m_bps": [
+    -0.5,
+    2.51,
+    7.01
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 678,
+   "orders_a_day_mean": 285.6,
+   "sells": 5,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 2098,
+   "usd_a_day": 0.117,
+   "usd_a_day_halves": [
+    0.088,
+    0.147
+   ],
+   "usd_filled_a_day": 168,
+   "worst_day": 0.0
+  },
+  "USDT-USD|cbgbp|join|two|m2|Q100|C1610|fx0|batchNone": {
+   "best_day": 0.485,
+   "boot_all": [
+    0.066,
+    0.169,
+    0.0
+   ],
+   "boot_first_half": [
+    0.026,
+    0.149,
+    0.0
+   ],
+   "boot_second_half": [
+    0.083,
+    0.205,
+    0.0
+   ],
+   "bot_prints_at_our_price": 3537,
+   "bps_fill_mean": 6.56,
+   "bps_maker_absent": 8.1,
+   "bps_maker_present": 6.35,
+   "buys": 29,
+   "coins_to_move_a_day": 123,
+   "days": 18,
+   "days_positive": 13,
+   "fills": 34,
+   "fills_a_day": 1.9,
+   "fills_at_price": 3,
+   "fills_maker_absent": 4,
+   "fills_maker_present": 30,
+   "markout_1m_bps": [
+    -0.5,
+    2.51,
+    6.51
+   ],
+   "markout_5m_bps": [
+    -0.5,
+    2.51,
+    7.01
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 678,
+   "orders_a_day_mean": 285.6,
+   "sells": 5,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 2098,
+   "usd_a_day": 0.117,
+   "usd_a_day_halves": [
+    0.088,
+    0.147
+   ],
+   "usd_filled_a_day": 168,
+   "worst_day": 0.0
+  },
+  "USDT-USD|cbgbp|join|two|m2|Q100|C1610|fx20|batch2000": {
+   "best_day": 0.0,
+   "boot_all": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "boot_first_half": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "boot_second_half": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "bot_prints_at_our_price": 0,
+   "bps_fill_mean": null,
+   "bps_maker_absent": null,
+   "bps_maker_present": null,
+   "buys": 0,
+   "coins_to_move_a_day": 0,
+   "days": 18,
+   "days_positive": 0,
+   "fills": 0,
+   "fills_a_day": 0.0,
+   "fills_at_price": 0,
+   "fills_maker_absent": 0,
+   "fills_maker_present": 0,
+   "markout_1m_bps": null,
+   "markout_5m_bps": null,
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 830,
+   "orders_a_day_mean": 476.1,
+   "sells": 0,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 0,
+   "usd_a_day": 0.0,
+   "usd_a_day_halves": [
+    0.0,
+    0.0
+   ],
+   "usd_filled_a_day": 0,
+   "worst_day": 0.0
+  },
+  "USDT-USD|cbgbp|join|two|m2|Q100|C1610|fx20|batch5000": {
+   "best_day": 0.0,
+   "boot_all": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "boot_first_half": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "boot_second_half": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "bot_prints_at_our_price": 0,
+   "bps_fill_mean": null,
+   "bps_maker_absent": null,
+   "bps_maker_present": null,
+   "buys": 0,
+   "coins_to_move_a_day": 0,
+   "days": 18,
+   "days_positive": 0,
+   "fills": 0,
+   "fills_a_day": 0.0,
+   "fills_at_price": 0,
+   "fills_maker_absent": 0,
+   "fills_maker_present": 0,
+   "markout_1m_bps": null,
+   "markout_5m_bps": null,
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 830,
+   "orders_a_day_mean": 476.1,
+   "sells": 0,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 0,
+   "usd_a_day": 0.0,
+   "usd_a_day_halves": [
+    0.0,
+    0.0
+   ],
+   "usd_filled_a_day": 0,
+   "worst_day": 0.0
+  },
+  "USDT-USD|cbgbp|join|two|m2|Q100|C1610|fx20|batchNone": {
+   "best_day": 0.0,
+   "boot_all": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "boot_first_half": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "boot_second_half": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "bot_prints_at_our_price": 0,
+   "bps_fill_mean": null,
+   "bps_maker_absent": null,
+   "bps_maker_present": null,
+   "buys": 0,
+   "coins_to_move_a_day": 0,
+   "days": 18,
+   "days_positive": 0,
+   "fills": 0,
+   "fills_a_day": 0.0,
+   "fills_at_price": 0,
+   "fills_maker_absent": 0,
+   "fills_maker_present": 0,
+   "markout_1m_bps": null,
+   "markout_5m_bps": null,
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 830,
+   "orders_a_day_mean": 476.1,
+   "sells": 0,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 0,
+   "usd_a_day": 0.0,
+   "usd_a_day_halves": [
+    0.0,
+    0.0
+   ],
+   "usd_filled_a_day": 0,
+   "worst_day": 0.0
+  },
+  "USDT-USD|cbgbp|join|two|m2|Q100|C1610|fx5|batch2000": {
+   "best_day": 0.286,
+   "boot_all": [
+    0.024,
+    0.08,
+    0.0
+   ],
+   "boot_first_half": [
+    0.002,
+    0.082,
+    0.0114
+   ],
+   "boot_second_half": [
+    0.037,
+    0.089,
+    0.0
+   ],
+   "bot_prints_at_our_price": 2141,
+   "bps_fill_mean": 4.56,
+   "bps_maker_absent": 6.63,
+   "bps_maker_present": 4.34,
+   "buys": 19,
+   "coins_to_move_a_day": 99,
+   "days": 18,
+   "days_positive": 10,
+   "fills": 21,
+   "fills_a_day": 1.2,
+   "fills_at_price": 0,
+   "fills_maker_absent": 2,
+   "fills_maker_present": 19,
+   "markout_1m_bps": [
+    0.0,
+    4.01,
+    9.03
+   ],
+   "markout_5m_bps": [
+    -0.5,
+    3.51,
+    9.03
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 821,
+   "orders_a_day_mean": 372.3,
+   "sells": 2,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 1694,
+   "usd_a_day": 0.052,
+   "usd_a_day_halves": [
+    0.04,
+    0.064
+   ],
+   "usd_filled_a_day": 112,
+   "worst_day": 0.0
+  },
+  "USDT-USD|cbgbp|join|two|m2|Q100|C1610|fx5|batch5000": {
+   "best_day": 0.286,
+   "boot_all": [
+    0.024,
+    0.08,
+    0.0
+   ],
+   "boot_first_half": [
+    0.002,
+    0.082,
+    0.0114
+   ],
+   "boot_second_half": [
+    0.037,
+    0.089,
+    0.0
+   ],
+   "bot_prints_at_our_price": 2141,
+   "bps_fill_mean": 4.56,
+   "bps_maker_absent": 6.63,
+   "bps_maker_present": 4.34,
+   "buys": 19,
+   "coins_to_move_a_day": 99,
+   "days": 18,
+   "days_positive": 10,
+   "fills": 21,
+   "fills_a_day": 1.2,
+   "fills_at_price": 0,
+   "fills_maker_absent": 2,
+   "fills_maker_present": 19,
+   "markout_1m_bps": [
+    0.0,
+    4.01,
+    9.03
+   ],
+   "markout_5m_bps": [
+    -0.5,
+    3.51,
+    9.03
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 821,
+   "orders_a_day_mean": 372.3,
+   "sells": 2,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 1694,
+   "usd_a_day": 0.052,
+   "usd_a_day_halves": [
+    0.04,
+    0.064
+   ],
+   "usd_filled_a_day": 112,
+   "worst_day": 0.0
+  },
+  "USDT-USD|cbgbp|join|two|m2|Q100|C1610|fx5|batchNone": {
+   "best_day": 0.286,
+   "boot_all": [
+    0.024,
+    0.08,
+    0.0
+   ],
+   "boot_first_half": [
+    0.002,
+    0.082,
+    0.0114
+   ],
+   "boot_second_half": [
+    0.037,
+    0.089,
+    0.0
+   ],
+   "bot_prints_at_our_price": 2141,
+   "bps_fill_mean": 4.56,
+   "bps_maker_absent": 6.63,
+   "bps_maker_present": 4.34,
+   "buys": 19,
+   "coins_to_move_a_day": 99,
+   "days": 18,
+   "days_positive": 10,
+   "fills": 21,
+   "fills_a_day": 1.2,
+   "fills_at_price": 0,
+   "fills_maker_absent": 2,
+   "fills_maker_present": 19,
+   "markout_1m_bps": [
+    0.0,
+    4.01,
+    9.03
+   ],
+   "markout_5m_bps": [
+    -0.5,
+    3.51,
+    9.03
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 821,
+   "orders_a_day_mean": 372.3,
+   "sells": 2,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 1694,
+   "usd_a_day": 0.052,
+   "usd_a_day_halves": [
+    0.04,
+    0.064
+   ],
+   "usd_filled_a_day": 112,
+   "worst_day": 0.0
+  },
+  "USDT-USD|cbgbp|join|two|m2|Q100|C805|fx0|batch2000": {
+   "best_day": 0.399,
+   "boot_all": [
+    0.062,
+    0.154,
+    0.0
+   ],
+   "boot_first_half": [
+    0.026,
+    0.109,
+    0.0
+   ],
+   "boot_second_half": [
+    0.083,
+    0.205,
+    0.0
+   ],
+   "bot_prints_at_our_price": 3385,
+   "bps_fill_mean": 6.22,
+   "bps_maker_absent": 8.1,
+   "bps_maker_present": 5.96,
+   "buys": 28,
+   "coins_to_move_a_day": 117,
+   "days": 18,
+   "days_positive": 13,
+   "fills": 33,
+   "fills_a_day": 1.8,
+   "fills_at_price": 3,
+   "fills_maker_absent": 4,
+   "fills_maker_present": 29,
+   "markout_1m_bps": [
+    -0.5,
+    2.51,
+    5.51
+   ],
+   "markout_5m_bps": [
+    -0.5,
+    2.51,
+    6.01
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 678,
+   "orders_a_day_mean": 280.2,
+   "sells": 5,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 1997,
+   "usd_a_day": 0.107,
+   "usd_a_day_halves": [
+    0.068,
+    0.147
+   ],
+   "usd_filled_a_day": 163,
+   "worst_day": 0.0
+  },
+  "USDT-USD|cbgbp|join|two|m2|Q100|C805|fx0|batch5000": {
+   "best_day": 0.399,
+   "boot_all": [
+    0.062,
+    0.154,
+    0.0
+   ],
+   "boot_first_half": [
+    0.026,
+    0.109,
+    0.0
+   ],
+   "boot_second_half": [
+    0.083,
+    0.205,
+    0.0
+   ],
+   "bot_prints_at_our_price": 3385,
+   "bps_fill_mean": 6.22,
+   "bps_maker_absent": 8.1,
+   "bps_maker_present": 5.96,
+   "buys": 28,
+   "coins_to_move_a_day": 117,
+   "days": 18,
+   "days_positive": 13,
+   "fills": 33,
+   "fills_a_day": 1.8,
+   "fills_at_price": 3,
+   "fills_maker_absent": 4,
+   "fills_maker_present": 29,
+   "markout_1m_bps": [
+    -0.5,
+    2.51,
+    5.51
+   ],
+   "markout_5m_bps": [
+    -0.5,
+    2.51,
+    6.01
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 678,
+   "orders_a_day_mean": 280.2,
+   "sells": 5,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 1997,
+   "usd_a_day": 0.107,
+   "usd_a_day_halves": [
+    0.068,
+    0.147
+   ],
+   "usd_filled_a_day": 163,
+   "worst_day": 0.0
+  },
+  "USDT-USD|cbgbp|join|two|m2|Q100|C805|fx0|batchNone": {
+   "best_day": 0.399,
+   "boot_all": [
+    0.062,
+    0.154,
+    0.0
+   ],
+   "boot_first_half": [
+    0.026,
+    0.109,
+    0.0
+   ],
+   "boot_second_half": [
+    0.083,
+    0.205,
+    0.0
+   ],
+   "bot_prints_at_our_price": 3385,
+   "bps_fill_mean": 6.22,
+   "bps_maker_absent": 8.1,
+   "bps_maker_present": 5.96,
+   "buys": 28,
+   "coins_to_move_a_day": 117,
+   "days": 18,
+   "days_positive": 13,
+   "fills": 33,
+   "fills_a_day": 1.8,
+   "fills_at_price": 3,
+   "fills_maker_absent": 4,
+   "fills_maker_present": 29,
+   "markout_1m_bps": [
+    -0.5,
+    2.51,
+    5.51
+   ],
+   "markout_5m_bps": [
+    -0.5,
+    2.51,
+    6.01
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 678,
+   "orders_a_day_mean": 280.2,
+   "sells": 5,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 1997,
+   "usd_a_day": 0.107,
+   "usd_a_day_halves": [
+    0.068,
+    0.147
+   ],
+   "usd_filled_a_day": 163,
+   "worst_day": 0.0
+  },
+  "USDT-USD|cbgbp|join|two|m2|Q100|C805|fx20|batch2000": {
+   "best_day": 0.0,
+   "boot_all": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "boot_first_half": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "boot_second_half": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "bot_prints_at_our_price": 0,
+   "bps_fill_mean": null,
+   "bps_maker_absent": null,
+   "bps_maker_present": null,
+   "buys": 0,
+   "coins_to_move_a_day": 0,
+   "days": 18,
+   "days_positive": 0,
+   "fills": 0,
+   "fills_a_day": 0.0,
+   "fills_at_price": 0,
+   "fills_maker_absent": 0,
+   "fills_maker_present": 0,
+   "markout_1m_bps": null,
+   "markout_5m_bps": null,
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 830,
+   "orders_a_day_mean": 476.1,
+   "sells": 0,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 0,
+   "usd_a_day": 0.0,
+   "usd_a_day_halves": [
+    0.0,
+    0.0
+   ],
+   "usd_filled_a_day": 0,
+   "worst_day": 0.0
+  },
+  "USDT-USD|cbgbp|join|two|m2|Q100|C805|fx20|batch5000": {
+   "best_day": 0.0,
+   "boot_all": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "boot_first_half": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "boot_second_half": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "bot_prints_at_our_price": 0,
+   "bps_fill_mean": null,
+   "bps_maker_absent": null,
+   "bps_maker_present": null,
+   "buys": 0,
+   "coins_to_move_a_day": 0,
+   "days": 18,
+   "days_positive": 0,
+   "fills": 0,
+   "fills_a_day": 0.0,
+   "fills_at_price": 0,
+   "fills_maker_absent": 0,
+   "fills_maker_present": 0,
+   "markout_1m_bps": null,
+   "markout_5m_bps": null,
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 830,
+   "orders_a_day_mean": 476.1,
+   "sells": 0,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 0,
+   "usd_a_day": 0.0,
+   "usd_a_day_halves": [
+    0.0,
+    0.0
+   ],
+   "usd_filled_a_day": 0,
+   "worst_day": 0.0
+  },
+  "USDT-USD|cbgbp|join|two|m2|Q100|C805|fx20|batchNone": {
+   "best_day": 0.0,
+   "boot_all": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "boot_first_half": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "boot_second_half": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "bot_prints_at_our_price": 0,
+   "bps_fill_mean": null,
+   "bps_maker_absent": null,
+   "bps_maker_present": null,
+   "buys": 0,
+   "coins_to_move_a_day": 0,
+   "days": 18,
+   "days_positive": 0,
+   "fills": 0,
+   "fills_a_day": 0.0,
+   "fills_at_price": 0,
+   "fills_maker_absent": 0,
+   "fills_maker_present": 0,
+   "markout_1m_bps": null,
+   "markout_5m_bps": null,
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 830,
+   "orders_a_day_mean": 476.1,
+   "sells": 0,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 0,
+   "usd_a_day": 0.0,
+   "usd_a_day_halves": [
+    0.0,
+    0.0
+   ],
+   "usd_filled_a_day": 0,
+   "worst_day": 0.0
+  },
+  "USDT-USD|cbgbp|join|two|m2|Q100|C805|fx5|batch2000": {
+   "best_day": 0.286,
+   "boot_all": [
+    0.024,
+    0.08,
+    0.0
+   ],
+   "boot_first_half": [
+    0.002,
+    0.082,
+    0.0114
+   ],
+   "boot_second_half": [
+    0.037,
+    0.089,
+    0.0
+   ],
+   "bot_prints_at_our_price": 2141,
+   "bps_fill_mean": 4.56,
+   "bps_maker_absent": 6.63,
+   "bps_maker_present": 4.34,
+   "buys": 19,
+   "coins_to_move_a_day": 99,
+   "days": 18,
+   "days_positive": 10,
+   "fills": 21,
+   "fills_a_day": 1.2,
+   "fills_at_price": 0,
+   "fills_maker_absent": 2,
+   "fills_maker_present": 19,
+   "markout_1m_bps": [
+    0.0,
+    4.01,
+    9.03
+   ],
+   "markout_5m_bps": [
+    -0.5,
+    3.51,
+    9.03
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 821,
+   "orders_a_day_mean": 372.3,
+   "sells": 2,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 1694,
+   "usd_a_day": 0.052,
+   "usd_a_day_halves": [
+    0.04,
+    0.064
+   ],
+   "usd_filled_a_day": 112,
+   "worst_day": 0.0
+  },
+  "USDT-USD|cbgbp|join|two|m2|Q100|C805|fx5|batch5000": {
+   "best_day": 0.286,
+   "boot_all": [
+    0.024,
+    0.08,
+    0.0
+   ],
+   "boot_first_half": [
+    0.002,
+    0.082,
+    0.0114
+   ],
+   "boot_second_half": [
+    0.037,
+    0.089,
+    0.0
+   ],
+   "bot_prints_at_our_price": 2141,
+   "bps_fill_mean": 4.56,
+   "bps_maker_absent": 6.63,
+   "bps_maker_present": 4.34,
+   "buys": 19,
+   "coins_to_move_a_day": 99,
+   "days": 18,
+   "days_positive": 10,
+   "fills": 21,
+   "fills_a_day": 1.2,
+   "fills_at_price": 0,
+   "fills_maker_absent": 2,
+   "fills_maker_present": 19,
+   "markout_1m_bps": [
+    0.0,
+    4.01,
+    9.03
+   ],
+   "markout_5m_bps": [
+    -0.5,
+    3.51,
+    9.03
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 821,
+   "orders_a_day_mean": 372.3,
+   "sells": 2,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 1694,
+   "usd_a_day": 0.052,
+   "usd_a_day_halves": [
+    0.04,
+    0.064
+   ],
+   "usd_filled_a_day": 112,
+   "worst_day": 0.0
+  },
+  "USDT-USD|cbgbp|join|two|m2|Q100|C805|fx5|batchNone": {
+   "best_day": 0.286,
+   "boot_all": [
+    0.024,
+    0.08,
+    0.0
+   ],
+   "boot_first_half": [
+    0.002,
+    0.082,
+    0.0114
+   ],
+   "boot_second_half": [
+    0.037,
+    0.089,
+    0.0
+   ],
+   "bot_prints_at_our_price": 2141,
+   "bps_fill_mean": 4.56,
+   "bps_maker_absent": 6.63,
+   "bps_maker_present": 4.34,
+   "buys": 19,
+   "coins_to_move_a_day": 99,
+   "days": 18,
+   "days_positive": 10,
+   "fills": 21,
+   "fills_a_day": 1.2,
+   "fills_at_price": 0,
+   "fills_maker_absent": 2,
+   "fills_maker_present": 19,
+   "markout_1m_bps": [
+    0.0,
+    4.01,
+    9.03
+   ],
+   "markout_5m_bps": [
+    -0.5,
+    3.51,
+    9.03
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 821,
+   "orders_a_day_mean": 372.3,
+   "sells": 2,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 1694,
+   "usd_a_day": 0.052,
+   "usd_a_day_halves": [
+    0.04,
+    0.064
+   ],
+   "usd_filled_a_day": 112,
+   "worst_day": 0.0
+  },
+  "USDT-USD|par|improve|bidall|m2|Q100|C1610": {
+   "best_day": 3.096,
+   "boot_all": [
+    1.174,
+    1.8,
+    0.0
+   ],
+   "boot_first_half": [
+    0.753,
+    1.184,
+    0.0
+   ],
+   "boot_second_half": [
+    1.733,
+    2.292,
+    0.0
+   ],
+   "bot_prints_at_our_price": 5714,
+   "bps_fill_mean": 13.16,
+   "bps_maker_absent": 13.38,
+   "bps_maker_present": 13.14,
+   "buys": 565,
+   "coins_to_move_a_day": 1125,
+   "days": 32,
+   "days_positive": 32,
+   "fills": 565,
+   "fills_a_day": 17.7,
+   "fills_at_price": 188,
+   "fills_maker_absent": 48,
+   "fills_maker_present": 517,
+   "markout_1m_bps": [
+    -0.0,
+    0.5,
+    3.51
+   ],
+   "markout_5m_bps": [
+    0.0,
+    0.5,
+    3.51
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 265,
+   "orders_a_day_mean": 60.8,
+   "sells": 0,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 35435,
+   "usd_a_day": 1.484,
+   "usd_a_day_halves": [
+    0.972,
+    1.995
+   ],
+   "usd_filled_a_day": 1125,
+   "worst_day": 0.287
+  },
+  "USDT-USD|par|improve|bidall|m2|Q100|C805": {
+   "best_day": 2.206,
+   "boot_all": [
+    0.779,
+    1.263,
+    0.0
+   ],
+   "boot_first_half": [
+    0.44,
+    0.688,
+    0.0
+   ],
+   "boot_second_half": [
+    1.365,
+    1.596,
+    0.0
+   ],
+   "bot_prints_at_our_price": 4231,
+   "bps_fill_mean": 13.79,
+   "bps_maker_absent": 13.41,
+   "bps_maker_present": 13.83,
+   "buys": 380,
+   "coins_to_move_a_day": 732,
+   "days": 32,
+   "days_positive": 32,
+   "fills": 380,
+   "fills_a_day": 11.9,
+   "fills_at_price": 120,
+   "fills_maker_absent": 34,
+   "fills_maker_present": 346,
+   "markout_1m_bps": [
+    0.0,
+    0.5,
+    4.01
+   ],
+   "markout_5m_bps": [
+    0.0,
+    0.5,
+    4.01
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 187,
+   "orders_a_day_mean": 39.9,
+   "sells": 0,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 22839,
+   "usd_a_day": 1.023,
+   "usd_a_day_halves": [
+    0.556,
+    1.49
+   ],
+   "usd_filled_a_day": 732,
+   "worst_day": 0.225
+  },
+  "USDT-USD|par|improve|bid|m2|Q100|C1610": {
+   "best_day": 2.206,
+   "boot_all": [
+    0.779,
+    1.263,
+    0.0
+   ],
+   "boot_first_half": [
+    0.44,
+    0.688,
+    0.0
+   ],
+   "boot_second_half": [
+    1.365,
+    1.596,
+    0.0
+   ],
+   "bot_prints_at_our_price": 4231,
+   "bps_fill_mean": 13.79,
+   "bps_maker_absent": 13.41,
+   "bps_maker_present": 13.83,
+   "buys": 380,
+   "coins_to_move_a_day": 732,
+   "days": 32,
+   "days_positive": 32,
+   "fills": 380,
+   "fills_a_day": 11.9,
+   "fills_at_price": 120,
+   "fills_maker_absent": 34,
+   "fills_maker_present": 346,
+   "markout_1m_bps": [
+    0.0,
+    0.5,
+    4.01
+   ],
+   "markout_5m_bps": [
+    0.0,
+    0.5,
+    4.01
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 187,
+   "orders_a_day_mean": 39.9,
+   "sells": 0,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 22839,
+   "usd_a_day": 1.023,
+   "usd_a_day_halves": [
+    0.556,
+    1.49
+   ],
+   "usd_filled_a_day": 732,
+   "worst_day": 0.225
+  },
+  "USDT-USD|par|improve|bid|m2|Q100|C805": {
+   "best_day": 1.103,
+   "boot_all": [
+    0.373,
+    0.622,
+    0.0
+   ],
+   "boot_first_half": [
+    0.201,
+    0.308,
+    0.0
+   ],
+   "boot_second_half": [
+    0.682,
+    0.8,
+    0.0
+   ],
+   "bot_prints_at_our_price": 2948,
+   "bps_fill_mean": 14.47,
+   "bps_maker_absent": 13.32,
+   "bps_maker_present": 14.58,
+   "buys": 195,
+   "coins_to_move_a_day": 352,
+   "days": 32,
+   "days_positive": 32,
+   "fills": 195,
+   "fills_a_day": 6.1,
+   "fills_at_price": 46,
+   "fills_maker_absent": 17,
+   "fills_maker_present": 178,
+   "markout_1m_bps": [
+    0.0,
+    0.5,
+    4.01
+   ],
+   "markout_5m_bps": [
+    0.0,
+    0.5,
+    4.01
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 93,
+   "orders_a_day_mean": 19.3,
+   "sells": 0,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 10904,
+   "usd_a_day": 0.497,
+   "usd_a_day_halves": [
+    0.251,
+    0.744
+   ],
+   "usd_filled_a_day": 352,
+   "worst_day": 0.088
+  },
+  "USDT-USD|par|improve|two|m0|Q100|C1610": {
+   "best_day": 2.206,
+   "boot_all": [
+    0.795,
+    1.269,
+    0.0
+   ],
+   "boot_first_half": [
+    0.465,
+    0.711,
+    0.0
+   ],
+   "boot_second_half": [
+    1.365,
+    1.596,
+    0.0
+   ],
+   "bot_prints_at_our_price": 4235,
+   "bps_fill_mean": 12.88,
+   "bps_maker_absent": 12.94,
+   "bps_maker_present": 12.87,
+   "buys": 390,
+   "coins_to_move_a_day": 721,
+   "days": 32,
+   "days_positive": 32,
+   "fills": 410,
+   "fills_a_day": 12.8,
+   "fills_at_price": 133,
+   "fills_maker_absent": 36,
+   "fills_maker_present": 374,
+   "markout_1m_bps": [
+    0.0,
+    0.5,
+    4.01
+   ],
+   "markout_5m_bps": [
+    0.0,
+    0.5,
+    4.01
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 187,
+   "orders_a_day_mean": 42.6,
+   "sells": 20,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 22491,
+   "usd_a_day": 1.035,
+   "usd_a_day_halves": [
+    0.581,
+    1.49
+   ],
+   "usd_filled_a_day": 803,
+   "worst_day": 0.287
+  },
+  "USDT-USD|par|improve|two|m0|Q100|C805": {
+   "best_day": 1.103,
+   "boot_all": [
+    0.387,
+    0.628,
+    0.0
+   ],
+   "boot_first_half": [
+    0.222,
+    0.324,
+    0.0
+   ],
+   "boot_second_half": [
+    0.682,
+    0.8,
+    0.0
+   ],
+   "bot_prints_at_our_price": 2951,
+   "bps_fill_mean": 12.68,
+   "bps_maker_absent": 11.73,
+   "bps_maker_present": 12.78,
+   "buys": 207,
+   "coins_to_move_a_day": 342,
+   "days": 32,
+   "days_positive": 32,
+   "fills": 226,
+   "fills_a_day": 7.1,
+   "fills_at_price": 58,
+   "fills_maker_absent": 21,
+   "fills_maker_present": 205,
+   "markout_1m_bps": [
+    0.0,
+    0.5,
+    4.01
+   ],
+   "markout_5m_bps": [
+    0.0,
+    0.5,
+    4.01
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 93,
+   "orders_a_day_mean": 21.9,
+   "sells": 19,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 10577,
+   "usd_a_day": 0.507,
+   "usd_a_day_halves": [
+    0.27,
+    0.744
+   ],
+   "usd_filled_a_day": 418,
+   "worst_day": 0.122
+  },
+  "USDT-USD|par|improve|two|m2|Q100|C1610": {
+   "best_day": 2.206,
+   "boot_all": [
+    0.782,
+    1.264,
+    0.0
+   ],
+   "boot_first_half": [
+    0.446,
+    0.689,
+    0.0
+   ],
+   "boot_second_half": [
+    1.365,
+    1.596,
+    0.0
+   ],
+   "bot_prints_at_our_price": 4231,
+   "bps_fill_mean": 13.73,
+   "bps_maker_absent": 13.41,
+   "bps_maker_present": 13.76,
+   "buys": 381,
+   "coins_to_move_a_day": 732,
+   "days": 32,
+   "days_positive": 32,
+   "fills": 382,
+   "fills_a_day": 11.9,
+   "fills_at_price": 121,
+   "fills_maker_absent": 34,
+   "fills_maker_present": 348,
+   "markout_1m_bps": [
+    0.0,
+    0.5,
+    4.01
+   ],
+   "markout_5m_bps": [
+    0.0,
+    0.5,
+    4.01
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 187,
+   "orders_a_day_mean": 40.1,
+   "sells": 1,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 22840,
+   "usd_a_day": 1.024,
+   "usd_a_day_halves": [
+    0.559,
+    1.49
+   ],
+   "usd_filled_a_day": 738,
+   "worst_day": 0.225
+  },
+  "USDT-USD|par|improve|two|m2|Q100|C1610|cbwindow": {
+   "best_day": 2.206,
+   "boot_all": [
+    1.276,
+    1.553,
+    0.0
+   ],
+   "boot_first_half": [
+    1.18,
+    1.489,
+    0.0
+   ],
+   "boot_second_half": [
+    1.442,
+    1.621,
+    0.0
+   ],
+   "bot_prints_at_our_price": 3810,
+   "bps_fill_mean": 19.71,
+   "bps_maker_absent": 21.51,
+   "bps_maker_present": 19.57,
+   "buys": 208,
+   "coins_to_move_a_day": 716,
+   "days": 18,
+   "days_positive": 18,
+   "fills": 208,
+   "fills_a_day": 11.6,
+   "fills_at_price": 46,
+   "fills_maker_absent": 15,
+   "fills_maker_present": 193,
+   "markout_1m_bps": [
+    0.0,
+    1.5,
+    4.51
+   ],
+   "markout_5m_bps": [
+    0.0,
+    1.5,
+    4.51
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 187,
+   "orders_a_day_mean": 36.3,
+   "sells": 0,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 12314,
+   "usd_a_day": 1.426,
+   "usd_a_day_halves": [
+    1.323,
+    1.528
+   ],
+   "usd_filled_a_day": 716,
+   "worst_day": 0.462
+  },
+  "USDT-USD|par|improve|two|m2|Q100|C1610|maker_absent_only": {
+   "best_day": 0.814,
+   "boot_all": [
+    0.065,
+    0.197,
+    0.0
+   ],
+   "boot_first_half": [
+    0.021,
+    0.167,
+    0.0008
+   ],
+   "boot_second_half": [
+    0.073,
+    0.273,
+    0.0
+   ],
+   "bot_prints_at_our_price": 370,
+   "bps_fill_mean": 14.45,
+   "bps_maker_absent": 14.18,
+   "bps_maker_present": 25.06,
+   "buys": 40,
+   "coins_to_move_a_day": 87,
+   "days": 32,
+   "days_positive": 15,
+   "fills": 40,
+   "fills_a_day": 1.2,
+   "fills_at_price": 9,
+   "fills_maker_absent": 39,
+   "fills_maker_present": 1,
+   "markout_1m_bps": [
+    -0.5,
+    1.5,
+    4.51
+   ],
+   "markout_5m_bps": [
+    0.0,
+    1.5,
+    4.51
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 111,
+   "orders_a_day_mean": 32.8,
+   "sells": 0,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 2795,
+   "usd_a_day": 0.129,
+   "usd_a_day_halves": [
+    0.087,
+    0.17
+   ],
+   "usd_filled_a_day": 87,
+   "worst_day": 0.0
+  },
+  "USDT-USD|par|improve|two|m2|Q100|C1610|maker_present_only": {
+   "best_day": 2.206,
+   "boot_all": [
+    0.746,
+    1.205,
+    0.0
+   ],
+   "boot_first_half": [
+    0.429,
+    0.678,
+    0.0
+   ],
+   "boot_second_half": [
+    1.265,
+    1.543,
+    0.0
+   ],
+   "bot_prints_at_our_price": 4078,
+   "bps_fill_mean": 13.67,
+   "bps_maker_absent": 4.5,
+   "bps_maker_present": 13.72,
+   "buys": 364,
+   "coins_to_move_a_day": 704,
+   "days": 32,
+   "days_positive": 32,
+   "fills": 365,
+   "fills_a_day": 11.4,
+   "fills_at_price": 120,
+   "fills_maker_absent": 2,
+   "fills_maker_present": 363,
+   "markout_1m_bps": [
+    0.0,
+    0.5,
+    4.01
+   ],
+   "markout_5m_bps": [
+    0.0,
+    0.5,
+    3.51
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 194,
+   "orders_a_day_mean": 54.3,
+   "sells": 1,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 21967,
+   "usd_a_day": 0.977,
+   "usd_a_day_halves": [
+    0.544,
+    1.41
+   ],
+   "usd_filled_a_day": 711,
+   "worst_day": 0.234
+  },
+  "USDT-USD|par|improve|two|m2|Q100|C805": {
+   "best_day": 1.103,
+   "boot_all": [
+    0.375,
+    0.623,
+    0.0
+   ],
+   "boot_first_half": [
+    0.206,
+    0.31,
+    0.0
+   ],
+   "boot_second_half": [
+    0.682,
+    0.8,
+    0.0
+   ],
+   "bot_prints_at_our_price": 2948,
+   "bps_fill_mean": 14.35,
+   "bps_maker_absent": 13.32,
+   "bps_maker_present": 14.44,
+   "buys": 196,
+   "coins_to_move_a_day": 352,
+   "days": 32,
+   "days_positive": 32,
+   "fills": 197,
+   "fills_a_day": 6.2,
+   "fills_at_price": 47,
+   "fills_maker_absent": 17,
+   "fills_maker_present": 180,
+   "markout_1m_bps": [
+    0.0,
+    0.5,
+    4.01
+   ],
+   "markout_5m_bps": [
+    0.0,
+    0.5,
+    4.01
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 93,
+   "orders_a_day_mean": 19.5,
+   "sells": 1,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 10905,
+   "usd_a_day": 0.499,
+   "usd_a_day_halves": [
+    0.254,
+    0.744
+   ],
+   "usd_filled_a_day": 359,
+   "worst_day": 0.088
+  },
+  "USDT-USD|par|improve|two|m2|Q100|C805|cbwindow": {
+   "best_day": 1.103,
+   "boot_all": [
+    0.624,
+    0.78,
+    0.0
+   ],
+   "boot_first_half": [
+    0.544,
+    0.753,
+    0.0
+   ],
+   "boot_second_half": [
+    0.727,
+    0.825,
+    0.0
+   ],
+   "bot_prints_at_our_price": 2699,
+   "bps_fill_mean": 19.94,
+   "bps_maker_absent": 21.05,
+   "bps_maker_present": 19.86,
+   "buys": 114,
+   "coins_to_move_a_day": 354,
+   "days": 18,
+   "days_positive": 18,
+   "fills": 114,
+   "fills_a_day": 6.3,
+   "fills_at_price": 22,
+   "fills_maker_absent": 8,
+   "fills_maker_present": 106,
+   "markout_1m_bps": [
+    0.5,
+    1.5,
+    4.01
+   ],
+   "markout_5m_bps": [
+    0.5,
+    1.5,
+    4.51
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 61,
+   "orders_a_day_mean": 14.3,
+   "sells": 0,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 5997,
+   "usd_a_day": 0.706,
+   "usd_a_day_halves": [
+    0.637,
+    0.776
+   ],
+   "usd_filled_a_day": 354,
+   "worst_day": 0.388
+  },
+  "USDT-USD|par|improve|two|m2|Q100|C805|maker_absent_only": {
+   "best_day": 0.814,
+   "boot_all": [
+    0.059,
+    0.179,
+    0.0
+   ],
+   "boot_first_half": [
+    0.021,
+    0.104,
+    0.0008
+   ],
+   "boot_second_half": [
+    0.073,
+    0.273,
+    0.0
+   ],
+   "bot_prints_at_our_price": 369,
+   "bps_fill_mean": 14.89,
+   "bps_maker_absent": 14.6,
+   "bps_maker_present": 25.06,
+   "buys": 36,
+   "coins_to_move_a_day": 75,
+   "days": 32,
+   "days_positive": 15,
+   "fills": 36,
+   "fills_a_day": 1.1,
+   "fills_at_price": 8,
+   "fills_maker_absent": 35,
+   "fills_maker_present": 1,
+   "markout_1m_bps": [
+    -0.5,
+    1.5,
+    4.51
+   ],
+   "markout_5m_bps": [
+    0.0,
+    1.5,
+    4.51
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 103,
+   "orders_a_day_mean": 31.2,
+   "sells": 0,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 2394,
+   "usd_a_day": 0.115,
+   "usd_a_day_halves": [
+    0.061,
+    0.17
+   ],
+   "usd_filled_a_day": 75,
+   "worst_day": 0.0
+  },
+  "USDT-USD|par|improve|two|m2|Q100|C805|maker_present_only": {
+   "best_day": 1.103,
+   "boot_all": [
+    0.372,
+    0.618,
+    0.0
+   ],
+   "boot_first_half": [
+    0.202,
+    0.308,
+    0.0
+   ],
+   "boot_second_half": [
+    0.674,
+    0.798,
+    0.0
+   ],
+   "bot_prints_at_our_price": 2886,
+   "bps_fill_mean": 14.2,
+   "bps_maker_absent": 5.0,
+   "bps_maker_present": 14.24,
+   "buys": 193,
+   "coins_to_move_a_day": 348,
+   "days": 32,
+   "days_positive": 32,
+   "fills": 194,
+   "fills_a_day": 6.1,
+   "fills_at_price": 45,
+   "fills_maker_absent": 1,
+   "fills_maker_present": 193,
+   "markout_1m_bps": [
+    0.0,
+    0.5,
+    4.01
+   ],
+   "markout_5m_bps": [
+    0.0,
+    0.5,
+    4.01
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 97,
+   "orders_a_day_mean": 33.8,
+   "sells": 1,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 10765,
+   "usd_a_day": 0.495,
+   "usd_a_day_halves": [
+    0.25,
+    0.739
+   ],
+   "usd_filled_a_day": 354,
+   "worst_day": 0.088
+  },
+  "USDT-USD|par|improve|two|m2|Q250|C1610": {
+   "best_day": 2.031,
+   "boot_all": [
+    0.701,
+    1.156,
+    0.0
+   ],
+   "boot_first_half": [
+    0.38,
+    0.585,
+    0.0
+   ],
+   "boot_second_half": [
+    1.308,
+    1.472,
+    0.0
+   ],
+   "bot_prints_at_our_price": 2904,
+   "bps_fill_mean": 14.34,
+   "bps_maker_absent": 13.33,
+   "bps_maker_present": 14.41,
+   "buys": 199,
+   "coins_to_move_a_day": 653,
+   "days": 32,
+   "days_positive": 32,
+   "fills": 200,
+   "fills_a_day": 6.2,
+   "fills_at_price": 47,
+   "fills_maker_absent": 13,
+   "fills_maker_present": 187,
+   "markout_1m_bps": [
+    0.0,
+    0.5,
+    4.01
+   ],
+   "markout_5m_bps": [
+    0.0,
+    0.5,
+    4.01
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 86,
+   "orders_a_day_mean": 18.4,
+   "sells": 1,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 20298,
+   "usd_a_day": 0.932,
+   "usd_a_day_halves": [
+    0.475,
+    1.389
+   ],
+   "usd_filled_a_day": 669,
+   "worst_day": 0.173
+  },
+  "USDT-USD|par|improve|two|m2|Q250|C805": {
+   "best_day": 0.677,
+   "boot_all": [
+    0.253,
+    0.411,
+    0.0
+   ],
+   "boot_first_half": [
+    0.141,
+    0.233,
+    0.0
+   ],
+   "boot_second_half": [
+    0.447,
+    0.523,
+    0.0
+   ],
+   "bot_prints_at_our_price": 1602,
+   "bps_fill_mean": 14.75,
+   "bps_maker_absent": 14.4,
+   "bps_maker_present": 14.79,
+   "buys": 83,
+   "coins_to_move_a_day": 236,
+   "days": 32,
+   "days_positive": 32,
+   "fills": 84,
+   "fills_a_day": 2.6,
+   "fills_at_price": 19,
+   "fills_maker_absent": 8,
+   "fills_maker_present": 76,
+   "markout_1m_bps": [
+    -0.0,
+    0.5,
+    4.01
+   ],
+   "markout_5m_bps": [
+    0.0,
+    1.0,
+    4.01
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 56,
+   "orders_a_day_mean": 8.6,
+   "sells": 1,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 7365,
+   "usd_a_day": 0.333,
+   "usd_a_day_halves": [
+    0.181,
+    0.484
+   ],
+   "usd_filled_a_day": 251,
+   "worst_day": 0.05
+  },
+  "USDT-USD|par|improve|two|m5|Q100|C1610": {
+   "best_day": 2.206,
+   "boot_all": [
+    0.8,
+    1.27,
+    0.0
+   ],
+   "boot_first_half": [
+    0.477,
+    0.708,
+    0.0
+   ],
+   "boot_second_half": [
+    1.365,
+    1.596,
+    0.0
+   ],
+   "bot_prints_at_our_price": 4230,
+   "bps_fill_mean": 14.2,
+   "bps_maker_absent": 13.0,
+   "bps_maker_present": 14.33,
+   "buys": 370,
+   "coins_to_move_a_day": 727,
+   "days": 32,
+   "days_positive": 32,
+   "fills": 371,
+   "fills_a_day": 11.6,
+   "fills_at_price": 136,
+   "fills_maker_absent": 36,
+   "fills_maker_present": 335,
+   "markout_1m_bps": [
+    0.0,
+    0.5,
+    4.01
+   ],
+   "markout_5m_bps": [
+    0.0,
+    0.5,
+    4.01
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 187,
+   "orders_a_day_mean": 35.8,
+   "sells": 1,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 22685,
+   "usd_a_day": 1.037,
+   "usd_a_day_halves": [
+    0.585,
+    1.49
+   ],
+   "usd_filled_a_day": 733,
+   "worst_day": 0.315
+  },
+  "USDT-USD|par|improve|two|m5|Q100|C805": {
+   "best_day": 1.103,
+   "boot_all": [
+    0.389,
+    0.627,
+    0.0
+   ],
+   "boot_first_half": [
+    0.229,
+    0.321,
+    0.0
+   ],
+   "boot_second_half": [
+    0.682,
+    0.8,
+    0.0
+   ],
+   "bot_prints_at_our_price": 2948,
+   "bps_fill_mean": 14.58,
+   "bps_maker_absent": 12.5,
+   "bps_maker_present": 14.8,
+   "buys": 195,
+   "coins_to_move_a_day": 355,
+   "days": 32,
+   "days_positive": 32,
+   "fills": 196,
+   "fills_a_day": 6.1,
+   "fills_at_price": 64,
+   "fills_maker_absent": 19,
+   "fills_maker_present": 177,
+   "markout_1m_bps": [
+    0.0,
+    1.0,
+    4.01
+   ],
+   "markout_5m_bps": [
+    0.0,
+    1.0,
+    4.01
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 61,
+   "orders_a_day_mean": 16.3,
+   "sells": 1,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 10985,
+   "usd_a_day": 0.508,
+   "usd_a_day_halves": [
+    0.271,
+    0.744
+   ],
+   "usd_filled_a_day": 361,
+   "worst_day": 0.152
+  },
+  "USDT-USD|par|join|bidall|m2|Q100|C1610": {
+   "best_day": 0.982,
+   "boot_all": [
+    0.252,
+    0.414,
+    0.0
+   ],
+   "boot_first_half": [
+    0.172,
+    0.312,
+    0.0
+   ],
+   "boot_second_half": [
+    0.308,
+    0.541,
+    0.0
+   ],
+   "bot_prints_at_our_price": 5792,
+   "bps_fill_mean": 11.84,
+   "bps_maker_absent": 10.14,
+   "bps_maker_present": 12.16,
+   "buys": 102,
+   "coins_to_move_a_day": 272,
+   "days": 32,
+   "days_positive": 29,
+   "fills": 102,
+   "fills_a_day": 3.2,
+   "fills_at_price": 25,
+   "fills_maker_absent": 16,
+   "fills_maker_present": 86,
+   "markout_1m_bps": [
+    -1.5,
+    0.5,
+    3.51
+   ],
+   "markout_5m_bps": [
+    -0.5,
+    0.5,
+    3.51
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 303,
+   "orders_a_day_mean": 61.0,
+   "sells": 0,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 8608,
+   "usd_a_day": 0.331,
+   "usd_a_day_halves": [
+    0.242,
+    0.42
+   ],
+   "usd_filled_a_day": 272,
+   "worst_day": 0.0
+  },
+  "USDT-USD|par|join|bidall|m2|Q100|C805": {
+   "best_day": 0.982,
+   "boot_all": [
+    0.251,
+    0.413,
+    0.0
+   ],
+   "boot_first_half": [
+    0.171,
+    0.307,
+    0.0
+   ],
+   "boot_second_half": [
+    0.308,
+    0.541,
+    0.0
+   ],
+   "bot_prints_at_our_price": 5792,
+   "bps_fill_mean": 11.92,
+   "bps_maker_absent": 10.14,
+   "bps_maker_present": 12.26,
+   "buys": 101,
+   "coins_to_move_a_day": 269,
+   "days": 32,
+   "days_positive": 29,
+   "fills": 101,
+   "fills_a_day": 3.2,
+   "fills_at_price": 25,
+   "fills_maker_absent": 16,
+   "fills_maker_present": 85,
+   "markout_1m_bps": [
+    -1.5,
+    0.5,
+    3.51
+   ],
+   "markout_5m_bps": [
+    -0.5,
+    0.5,
+    3.51
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 303,
+   "orders_a_day_mean": 59.8,
+   "sells": 0,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 8508,
+   "usd_a_day": 0.33,
+   "usd_a_day_halves": [
+    0.24,
+    0.42
+   ],
+   "usd_filled_a_day": 269,
+   "worst_day": 0.0
+  },
+  "USDT-USD|par|join|two|m0|Q100|C1610": {
+   "best_day": 0.982,
+   "boot_all": [
+    0.251,
+    0.413,
+    0.0
+   ],
+   "boot_first_half": [
+    0.171,
+    0.307,
+    0.0
+   ],
+   "boot_second_half": [
+    0.308,
+    0.541,
+    0.0
+   ],
+   "bot_prints_at_our_price": 5794,
+   "bps_fill_mean": 11.67,
+   "bps_maker_absent": 10.14,
+   "bps_maker_present": 11.95,
+   "buys": 101,
+   "coins_to_move_a_day": 266,
+   "days": 32,
+   "days_positive": 29,
+   "fills": 103,
+   "fills_a_day": 3.2,
+   "fills_at_price": 25,
+   "fills_maker_absent": 16,
+   "fills_maker_present": 87,
+   "markout_1m_bps": [
+    -1.5,
+    0.5,
+    3.51
+   ],
+   "markout_5m_bps": [
+    -0.5,
+    0.5,
+    3.51
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 303,
+   "orders_a_day_mean": 60.3,
+   "sells": 2,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 8398,
+   "usd_a_day": 0.33,
+   "usd_a_day_halves": [
+    0.24,
+    0.42
+   ],
+   "usd_filled_a_day": 273,
+   "worst_day": 0.0
+  },
+  "USDT-USD|par|join|two|m0|Q100|C805": {
+   "best_day": 0.982,
+   "boot_all": [
+    0.224,
+    0.388,
+    0.0
+   ],
+   "boot_first_half": [
+    0.141,
+    0.241,
+    0.0
+   ],
+   "boot_second_half": [
+    0.307,
+    0.533,
+    0.0
+   ],
+   "bot_prints_at_our_price": 5477,
+   "bps_fill_mean": 12.4,
+   "bps_maker_absent": 10.88,
+   "bps_maker_present": 12.68,
+   "buys": 86,
+   "coins_to_move_a_day": 227,
+   "days": 32,
+   "days_positive": 29,
+   "fills": 88,
+   "fills_a_day": 2.8,
+   "fills_at_price": 21,
+   "fills_maker_absent": 14,
+   "fills_maker_present": 74,
+   "markout_1m_bps": [
+    -1.5,
+    1.0,
+    3.51
+   ],
+   "markout_5m_bps": [
+    -1.5,
+    1.0,
+    3.51
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 184,
+   "orders_a_day_mean": 50.2,
+   "sells": 2,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 7155,
+   "usd_a_day": 0.304,
+   "usd_a_day_halves": [
+    0.192,
+    0.416
+   ],
+   "usd_filled_a_day": 234,
+   "worst_day": 0.0
+  },
+  "USDT-USD|par|join|two|m2|Q100|C1610": {
+   "best_day": 0.982,
+   "boot_all": [
+    0.252,
+    0.413,
+    0.0
+   ],
+   "boot_first_half": [
+    0.174,
+    0.307,
+    0.0
+   ],
+   "boot_second_half": [
+    0.308,
+    0.541,
+    0.0
+   ],
+   "bot_prints_at_our_price": 5792,
+   "bps_fill_mean": 11.82,
+   "bps_maker_absent": 10.14,
+   "bps_maker_present": 12.14,
+   "buys": 101,
+   "coins_to_move_a_day": 266,
+   "days": 32,
+   "days_positive": 29,
+   "fills": 102,
+   "fills_a_day": 3.2,
+   "fills_at_price": 26,
+   "fills_maker_absent": 16,
+   "fills_maker_present": 86,
+   "markout_1m_bps": [
+    -1.5,
+    0.5,
+    3.51
+   ],
+   "markout_5m_bps": [
+    -0.5,
+    0.5,
+    3.51
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 303,
+   "orders_a_day_mean": 59.9,
+   "sells": 1,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 8408,
+   "usd_a_day": 0.331,
+   "usd_a_day_halves": [
+    0.241,
+    0.42
+   ],
+   "usd_filled_a_day": 272,
+   "worst_day": 0.0
+  },
+  "USDT-USD|par|join|two|m2|Q100|C805": {
+   "best_day": 0.982,
+   "boot_all": [
+    0.225,
+    0.389,
+    0.0
+   ],
+   "boot_first_half": [
+    0.145,
+    0.241,
+    0.0
+   ],
+   "boot_second_half": [
+    0.307,
+    0.533,
+    0.0
+   ],
+   "bot_prints_at_our_price": 5475,
+   "bps_fill_mean": 12.58,
+   "bps_maker_absent": 10.88,
+   "bps_maker_present": 12.91,
+   "buys": 86,
+   "coins_to_move_a_day": 227,
+   "days": 32,
+   "days_positive": 29,
+   "fills": 87,
+   "fills_a_day": 2.7,
+   "fills_at_price": 22,
+   "fills_maker_absent": 14,
+   "fills_maker_present": 73,
+   "markout_1m_bps": [
+    -1.5,
+    1.0,
+    3.51
+   ],
+   "markout_5m_bps": [
+    -0.5,
+    1.0,
+    3.51
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 184,
+   "orders_a_day_mean": 49.8,
+   "sells": 1,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 7165,
+   "usd_a_day": 0.304,
+   "usd_a_day_halves": [
+    0.193,
+    0.416
+   ],
+   "usd_filled_a_day": 233,
+   "worst_day": 0.0
+  },
+  "USDT-USD|par|join|two|m5|Q100|C1610": {
+   "best_day": 0.982,
+   "boot_all": [
+    0.258,
+    0.417,
+    0.0
+   ],
+   "boot_first_half": [
+    0.182,
+    0.323,
+    0.0
+   ],
+   "boot_second_half": [
+    0.308,
+    0.541,
+    0.0
+   ],
+   "bot_prints_at_our_price": 5785,
+   "bps_fill_mean": 12.14,
+   "bps_maker_absent": 10.14,
+   "bps_maker_present": 12.51,
+   "buys": 100,
+   "coins_to_move_a_day": 265,
+   "days": 32,
+   "days_positive": 29,
+   "fills": 101,
+   "fills_a_day": 3.2,
+   "fills_at_price": 30,
+   "fills_maker_absent": 16,
+   "fills_maker_present": 85,
+   "markout_1m_bps": [
+    -1.5,
+    1.0,
+    3.51
+   ],
+   "markout_5m_bps": [
+    -0.5,
+    1.0,
+    3.51
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 296,
+   "orders_a_day_mean": 55.8,
+   "sells": 1,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 8370,
+   "usd_a_day": 0.336,
+   "usd_a_day_halves": [
+    0.252,
+    0.42
+   ],
+   "usd_filled_a_day": 271,
+   "worst_day": 0.0
+  },
+  "USDT-USD|par|join|two|m5|Q100|C805": {
+   "best_day": 0.982,
+   "boot_all": [
+    0.231,
+    0.392,
+    0.0
+   ],
+   "boot_first_half": [
+    0.152,
+    0.249,
+    0.0
+   ],
+   "boot_second_half": [
+    0.307,
+    0.533,
+    0.0
+   ],
+   "bot_prints_at_our_price": 5469,
+   "bps_fill_mean": 12.89,
+   "bps_maker_absent": 10.48,
+   "bps_maker_present": 13.4,
+   "buys": 85,
+   "coins_to_move_a_day": 226,
+   "days": 32,
+   "days_positive": 29,
+   "fills": 86,
+   "fills_a_day": 2.7,
+   "fills_at_price": 26,
+   "fills_maker_absent": 15,
+   "fills_maker_present": 71,
+   "markout_1m_bps": [
+    -1.5,
+    1.0,
+    3.51
+   ],
+   "markout_5m_bps": [
+    -0.5,
+    1.0,
+    3.51
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 184,
+   "orders_a_day_mean": 46.4,
+   "sells": 1,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 7127,
+   "usd_a_day": 0.308,
+   "usd_a_day_halves": [
+    0.201,
+    0.416
+   ],
+   "usd_filled_a_day": 232,
+   "worst_day": 0.0
+  },
+  "USDT-USD|par|through|two|m0|Q100|C1610": {
+   "best_day": 0.982,
+   "boot_all": [
+    0.201,
+    0.355,
+    0.0
+   ],
+   "boot_first_half": [
+    0.117,
+    0.257,
+    0.0
+   ],
+   "boot_second_half": [
+    0.265,
+    0.477,
+    0.0
+   ],
+   "bot_prints_at_our_price": 5794,
+   "bps_fill_mean": 12.26,
+   "bps_maker_absent": 12.39,
+   "bps_maker_present": 12.24,
+   "buys": 77,
+   "coins_to_move_a_day": 210,
+   "days": 32,
+   "days_positive": 27,
+   "fills": 79,
+   "fills_a_day": 2.5,
+   "fills_at_price": 0,
+   "fills_maker_absent": 11,
+   "fills_maker_present": 68,
+   "markout_1m_bps": [
+    -1.5,
+    1.0,
+    3.51
+   ],
+   "markout_5m_bps": [
+    -1.5,
+    1.0,
+    3.51
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 303,
+   "orders_a_day_mean": 60.3,
+   "sells": 2,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 6618,
+   "usd_a_day": 0.276,
+   "usd_a_day_halves": [
+    0.185,
+    0.367
+   ],
+   "usd_filled_a_day": 217,
+   "worst_day": 0.0
+  },
+  "USDT-USD|par|through|two|m0|Q100|C805": {
+   "best_day": 0.982,
+   "boot_all": [
+    0.19,
+    0.344,
+    0.0
+   ],
+   "boot_first_half": [
+    0.107,
+    0.22,
+    0.0
+   ],
+   "boot_second_half": [
+    0.265,
+    0.477,
+    0.0
+   ],
+   "bot_prints_at_our_price": 5577,
+   "bps_fill_mean": 12.94,
+   "bps_maker_absent": 12.39,
+   "bps_maker_present": 13.04,
+   "buys": 69,
+   "coins_to_move_a_day": 191,
+   "days": 32,
+   "days_positive": 27,
+   "fills": 71,
+   "fills_a_day": 2.2,
+   "fills_at_price": 0,
+   "fills_maker_absent": 11,
+   "fills_maker_present": 60,
+   "markout_1m_bps": [
+    -2.5,
+    1.0,
+    3.51
+   ],
+   "markout_5m_bps": [
+    -2.5,
+    1.0,
+    3.51
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 303,
+   "orders_a_day_mean": 56.6,
+   "sells": 2,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 6008,
+   "usd_a_day": 0.265,
+   "usd_a_day_halves": [
+    0.162,
+    0.367
+   ],
+   "usd_filled_a_day": 198,
+   "worst_day": 0.0
+  },
+  "USDT-USD|par|through|two|m2|Q100|C1610": {
+   "best_day": 0.982,
+   "boot_all": [
+    0.202,
+    0.355,
+    0.0
+   ],
+   "boot_first_half": [
+    0.121,
+    0.257,
+    0.0
+   ],
+   "boot_second_half": [
+    0.265,
+    0.477,
+    0.0
+   ],
+   "bot_prints_at_our_price": 5792,
+   "bps_fill_mean": 12.47,
+   "bps_maker_absent": 12.39,
+   "bps_maker_present": 12.48,
+   "buys": 77,
+   "coins_to_move_a_day": 210,
+   "days": 32,
+   "days_positive": 27,
+   "fills": 78,
+   "fills_a_day": 2.4,
+   "fills_at_price": 0,
+   "fills_maker_absent": 11,
+   "fills_maker_present": 67,
+   "markout_1m_bps": [
+    -1.5,
+    1.0,
+    3.51
+   ],
+   "markout_5m_bps": [
+    -0.5,
+    1.0,
+    3.51
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 303,
+   "orders_a_day_mean": 59.9,
+   "sells": 1,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 6628,
+   "usd_a_day": 0.277,
+   "usd_a_day_halves": [
+    0.187,
+    0.367
+   ],
+   "usd_filled_a_day": 217,
+   "worst_day": 0.0
+  },
+  "USDT-USD|par|through|two|m2|Q100|C805": {
+   "best_day": 0.982,
+   "boot_all": [
+    0.191,
+    0.344,
+    0.0
+   ],
+   "boot_first_half": [
+    0.109,
+    0.221,
+    0.0
+   ],
+   "boot_second_half": [
+    0.265,
+    0.477,
+    0.0
+   ],
+   "bot_prints_at_our_price": 5575,
+   "bps_fill_mean": 13.18,
+   "bps_maker_absent": 12.39,
+   "bps_maker_present": 13.33,
+   "buys": 69,
+   "coins_to_move_a_day": 191,
+   "days": 32,
+   "days_positive": 27,
+   "fills": 70,
+   "fills_a_day": 2.2,
+   "fills_at_price": 0,
+   "fills_maker_absent": 11,
+   "fills_maker_present": 59,
+   "markout_1m_bps": [
+    -2.5,
+    1.0,
+    3.51
+   ],
+   "markout_5m_bps": [
+    -2.5,
+    1.0,
+    3.51
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 303,
+   "orders_a_day_mean": 56.2,
+   "sells": 1,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 6018,
+   "usd_a_day": 0.265,
+   "usd_a_day_halves": [
+    0.164,
+    0.367
+   ],
+   "usd_filled_a_day": 198,
+   "worst_day": 0.0
+  },
+  "USDT-USD|par|through|two|m5|Q100|C1610": {
+   "best_day": 0.982,
+   "boot_all": [
+    0.199,
+    0.355,
+    0.0
+   ],
+   "boot_first_half": [
+    0.114,
+    0.258,
+    0.0
+   ],
+   "boot_second_half": [
+    0.265,
+    0.477,
+    0.0
+   ],
+   "bot_prints_at_our_price": 5785,
+   "bps_fill_mean": 13.56,
+   "bps_maker_absent": 12.39,
+   "bps_maker_present": 13.77,
+   "buys": 70,
+   "coins_to_move_a_day": 194,
+   "days": 32,
+   "days_positive": 27,
+   "fills": 71,
+   "fills_a_day": 2.2,
+   "fills_at_price": 0,
+   "fills_maker_absent": 11,
+   "fills_maker_present": 60,
+   "markout_1m_bps": [
+    -0.5,
+    1.0,
+    4.0
+   ],
+   "markout_5m_bps": [
+    -1.5,
+    1.0,
+    4.0
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 296,
+   "orders_a_day_mean": 56.2,
+   "sells": 1,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 6110,
+   "usd_a_day": 0.275,
+   "usd_a_day_halves": [
+    0.183,
+    0.367
+   ],
+   "usd_filled_a_day": 201,
+   "worst_day": 0.0
+  },
+  "USDT-USD|par|through|two|m5|Q100|C805": {
+   "best_day": 0.982,
+   "boot_all": [
+    0.19,
+    0.345,
+    0.0
+   ],
+   "boot_first_half": [
+    0.108,
+    0.223,
+    0.0
+   ],
+   "boot_second_half": [
+    0.265,
+    0.477,
+    0.0
+   ],
+   "bot_prints_at_our_price": 5570,
+   "bps_fill_mean": 14.1,
+   "bps_maker_absent": 12.39,
+   "bps_maker_present": 14.45,
+   "buys": 64,
+   "coins_to_move_a_day": 181,
+   "days": 32,
+   "days_positive": 27,
+   "fills": 65,
+   "fills_a_day": 2.0,
+   "fills_at_price": 0,
+   "fills_maker_absent": 11,
+   "fills_maker_present": 54,
+   "markout_1m_bps": [
+    -0.5,
+    1.0,
+    4.0
+   ],
+   "markout_5m_bps": [
+    -1.5,
+    1.0,
+    4.0
+   ],
+   "max_drawdown": 0.0,
+   "orders_a_day_max": 296,
+   "orders_a_day_mean": 52.7,
+   "sells": 1,
+   "transfer_cost_a_day": 0.0,
+   "transfers": 0,
+   "transit_max_usd": 5700,
+   "usd_a_day": 0.265,
+   "usd_a_day_halves": [
+    0.163,
+    0.367
+   ],
+   "usd_filled_a_day": 188,
+   "worst_day": 0.0
+  }
+ },
+ "window_cbgbp": "2026-10-11 -> 2026-10-29 UTC",
+ "window_par": "2026-09-27 -> 2026-10-29 UTC"
+}

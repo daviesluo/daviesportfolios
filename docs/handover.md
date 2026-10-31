@@ -47974,3 +47974,19 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
   zone, a holiday until its 20:00 ET and from 20:00 ET the evening before; `usMarketPhase` keeps calling those "overnight" for
   the refresh cadence and the T212 night overlay, unchanged. Pins in `market_hours.test.js` (fail without it); `docs/guide.md`.
 - **xhedge A1/A2 run again** after 59f471db's deploy (01:18 UTC): no error, catching up 30 minutes a run.
+
+## LEDGER.md, archived 2026-10-31 (forty-third) — the 2026-10-31 01:41, 2026-10-31 01:47 UTC history sections, oldest first
+
+### [2026-10-31 01:41 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **TAKE-DEPTH: a take only through more coin than the £1 holding line, from 2026-10-31 04:00 UTC** (sub-agent; commit, not
+  pushed; Davies, ~01:30: "按照你推荐的来，确保效果最佳，你觉得需要改就改"). Measured first, read-only. None of take50's 14 takes or
+  LIVE's 47 shadow events was that thin. On the recorder's USDT-GBP reads (10-05 to 10-31), £1 or less sat through an ask rung's
+  limit 132 times, all on 10-22 05:00–09:00, and each, taken, lost to fair (−£0.015 on average: the venue's penny). So B alone:
+  A (sizing to the remainder) changes nothing on the record. `takeDeep`/`readDepthThrough` sit in the shared take path, so
+  LIVE (shadow stays) and variant-2 change together. Recorded apart in `reviews/2026-10-31-take-depth-deviation.md` (five
+  pre-registrations' executor hash; their tests and `take_twin.test.js` read it); pins in `quotes_live_take_rules.test.ts`
+  (counterfactual: 10-30's reads sent three IOCs). Moved the 01:45, 01:48 sections to handover (thirty-sixth).
+
+### [2026-10-31 01:47 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- xhedge Deviation 2's measurement added after the replay: at most 3 (`inside`) and 2 (`behind`) folded trips; both arms decided
+  every missed minute, no error. TAKE-DEPTH (ef2e7565) landed, effective 04:00 UTC; take_mode stays 'shadow'.
