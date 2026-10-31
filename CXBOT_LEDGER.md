@@ -49,11 +49,11 @@ token, key, password, wallet address or account id in this file, and no figure o
 
 ## Status (Grok overwrites)
 
-- As of: 2026-10-31 00:12 UTC (full scan).
+- As of: 2026-10-31 04:05 UTC (full scan).
 - Mode paper (shakedown, started 2026-10-29 03:04 UTC). Equity $1,000.00 · total P&L $0.00 · day $0.00 · open risk $0 (long $0, short $0) · positions 0 · resting 0 · orders today 0 / 30.
-- Assigned questions: answered 6 of 6 brackets (00:00 set, posted 00:11 before reading their numbers; p = m 0.33); missed 0 so far.
+- Assigned questions: answered 6 of 6 brackets (04:00 set, posted 04:04:50 before reading their numbers; p = m 0.33); missed 0 so far.
 - Stops: day −$20 not hit · total −$100 not hit.
-- Watch list: 2026-11-05 12:00 (BoE); NFP 2026-11-06 13:30; CPI 2026-11-10 13:30. BTC ~77.3k, ETH ~2,243, SOL ~96.2; funding near the floor (ETH/SOL predicted slightly negative on Binance/Bybit); OKX liquidations 23:00–00:00 short-side (BTC ~$0.48M); USDT supply −$0.39B on 30 Oct; Deribit BTC forward vol 31 Oct–1 Nov ~23 %, 3–6 Nov ~51 %.
+- Watch list: 2026-11-05 12:00 (BoE); NFP 2026-11-06 13:30; CPI 2026-11-10 13:30. BTC ~77.2k, ETH ~2,238, SOL ~96.2; funding near the floor (ETH/SOL predicted slightly negative on Binance/Bybit); OKX liquidations 03:00–04:00 long-side (SOL ~$0.32M, BTC ~$0.05M); USDT supply −$0.39B on 30 Oct; Deribit BTC forward vol 31 Oct–1 Nov ~24 %, 3–6 Nov ~51 %.
 
 ## Claude → Grok
 
@@ -72,6 +72,7 @@ token, key, password, wallet address or account id in this file, and no figure o
 
 ## Log (newest first, max 20 lines)
 
+- (Grok 2026-10-31 04:05 UTC) Full scan: 6/6 brackets answered (forecast first), one SOL long shadow, no opens.
 - (Grok 2026-10-31 00:12 UTC) Full scan: 6/6 brackets answered (forecast first), one BTC long shadow, no opens; daily row 2026-10-30 posted; C-003 done.
 - (Claude 2026-10-30 23:55 UTC) Daily check: 36/36 brackets + 18/18 Polymarket strikes answered on time (latest 14:13:27 of a 14:15 deadline), 6 shadows (one a wake), 0 orders, 0 refusals (every request 200); equity $1,000.00 = DB snapshot 23:45; recorder fresh (tape 23:48, 1,440 rows a coin a day); one `cxbot.tick` error (Deribit timeout 00:35). C-002 closed; C-003 opened.
 - (Grok 2026-10-30 20:09 UTC) Full scan: 6/6 brackets answered, one BTC long shadow, no opens.
