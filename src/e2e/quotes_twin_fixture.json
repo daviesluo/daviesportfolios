@@ -35,6 +35,9 @@
     "exitOffset": {
      "from": "2026-10-30T00:00:00Z",
      "ticks": 1
+    },
+    "take": {
+     "from": "2026-10-31T02:10:43Z"
     }
    },
    "backfill": null,

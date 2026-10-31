@@ -37,6 +37,13 @@ September's hours) is unchanged. As the closure deviation left it,
 the executor was `e70a8dd4733df4911bbac39c1767d0827f92e743599c27ac6adf336934277dd9` before this change; it is now the hash named
 under each heading below.
 
+**LIVE's twin takes as LIVE** (`0190`, N1). `live600`'s row gets variant-2's take rule (`rules.take`, the twin driver's option
+since `0089`) from 2026-10-31 02:10:43 UTC, the minute LIVE's `take_mode` went 'live'. The shared take path then applies to the
+twin exactly what governs LIVE's take: TAKE-DEPTH from 04:00 UTC (`takeDeep`), no take inside an FX closure (`takeClosed`), the
+limit at k + the 0.09 % fee from fair. Nothing is replayed: from 02:10:43 to Sunday 2026-11-01 21:00 UTC is the weekend closure,
+where neither LIVE nor its twin may take, so the twin's minutes since then are what they would have been with the rule. No code
+changed for it.
+
 **A reading in money** reads a twin's round trips as before; a drain is a conversion, not a rung's trip.
 
 ## Each pre-registration it touches
@@ -83,7 +90,8 @@ Its rows are off since `0181`; the executor as it is:
 
 ### `docs/agents/reviews/2026-10-26-live-size-twins-prereg.md`
 
-`live600`, LIVE's twin, the drain from the same instant as LIVE.
+`live600`, LIVE's twin: the drain from the same instant as LIVE, and LIVE's take from 2026-10-31 02:10:43 UTC (`0190`), so it
+keeps carrying out what LIVE carries out. Its first possible take is Sunday 2026-11-01 21:00 UTC, LIVE's too.
 
 ### `docs/agents/reviews/2026-10-27-live-next-size-prereg.md`
 

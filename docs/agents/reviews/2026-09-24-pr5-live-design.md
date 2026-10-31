@@ -592,3 +592,7 @@ never rebooked; it could top its USDC up (£5 a book a day) and never sell it ba
 Every twin on these rules runs the executor's code and takes it at the same minute; the pre-registrations' deviation is
 `reviews/2026-10-31-live-twin-take-drain-deviation.md`. Undo: a commit setting `QUOTE_LIVE_DRAIN_FROM` past now (no database
 switch holds it).
+
+**N1, the twin's take.** `live600` gets variant-2's take rule from 02:10:43 UTC, the minute LIVE's went live (`0190`); the shared
+take path governs it as it governs LIVE (TAKE-DEPTH, no take inside a closure, the fee and limit). From then to Sunday 21:00 UTC
+is a closure, so there is nothing to replay.

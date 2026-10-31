@@ -438,7 +438,8 @@ that follow from that evidence, in short:
   goes out for a few pence; from 2026-10-29 22:30 UTC it quotes USDT-GBP alone (`weights`, `0178`, `0179`), its USDC sold and USDT
   bought by maker orders alone for 72 hours (`rebookOn`, `planDrains`), and from 2026-10-31 08:00 UTC, outside a rebook, its surplus coin
   sold back to pounds the same way for good while a bid lacks pounds and no ask lacks coin (the drain, `drainOn`; Davies: "同意";
-  the USDC/GBP executor and every twin on these rules too, `reviews/2026-10-31-live-twin-take-drain-deviation.md`); and a **dead-man switch**
+  the USDC/GBP executor and every twin on these rules too, `reviews/2026-10-31-live-twin-take-drain-deviation.md`; `live600` takes
+  as LIVE from 10-31 02:10:43, `0190`); and a **dead-man switch**
   outside Supabase, 2026-10-02 on Davies' word: when the executor has not
   finished a turn for three minutes, or its state cannot be read and no
   read in the last three minutes found it fresh (2026-10-07, Davies:

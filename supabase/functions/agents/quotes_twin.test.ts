@@ -19,6 +19,8 @@ import {
 import type { Db } from "./db.ts";
 import { RULED_ARMS } from "./quotes_ruled.ts";
 import { QUOTE_LIVE_INSTANCE, retiredAt } from "./quotes_live.ts";
+import { inQuoteClosure } from "./quotes_weekend.ts";
+import TWIN_FIXTURE from "../../../src/e2e/quotes_twin_fixture.json" with { type: "json" };
 
 const M = 60e3, H = 3600e3;
 const T0_ = Date.parse("2026-09-24T10:00:00Z");
@@ -824,4 +826,19 @@ Deno.test("fairNudge (0169): its control's order for order while Coinbase sits o
   // The replica's last record is of its last minute: the one the executor carries out.
   const paper = (w.mem.tables[NU.instance.paper] as Row[])[0].state as { lastMinute: number; nudge: { last: { minute: number } } };
   assertEquals(paper.nudge.last.minute, paper.lastMinute);
+});
+
+// LIVE's twin takes as LIVE takes (0190, Davies 2026-10-31: "同意", N1): its row as the browser fixture carries it (the rows as the
+// migrations leave them) has variant-2's take from the minute LIVE's went live, beside LIVE's weekend, so the shared take path's
+// TAKE-DEPTH and closure guard govern it exactly as they govern LIVE. From then to Sunday 21:00 UTC is a closure: nothing to replay.
+Deno.test("LIVE's twin carries LIVE's take from 2026-10-31 02:10:43 UTC with its weekend, and that stretch is inside a closure", () => {
+  const rows = (TWIN_FIXTURE as { specs: Array<Record<string, unknown>> }).specs;
+  const row = rows.find((r) => r.id === "live600") as Record<string, unknown> | undefined;
+  assert(row, "live600 in the fixture");
+  const spec = specFromRow(row as never);
+  const from = Date.parse("2026-10-31T02:10:43Z");
+  assertEquals(spec.instance.take, { from });
+  assert(spec.instance.weekend && spec.instance.weekend.from <= from);
+  for (let t = from; t < Date.parse("2026-11-01T21:00:00Z"); t += 3600e3) assert(inQuoteClosure(t), new Date(t).toISOString());
+  assertEquals(inQuoteClosure(Date.parse("2026-11-01T21:00:00Z")), false);
 });

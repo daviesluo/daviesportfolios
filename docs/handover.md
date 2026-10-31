@@ -47957,3 +47957,20 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
   after the first USDT-only take event reads clean.
 - **IGBOT:** C-003 answered by Grok (the 8.5 h gap was its own pause after a box restart; restore step added); checked
   against the record and closed on `igbot-ledger` 7ca96b50.
+## LEDGER.md, archived 2026-10-31 (forty-second) — the 2026-10-31 01:16, 2026-10-31 01:23 UTC history sections, oldest first
+
+### [2026-10-31 01:16 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **PR5 take: the two risks the 10-30 read left open, tested** (sub-agent; commit, not pushed; Davies keeps 'shadow': "按照你推荐的来").
+  `quotes_live_take_rules.test.ts` runs LIVE's executor on a simulated account under today's rules. A take that fills under
+  the £1 line leaves the rung unheld, and the next minute sends the full IOC again: 3 IOCs in the test, one a turn, at most a
+  line over the rung, one exit for all of it. That is the holding line's own rule, which variant-2 shares, so no fix; a
+  single-IOC change would be Davies' word plus a deviation. A rebook's sale never offers the take's coin and never starves
+  its exit (pinned; a mutation dropping the longs fails it). Take stays 'shadow' until the first USDT-only take event reads
+  clean, then Claude proposes the flip (design addendum 10-18, log). Moved the 01:05, 01:20 sections to handover (thirty-fifth).
+
+### [2026-10-31 01:23 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **The header clock's market dot reads "Market Closed" (grey) when nothing trades** (Davies, Sat 01:20 UTC: "现在都周六1:20了
+  还是night market的颜色，请彻底修复"): `usClockPhase` (`prices/market_hours.js`) for the dot alone, closed through the weekend dead
+  zone, a holiday until its 20:00 ET and from 20:00 ET the evening before; `usMarketPhase` keeps calling those "overnight" for
+  the refresh cadence and the T212 night overlay, unchanged. Pins in `market_hours.test.js` (fail without it); `docs/guide.md`.
+- **xhedge A1/A2 run again** after 59f471db's deploy (01:18 UTC): no error, catching up 30 minutes a run.

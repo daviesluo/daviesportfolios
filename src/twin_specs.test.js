@@ -147,7 +147,7 @@ describe("the twins' spec rows", () => {
       // renames five, moves one row's place and inserts one: once each (twice the insert).
       expect(named, f).toBe(2 * inserts + moves + names + offs + later + (f === SPECS_0088 ? 5 : 0));
     }
-    expect(FILES.filter((f) => [RULE_ADD, OFF, HIDE, ADD_HIDDEN].some((re) => [...sqlOf(f).matchAll(re)].length)).map((f) => f.slice(0, 4))).toEqual(['0141', '0142', '0144', '0149', '0151', '0152', '0167', '0176', '0178', '0181']);
+    expect(FILES.filter((f) => [RULE_ADD, OFF, HIDE, ADD_HIDDEN].some((re) => [...sqlOf(f).matchAll(re)].length)).map((f) => f.slice(0, 4))).toEqual(['0141', '0142', '0144', '0149', '0151', '0152', '0167', '0176', '0178', '0181', '0190']);
     expect(FILES.filter((f) => [RULE_SET, PLACE].some((re) => [...sqlOf(f).matchAll(re)].length)).map((f) => f.slice(0, 4))).toEqual(['0178', '0180']);
     // A rule is replaced only under its own key, and every replacement and move parses (each `jsonb_set(rules, '{key}'` is one).
     for (const n of OPS.filter((x) => x.kind === 'set')) expect(n.guard, n.id).toBe(n.key);
@@ -321,12 +321,14 @@ describe("the twins' spec rows", () => {
     ]);
     const onPage = ROWS.filter((r) => r.enabled && !r.hidden);
     expect(onPage.map((r) => r.id)).toEqual(['live600', 'rxu120', 'live1200', 'take50', 'n600no03', 'n600usdt', 'n600nudge']);
-    // TAKE's twin keeps its own rule (a take from 2026-10-04 16:00); the others on LIVE's rules do not take. The two first carry
-    // LIVE's fill rule and, from the closure of 2026-10-30 21:00 UTC, LIVE's weekend.
+    // TAKE's twin keeps its own rule (a take from 2026-10-04 16:00); LIVE's twin takes as LIVE does from the minute LIVE's take
+    // went live (0190, Davies 2026-10-31: "同意"); the others on LIVE's rules do not take. The two first carry LIVE's fill rule
+    // and, from the closure of 2026-10-30 21:00 UTC, LIVE's weekend.
     expect(onPage.find((r) => r.id === 'take50').rules.take).toBeTruthy();
     for (const r of onPage.filter((x) => x.id === 'live600' || x.id === 'live1200')) {
-      expect([r.rules.fill.model, r.rules.weekend.from, 'take' in r.rules], r.id).toEqual(['at', '2026-10-30T21:00:00Z', false]);
+      expect([r.rules.fill.model, r.rules.weekend.from, 'take' in r.rules], r.id).toEqual(['at', '2026-10-30T21:00:00Z', r.id === 'live600']);
     }
+    expect(onPage.find((r) => r.id === 'live600').rules.take).toEqual({ from: '2026-10-31T02:10:43Z' });
     // 0178 (Davies, 2026-10-29: "把live全换成只做USDT-GBP的…variant-1，2，3，5，7和8也改为在新的实盘基础上做"): LIVE's weights at LIVE's own instant
     // (QUOTE_LIVE_USDT_ONLY_FROM) on every twin on LIVE's rules, both arms of the exit-tick test together; variant-3 keeps its
     // 0.3 % rung at 0 within them; variant-4 and variant-5 USDC:USDT 1:1 from the same instant.
