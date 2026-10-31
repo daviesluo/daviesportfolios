@@ -1,0 +1,274 @@
+{
+ "band_usd": [
+  4985,
+  5015
+ ],
+ "books": {
+  "BTC-GBP": {
+   "A1 10-29/30 absent": {
+    "examples": [
+     0.063035,
+     0.062989,
+     0.063209,
+     0.064478,
+     0.064483
+    ],
+    "per_hour": 0.58,
+    "prints": 2270,
+    "whole_5k_prints": 8
+   },
+   "A2 10-20 absent": {
+    "examples": [],
+    "per_hour": 0.0,
+    "prints": 182,
+    "whole_5k_prints": 0
+   },
+   "C1 10-28/29": {
+    "examples": [
+     0.061616,
+     0.061561,
+     0.061557,
+     0.061565,
+     0.061457
+    ],
+    "per_hour": 7.31,
+    "prints": 707,
+    "whole_5k_prints": 101
+   },
+   "C2a 10-19": {
+    "examples": [
+     0.060461,
+     0.060421,
+     0.060863,
+     0.060943
+    ],
+    "per_hour": 0.38,
+    "prints": 515,
+    "whole_5k_prints": 4
+   },
+   "C2b 10-21": {
+    "examples": [
+     0.060069,
+     0.06006,
+     0.059899,
+     0.059959,
+     0.059999
+    ],
+    "per_hour": 3.54,
+    "prints": 785,
+    "whole_5k_prints": 37
+   }
+  },
+  "ETH-USD": {
+   "A1 10-29/30 absent": {
+    "examples": [],
+    "per_hour": 0.0,
+    "prints": 565,
+    "whole_5k_prints": 0
+   },
+   "A2 10-20 absent": {
+    "examples": [],
+    "per_hour": 0.0,
+    "prints": 92,
+    "whole_5k_prints": 0
+   },
+   "C1 10-28/29": {
+    "examples": [],
+    "per_hour": 0.0,
+    "prints": 356,
+    "whole_5k_prints": 0
+   },
+   "C2a 10-19": {
+    "examples": [],
+    "per_hour": 0.0,
+    "prints": 401,
+    "whole_5k_prints": 0
+   },
+   "C2b 10-21": {
+    "examples": [
+     2.024366,
+     2.024366,
+     2.011889,
+     2.024366,
+     2.034769
+    ],
+    "per_hour": 2.01,
+    "prints": 319,
+    "whole_5k_prints": 21
+   }
+  },
+  "LINK-GBP": {
+   "A1 10-29/30 absent": {
+    "examples": [],
+    "per_hour": 0.0,
+    "prints": 351,
+    "whole_5k_prints": 0
+   },
+   "A2 10-20 absent": {
+    "examples": [],
+    "per_hour": 0.0,
+    "prints": 35,
+    "whole_5k_prints": 0
+   },
+   "C1 10-28/29": {
+    "examples": [],
+    "per_hour": 0.0,
+    "prints": 346,
+    "whole_5k_prints": 0
+   },
+   "C2a 10-19": {
+    "examples": [],
+    "per_hour": 0.0,
+    "prints": 246,
+    "whole_5k_prints": 0
+   },
+   "C2b 10-21": {
+    "examples": [],
+    "per_hour": 0.0,
+    "prints": 228,
+    "whole_5k_prints": 0
+   }
+  },
+  "SOL-GBP": {
+   "A1 10-29/30 absent": {
+    "examples": [
+     51.626618,
+     51.441689,
+     51.425084,
+     53.414271,
+     52.981314
+    ],
+    "per_hour": 0.87,
+    "prints": 779,
+    "whole_5k_prints": 12
+   },
+   "A2 10-20 absent": {
+    "examples": [],
+    "per_hour": 0.0,
+    "prints": 110,
+    "whole_5k_prints": 0
+   },
+   "C1 10-28/29": {
+    "examples": [
+     48.88698,
+     48.856021,
+     49.050475,
+     50.027053,
+     50.27354
+    ],
+    "per_hour": 0.51,
+    "prints": 336,
+    "whole_5k_prints": 7
+   },
+   "C2a 10-19": {
+    "examples": [
+     47.309034,
+     47.312101,
+     47.441321,
+     47.269693,
+     47.721502
+    ],
+    "per_hour": 1.15,
+    "prints": 428,
+    "whole_5k_prints": 12
+   },
+   "C2b 10-21": {
+    "examples": [
+     47.286288,
+     46.90969,
+     46.862108,
+     46.950771,
+     46.380423
+    ],
+    "per_hour": 0.57,
+    "prints": 431,
+    "whole_5k_prints": 6
+   }
+  },
+  "SOL-USD": {
+   "A1 10-29/30 absent": {
+    "examples": [
+     51.065077,
+     51.203218,
+     51.694079,
+     51.694077,
+     51.694075
+    ],
+    "per_hour": 0.87,
+    "prints": 503,
+    "whole_5k_prints": 12
+   },
+   "A2 10-20 absent": {
+    "examples": [],
+    "per_hour": 0.0,
+    "prints": 67,
+    "whole_5k_prints": 0
+   },
+   "C1 10-28/29": {
+    "examples": [
+     49.980111,
+     49.927182
+    ],
+    "per_hour": 0.14,
+    "prints": 337,
+    "whole_5k_prints": 2
+   },
+   "C2a 10-19": {
+    "examples": [
+     47.330468,
+     47.251439,
+     47.591642,
+     47.665392,
+     47.666347
+    ],
+    "per_hour": 1.43,
+    "prints": 236,
+    "whole_5k_prints": 15
+   },
+   "C2b 10-21": {
+    "examples": [
+     46.907654,
+     46.772953,
+     46.771183,
+     46.476734,
+     46.312552
+    ],
+    "per_hour": 0.48,
+    "prints": 314,
+    "whole_5k_prints": 5
+   }
+  },
+  "XRP-GBP": {
+   "A1 10-29/30 absent": {
+    "examples": [],
+    "per_hour": 0.0,
+    "prints": 832,
+    "whole_5k_prints": 0
+   },
+   "A2 10-20 absent": {
+    "examples": [],
+    "per_hour": 0.0,
+    "prints": 106,
+    "whole_5k_prints": 0
+   },
+   "C1 10-28/29": {
+    "examples": [],
+    "per_hour": 0.0,
+    "prints": 432,
+    "whole_5k_prints": 0
+   },
+   "C2a 10-19": {
+    "examples": [],
+    "per_hour": 0.0,
+    "prints": 324,
+    "whole_5k_prints": 0
+   },
+   "C2b 10-21": {
+    "examples": [],
+    "per_hour": 0.0,
+    "prints": 390,
+    "whole_5k_prints": 0
+   }
+  }
+ }
+}

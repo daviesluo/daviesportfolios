@@ -1,0 +1,1010 @@
+{
+ "books": {
+  "ADA-GBP": {
+   "depth_usd_10bps_median": 0,
+   "depth_usd_25bps_median": 1289,
+   "ladder_shared_with": [],
+   "ladder_usd": [
+    4769,
+    9539,
+    47693,
+    100155,
+    238463,
+    476926
+   ],
+   "quote_volume_24h": "52213.73",
+   "reads": 48,
+   "region": "UK",
+   "spread_bps_median": 29.7,
+   "spread_bps_p10_p90": [
+    29.6,
+    29.8
+   ],
+   "symmetric_ladder_orders": 6
+  },
+  "AVAX-GBP": {
+   "depth_usd_10bps_median": 0,
+   "depth_usd_25bps_median": 20425,
+   "ladder_shared_with": [],
+   "ladder_usd": [
+    100998,
+    240470,
+    480941
+   ],
+   "quote_volume_24h": "78584.24",
+   "reads": 48,
+   "region": "UK",
+   "spread_bps_median": 25.1,
+   "spread_bps_p10_p90": [
+    20.2,
+    29.5
+   ],
+   "symmetric_ladder_orders": 3
+  },
+  "BTC-EUR": {
+   "depth_usd_10bps_median": 86761,
+   "depth_usd_25bps_median": 2560220,
+   "ladder_shared_with": [
+    "BTC-GBP"
+   ],
+   "ladder_usd": [
+    1,
+    12,
+    339,
+    5792,
+    5807,
+    63250,
+    1200105,
+    5390575
+   ],
+   "reads": 48,
+   "region": "EEA",
+   "spread_bps_median": 12.0,
+   "spread_bps_p10_p90": [
+    4.4,
+    14.3
+   ],
+   "symmetric_ladder_orders": 8
+  },
+  "BTC-GBP": {
+   "depth_usd_10bps_median": 103859,
+   "depth_usd_25bps_median": 2573643,
+   "ladder_shared_with": [
+    "BTC-EUR"
+   ],
+   "ladder_usd": [
+    5792,
+    5807,
+    63250,
+    1200105,
+    5390575
+   ],
+   "quote_volume_24h": "3125150.42",
+   "reads": 48,
+   "region": "UK",
+   "spread_bps_median": 5.1,
+   "spread_bps_p10_p90": [
+    1.0,
+    12.5
+   ],
+   "symmetric_ladder_orders": 5
+  },
+  "BTC-USD": {
+   "depth_usd_10bps_median": 717760,
+   "depth_usd_25bps_median": 18694789,
+   "ladder_shared_with": [],
+   "ladder_usd": [
+    5002,
+    15006,
+    35015,
+    55024,
+    475206,
+    715310,
+    1500650,
+    5002166
+   ],
+   "quote_volume_24h": "2052845.93",
+   "reads": 48,
+   "region": "UK",
+   "spread_bps_median": 6.0,
+   "spread_bps_p10_p90": [
+    2.8,
+    7.9
+   ],
+   "symmetric_ladder_orders": 8
+  },
+  "BTC-USDC": {
+   "depth_usd_10bps_median": 0,
+   "depth_usd_25bps_median": 0,
+   "ladder_shared_with": [],
+   "ladder_usd": [
+    4110,
+    7684,
+    13759,
+    35201,
+    357373,
+    500322
+   ],
+   "quote_volume_24h": "51726.46",
+   "reads": 48,
+   "region": "UK",
+   "spread_bps_median": 50.5,
+   "spread_bps_p10_p90": [
+    48.1,
+    52.2
+   ],
+   "symmetric_ladder_orders": 6
+  },
+  "DOGE-GBP": {
+   "depth_usd_10bps_median": 0,
+   "depth_usd_25bps_median": 426461,
+   "ladder_shared_with": [],
+   "ladder_usd": [
+    475579
+   ],
+   "quote_volume_24h": "23310.00",
+   "reads": 48,
+   "region": "UK",
+   "spread_bps_median": 31.0,
+   "spread_bps_p10_p90": [
+    1.8,
+    35.5
+   ],
+   "symmetric_ladder_orders": 1
+  },
+  "ETH-EUR": {
+   "depth_usd_10bps_median": 81355,
+   "depth_usd_25bps_median": 1270326,
+   "ladder_shared_with": [
+    "ETH-GBP",
+    "ETH-USDC"
+   ],
+   "ladder_usd": [
+    22,
+    25,
+    6845,
+    67375,
+    1117301
+   ],
+   "reads": 48,
+   "region": "EEA",
+   "spread_bps_median": 15.2,
+   "spread_bps_p10_p90": [
+    13.7,
+    16.3
+   ],
+   "symmetric_ladder_orders": 5
+  },
+  "ETH-GBP": {
+   "depth_usd_10bps_median": 62416,
+   "depth_usd_25bps_median": 1299153,
+   "ladder_shared_with": [
+    "ETH-EUR",
+    "ETH-USDC"
+   ],
+   "ladder_usd": [
+    223,
+    6843,
+    67357,
+    1117000
+   ],
+   "quote_volume_24h": "990234.43",
+   "reads": 48,
+   "region": "UK",
+   "spread_bps_median": 16.5,
+   "spread_bps_p10_p90": [
+    15.1,
+    17.1
+   ],
+   "symmetric_ladder_orders": 4
+  },
+  "ETH-USD": {
+   "depth_usd_10bps_median": 658851,
+   "depth_usd_25bps_median": 12369002,
+   "ladder_shared_with": [],
+   "ladder_usd": [
+    4523,
+    13568,
+    31659,
+    49749,
+    429653,
+    646741,
+    1356800,
+    4522666
+   ],
+   "quote_volume_24h": "766289.40",
+   "reads": 48,
+   "region": "UK",
+   "spread_bps_median": 9.9,
+   "spread_bps_p10_p90": [
+    7.4,
+    11.0
+   ],
+   "symmetric_ladder_orders": 8
+  },
+  "ETH-USDC": {
+   "depth_usd_10bps_median": 0,
+   "depth_usd_25bps_median": 0,
+   "ladder_shared_with": [
+    "ETH-EUR",
+    "ETH-GBP"
+   ],
+   "ladder_usd": [
+    5228,
+    9773,
+    17501,
+    44775,
+    454571,
+    636399,
+    1117948
+   ],
+   "quote_volume_24h": "10315.66",
+   "reads": 48,
+   "region": "UK",
+   "spread_bps_median": 76.7,
+   "spread_bps_p10_p90": [
+    67.5,
+    80.6
+   ],
+   "symmetric_ladder_orders": 7
+  },
+  "LINK-GBP": {
+   "depth_usd_10bps_median": 0,
+   "depth_usd_25bps_median": 0,
+   "ladder_shared_with": [],
+   "ladder_usd": [
+    4937,
+    9875,
+    49373,
+    103683,
+    246864,
+    493727
+   ],
+   "quote_volume_24h": "15893.05",
+   "reads": 48,
+   "region": "UK",
+   "spread_bps_median": 71.1,
+   "spread_bps_p10_p90": [
+    66.5,
+    77.2
+   ],
+   "symmetric_ladder_orders": 6
+  },
+  "LTC-GBP": {
+   "depth_usd_10bps_median": 0,
+   "depth_usd_25bps_median": 0,
+   "ladder_shared_with": [],
+   "ladder_usd": [
+    4746,
+    9492,
+    47459,
+    99664,
+    237295,
+    474591
+   ],
+   "quote_volume_24h": "8020.63",
+   "reads": 48,
+   "region": "UK",
+   "spread_bps_median": 70.1,
+   "spread_bps_p10_p90": [
+    61.7,
+    77.8
+   ],
+   "symmetric_ladder_orders": 6
+  },
+  "PEPE-GBP": {
+   "depth_usd_10bps_median": 0,
+   "depth_usd_25bps_median": 0,
+   "ladder_shared_with": [],
+   "ladder_usd": [
+    2422,
+    4987,
+    9974,
+    49870,
+    104726,
+    498697
+   ],
+   "quote_volume_24h": "344965.99",
+   "reads": 48,
+   "region": "UK",
+   "spread_bps_median": 60.2,
+   "spread_bps_p10_p90": [
+    51.8,
+    68.2
+   ],
+   "symmetric_ladder_orders": 6
+  },
+  "SOL-GBP": {
+   "depth_usd_10bps_median": 0,
+   "depth_usd_25bps_median": 647315,
+   "ladder_shared_with": [
+    "SOL-USD"
+   ],
+   "ladder_usd": [
+    4747,
+    9494,
+    18987,
+    47469,
+    474687,
+    949374
+   ],
+   "quote_volume_24h": "692558.69",
+   "reads": 48,
+   "region": "UK",
+   "spread_bps_median": 33.1,
+   "spread_bps_p10_p90": [
+    30.0,
+    36.6
+   ],
+   "symmetric_ladder_orders": 6
+  },
+  "SOL-USD": {
+   "depth_usd_10bps_median": 0,
+   "depth_usd_25bps_median": 1613384,
+   "ladder_shared_with": [
+    "SOL-GBP"
+   ],
+   "ladder_usd": [
+    4747,
+    9495,
+    18990,
+    47475,
+    474746,
+    949493
+   ],
+   "quote_volume_24h": "460278.57",
+   "reads": 48,
+   "region": "UK",
+   "spread_bps_median": 20.5,
+   "spread_bps_p10_p90": [
+    19.4,
+    22.1
+   ],
+   "symmetric_ladder_orders": 6
+  },
+  "SUI-GBP": {
+   "depth_usd_10bps_median": 0,
+   "depth_usd_25bps_median": 11390,
+   "ladder_shared_with": [],
+   "ladder_usd": [
+    4841,
+    9683,
+    48414,
+    101669,
+    242070,
+    484140
+   ],
+   "quote_volume_24h": "138711.50",
+   "reads": 48,
+   "region": "UK",
+   "spread_bps_median": 22.4,
+   "spread_bps_p10_p90": [
+    20.9,
+    23.9
+   ],
+   "symmetric_ladder_orders": 6
+  },
+  "USDC-EUR": {
+   "depth_usd_10bps_median": 4970,
+   "depth_usd_25bps_median": 27126,
+   "ladder_shared_with": [
+    "USDC-GBP",
+    "USDC-USD"
+   ],
+   "ladder_usd": [
+    100165,
+    300496,
+    600992,
+    1001654
+   ],
+   "reads": 48,
+   "region": "EEA",
+   "spread_bps_median": 13.4,
+   "spread_bps_p10_p90": [
+    11.2,
+    13.4
+   ],
+   "symmetric_ladder_orders": 4
+  },
+  "USDC-GBP": {
+   "depth_usd_10bps_median": 0,
+   "depth_usd_25bps_median": 2481382,
+   "ladder_shared_with": [
+    "USDC-EUR",
+    "USDC-USD"
+   ],
+   "ladder_usd": [
+    598823,
+    998038
+   ],
+   "quote_volume_24h": "72092.98",
+   "reads": 48,
+   "region": "UK",
+   "spread_bps_median": 29.5,
+   "spread_bps_p10_p90": [
+    29.5,
+    29.5
+   ],
+   "symmetric_ladder_orders": 2
+  },
+  "USDC-USD": {
+   "depth_usd_10bps_median": 34451,
+   "depth_usd_25bps_median": 2163961,
+   "ladder_shared_with": [
+    "USDC-EUR",
+    "USDC-GBP"
+   ],
+   "ladder_usd": [
+    100046,
+    300139,
+    600278,
+    1000463
+   ],
+   "quote_volume_24h": "77602.46",
+   "reads": 48,
+   "region": "UK",
+   "spread_bps_median": 1.0,
+   "spread_bps_p10_p90": [
+    1.0,
+    1.0
+   ],
+   "symmetric_ladder_orders": 4
+  },
+  "USDT-GBP": {
+   "depth_usd_10bps_median": 0,
+   "depth_usd_25bps_median": 2012075,
+   "ladder_shared_with": [],
+   "ladder_usd": [],
+   "quote_volume_24h": "87840.41",
+   "reads": 48,
+   "region": "UK",
+   "spread_bps_median": 36.1,
+   "spread_bps_p10_p90": [
+    33.5,
+    36.1
+   ],
+   "symmetric_ladder_orders": 0
+  },
+  "USDT-USD": {
+   "depth_usd_10bps_median": 28578,
+   "depth_usd_25bps_median": 3040796,
+   "ladder_shared_with": [],
+   "ladder_usd": [
+    600162,
+    1000271
+   ],
+   "quote_volume_24h": "60757.21",
+   "reads": 48,
+   "region": "UK",
+   "spread_bps_median": 5.0,
+   "spread_bps_p10_p90": [
+    5.0,
+    5.0
+   ],
+   "symmetric_ladder_orders": 2
+  },
+  "XRP-GBP": {
+   "depth_usd_10bps_median": 0,
+   "depth_usd_25bps_median": 0,
+   "ladder_shared_with": [
+    "XRP-USD"
+   ],
+   "ladder_usd": [
+    4732,
+    473170,
+    946341
+   ],
+   "quote_volume_24h": "544083.70",
+   "reads": 48,
+   "region": "UK",
+   "spread_bps_median": 50.6,
+   "spread_bps_p10_p90": [
+    10.7,
+    56.6
+   ],
+   "symmetric_ladder_orders": 3
+  },
+  "XRP-USD": {
+   "depth_usd_10bps_median": 66933,
+   "depth_usd_25bps_median": 648062,
+   "ladder_shared_with": [
+    "XRP-GBP"
+   ],
+   "ladder_usd": [
+    4733,
+    18933,
+    47332,
+    473322,
+    946643
+   ],
+   "quote_volume_24h": "389213.03",
+   "reads": 48,
+   "region": "UK",
+   "spread_bps_median": 14.5,
+   "spread_bps_p10_p90": [
+    8.8,
+    15.9
+   ],
+   "symmetric_ladder_orders": 5
+  }
+ },
+ "errors": 0,
+ "from": "2026-10-31 02:39",
+ "ladder_quantities_on_several_books": {
+  "0.07521": [
+   "BTC-EUR",
+   "BTC-GBP"
+  ],
+  "0.07541": [
+   "BTC-EUR",
+   "BTC-GBP"
+  ],
+  "0.821343": [
+   "BTC-EUR",
+   "BTC-GBP"
+  ],
+  "100051.27875": [
+   "USDC-EUR",
+   "USDC-USD"
+  ],
+  "1000512.7875": [
+   "USDC-EUR",
+   "USDC-GBP",
+   "USDC-USD"
+  ],
+  "15.58412": [
+   "BTC-EUR",
+   "BTC-GBP"
+  ],
+  "198.254015": [
+   "SOL-GBP",
+   "SOL-USD"
+  ],
+  "3.063": [
+   "ETH-EUR",
+   "ETH-GBP"
+  ],
+  "30.15086": [
+   "ETH-EUR",
+   "ETH-GBP"
+  ],
+  "300153.83625": [
+   "USDC-EUR",
+   "USDC-USD"
+  ],
+  "3809.27547": [
+   "XRP-GBP",
+   "XRP-USD"
+  ],
+  "380927.54732": [
+   "XRP-GBP",
+   "XRP-USD"
+  ],
+  "49.563504": [
+   "SOL-GBP",
+   "SOL-USD"
+  ],
+  "495.635038": [
+   "SOL-GBP",
+   "SOL-USD"
+  ],
+  "4956.350381": [
+   "SOL-GBP",
+   "SOL-USD"
+  ],
+  "500": [
+   "ETH-EUR",
+   "ETH-GBP",
+   "ETH-USDC"
+  ],
+  "600307.6725": [
+   "USDC-EUR",
+   "USDC-GBP",
+   "USDC-USD"
+  ],
+  "70": [
+   "BTC-EUR",
+   "BTC-GBP"
+  ],
+  "761855.09465": [
+   "XRP-GBP",
+   "XRP-USD"
+  ],
+  "99.127008": [
+   "SOL-GBP",
+   "SOL-USD"
+  ],
+  "9912.700762": [
+   "SOL-GBP",
+   "SOL-USD"
+  ]
+ },
+ "reads": 1152,
+ "stable_maker_timeline": [
+  {
+   "USDC-EUR": [],
+   "USDC-GBP": [],
+   "USDC-USD": [],
+   "USDT-GBP": [],
+   "USDT-USD": [],
+   "t": "02:39"
+  },
+  {
+   "USDC-EUR": [],
+   "USDC-GBP": [],
+   "USDC-USD": [],
+   "USDT-GBP": [],
+   "USDT-USD": [],
+   "t": "02:41"
+  },
+  {
+   "USDC-EUR": [],
+   "USDC-GBP": [],
+   "USDC-USD": [],
+   "USDT-GBP": [],
+   "USDT-USD": [],
+   "t": "02:43"
+  },
+  {
+   "USDC-EUR": [],
+   "USDC-GBP": [],
+   "USDC-USD": [],
+   "USDT-GBP": [],
+   "USDT-USD": [],
+   "t": "02:46"
+  },
+  {
+   "USDC-EUR": [],
+   "USDC-GBP": [],
+   "USDC-USD": [],
+   "USDT-GBP": [],
+   "USDT-USD": [],
+   "t": "02:48"
+  },
+  {
+   "USDC-EUR": [],
+   "USDC-GBP": [],
+   "USDC-USD": [],
+   "USDT-GBP": [],
+   "USDT-USD": [],
+   "t": "02:51"
+  },
+  {
+   "USDC-EUR": [],
+   "USDC-GBP": [],
+   "USDC-USD": [],
+   "USDT-GBP": [],
+   "USDT-USD": [],
+   "t": "02:53"
+  },
+  {
+   "USDC-EUR": [],
+   "USDC-GBP": [],
+   "USDC-USD": [],
+   "USDT-GBP": [],
+   "USDT-USD": [],
+   "t": "02:56"
+  },
+  {
+   "USDC-EUR": [],
+   "USDC-GBP": [],
+   "USDC-USD": [],
+   "USDT-GBP": [],
+   "USDT-USD": [],
+   "t": "02:59"
+  },
+  {
+   "USDC-EUR": [],
+   "USDC-GBP": [],
+   "USDC-USD": [],
+   "USDT-GBP": [],
+   "USDT-USD": [],
+   "t": "03:01"
+  },
+  {
+   "USDC-EUR": [],
+   "USDC-GBP": [],
+   "USDC-USD": [],
+   "USDT-GBP": [],
+   "USDT-USD": [],
+   "t": "03:03"
+  },
+  {
+   "USDC-EUR": [],
+   "USDC-GBP": [],
+   "USDC-USD": [],
+   "USDT-GBP": [],
+   "USDT-USD": [],
+   "t": "03:06"
+  },
+  {
+   "USDC-EUR": [],
+   "USDC-GBP": [],
+   "USDC-USD": [],
+   "USDT-GBP": [],
+   "USDT-USD": [],
+   "t": "03:08"
+  },
+  {
+   "USDC-EUR": [],
+   "USDC-GBP": [],
+   "USDC-USD": [],
+   "USDT-GBP": [],
+   "USDT-USD": [],
+   "t": "03:11"
+  },
+  {
+   "USDC-EUR": [],
+   "USDC-GBP": [],
+   "USDC-USD": [],
+   "USDT-GBP": [],
+   "USDT-USD": [],
+   "t": "03:14"
+  },
+  {
+   "USDC-EUR": [],
+   "USDC-GBP": [],
+   "USDC-USD": [],
+   "USDT-GBP": [],
+   "USDT-USD": [],
+   "t": "03:16"
+  },
+  {
+   "USDC-EUR": [],
+   "USDC-GBP": [],
+   "USDC-USD": [],
+   "USDT-GBP": [],
+   "USDT-USD": [],
+   "t": "03:19"
+  },
+  {
+   "USDC-EUR": [],
+   "USDC-GBP": [],
+   "USDC-USD": [],
+   "USDT-GBP": [],
+   "USDT-USD": [],
+   "t": "03:21"
+  },
+  {
+   "USDC-EUR": [],
+   "USDC-GBP": [],
+   "USDC-USD": [],
+   "USDT-GBP": [],
+   "USDT-USD": [],
+   "t": "03:24"
+  },
+  {
+   "USDC-EUR": [],
+   "USDC-GBP": [],
+   "USDC-USD": [],
+   "USDT-GBP": [],
+   "USDT-USD": [],
+   "t": "03:26"
+  },
+  {
+   "USDC-EUR": [],
+   "USDC-GBP": [],
+   "USDC-USD": [],
+   "USDT-GBP": [],
+   "USDT-USD": [],
+   "t": "03:29"
+  },
+  {
+   "USDC-EUR": [],
+   "USDC-GBP": [],
+   "USDC-USD": [],
+   "USDT-GBP": [],
+   "USDT-USD": [],
+   "t": "03:31"
+  },
+  {
+   "USDC-EUR": [],
+   "USDC-GBP": [],
+   "USDC-USD": [],
+   "USDT-GBP": [],
+   "USDT-USD": [],
+   "t": "03:34"
+  },
+  {
+   "USDC-EUR": [],
+   "USDC-GBP": [],
+   "USDC-USD": [],
+   "USDT-GBP": [],
+   "USDT-USD": [],
+   "t": "03:36"
+  },
+  {
+   "USDC-EUR": [],
+   "USDC-GBP": [],
+   "USDC-USD": [],
+   "USDT-GBP": [],
+   "USDT-USD": [],
+   "t": "03:39"
+  },
+  {
+   "USDC-EUR": [],
+   "USDC-GBP": [],
+   "USDC-USD": [],
+   "USDT-GBP": [],
+   "USDT-USD": [],
+   "t": "03:41"
+  },
+  {
+   "USDC-EUR": [],
+   "USDC-GBP": [],
+   "USDC-USD": [],
+   "USDT-GBP": [],
+   "USDT-USD": [],
+   "t": "03:44"
+  },
+  {
+   "USDC-EUR": [],
+   "USDC-GBP": [],
+   "USDC-USD": [],
+   "USDT-GBP": [],
+   "USDT-USD": [],
+   "t": "03:46"
+  },
+  {
+   "USDC-EUR": [],
+   "USDC-GBP": [],
+   "USDC-USD": [],
+   "USDT-GBP": [],
+   "USDT-USD": [],
+   "t": "03:49"
+  },
+  {
+   "USDC-EUR": [],
+   "USDC-GBP": [],
+   "USDC-USD": [],
+   "USDT-GBP": [],
+   "USDT-USD": [],
+   "t": "03:51"
+  },
+  {
+   "USDC-EUR": [],
+   "USDC-GBP": [],
+   "USDC-USD": [],
+   "USDT-GBP": [],
+   "USDT-USD": [],
+   "t": "03:54"
+  },
+  {
+   "USDC-EUR": [],
+   "USDC-GBP": [],
+   "USDC-USD": [],
+   "USDT-GBP": [],
+   "USDT-USD": [],
+   "t": "03:56"
+  },
+  {
+   "USDC-EUR": [],
+   "USDC-GBP": [],
+   "USDC-USD": [],
+   "USDT-GBP": [],
+   "USDT-USD": [],
+   "t": "03:59"
+  },
+  {
+   "USDC-EUR": [],
+   "USDC-GBP": [],
+   "USDC-USD": [],
+   "USDT-GBP": [],
+   "USDT-USD": [],
+   "t": "04:01"
+  },
+  {
+   "USDC-EUR": [],
+   "USDC-GBP": [],
+   "USDC-USD": [],
+   "USDT-GBP": [],
+   "USDT-USD": [],
+   "t": "04:03"
+  },
+  {
+   "USDC-EUR": [],
+   "USDC-GBP": [],
+   "USDC-USD": [],
+   "USDT-GBP": [],
+   "USDT-USD": [],
+   "t": "04:06"
+  },
+  {
+   "USDC-EUR": [],
+   "USDC-GBP": [],
+   "USDC-USD": [],
+   "USDT-GBP": [],
+   "USDT-USD": [],
+   "t": "04:09"
+  },
+  {
+   "USDC-EUR": [],
+   "USDC-GBP": [],
+   "USDC-USD": [],
+   "USDT-GBP": [],
+   "USDT-USD": [],
+   "t": "04:11"
+  },
+  {
+   "USDC-EUR": [],
+   "USDC-GBP": [],
+   "USDC-USD": [],
+   "USDT-GBP": [],
+   "USDT-USD": [],
+   "t": "04:14"
+  },
+  {
+   "USDC-EUR": [],
+   "USDC-GBP": [],
+   "USDC-USD": [],
+   "USDT-GBP": [],
+   "USDT-USD": [],
+   "t": "04:16"
+  },
+  {
+   "USDC-EUR": [],
+   "USDC-GBP": [],
+   "USDC-USD": [],
+   "USDT-GBP": [],
+   "USDT-USD": [],
+   "t": "04:19"
+  },
+  {
+   "USDC-EUR": [],
+   "USDC-GBP": [],
+   "USDC-USD": [],
+   "USDT-GBP": [],
+   "USDT-USD": [],
+   "t": "04:21"
+  },
+  {
+   "USDC-EUR": [],
+   "USDC-GBP": [],
+   "USDC-USD": [],
+   "USDT-GBP": [],
+   "USDT-USD": [],
+   "t": "04:24"
+  },
+  {
+   "USDC-EUR": [],
+   "USDC-GBP": [],
+   "USDC-USD": [],
+   "USDT-GBP": [],
+   "USDT-USD": [],
+   "t": "04:26"
+  },
+  {
+   "USDC-EUR": [],
+   "USDC-GBP": [],
+   "USDC-USD": [],
+   "USDT-GBP": [],
+   "USDT-USD": [],
+   "t": "04:29"
+  },
+  {
+   "USDC-EUR": [],
+   "USDC-GBP": [],
+   "USDC-USD": [],
+   "USDT-GBP": [],
+   "USDT-USD": [],
+   "t": "04:31"
+  },
+  {
+   "USDC-EUR": [],
+   "USDC-GBP": [],
+   "USDC-USD": [],
+   "USDT-GBP": [],
+   "USDT-USD": [],
+   "t": "04:34"
+  },
+  {
+   "USDC-EUR": [],
+   "USDC-GBP": [],
+   "USDC-USD": [],
+   "USDT-GBP": [],
+   "USDT-USD": [],
+   "t": "04:36"
+  }
+ ],
+ "to": "2026-10-31 04:37"
+}

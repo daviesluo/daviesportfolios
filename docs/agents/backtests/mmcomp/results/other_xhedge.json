@@ -1,0 +1,94 @@
+{
+ "books": {
+  "USDC-USD": {
+   "m0_Q100": {
+    "buys": 777,
+    "coins_moved_a_day_usd": 824,
+    "days_positive": 34,
+    "days_with_fills": 34,
+    "edge_bps_mean": 5.9,
+    "fills_a_day": 35.7,
+    "sells": 437,
+    "usd_a_day": 1.844
+   },
+   "m0_Q500": {
+    "buys": 777,
+    "coins_moved_a_day_usd": 3035,
+    "days_positive": 34,
+    "days_with_fills": 34,
+    "edge_bps_mean": 5.9,
+    "fills_a_day": 35.7,
+    "sells": 437,
+    "usd_a_day": 7.875
+   },
+   "m2_Q100": {
+    "buys": 490,
+    "coins_moved_a_day_usd": 1172,
+    "days_positive": 30,
+    "days_with_fills": 30,
+    "edge_bps_mean": 11.97,
+    "fills_a_day": 15.3,
+    "sells": 30,
+    "usd_a_day": 1.622
+   },
+   "m2_Q500": {
+    "buys": 490,
+    "coins_moved_a_day_usd": 4974,
+    "days_positive": 30,
+    "days_with_fills": 30,
+    "edge_bps_mean": 11.97,
+    "fills_a_day": 15.3,
+    "sells": 30,
+    "usd_a_day": 7.05
+   },
+   "prints_1usd_plus": 1574,
+   "usd_a_day": 49417
+  },
+  "USDT-USD": {
+   "m0_Q100": {
+    "buys": 778,
+    "coins_moved_a_day_usd": 947,
+    "days_positive": 34,
+    "days_with_fills": 34,
+    "edge_bps_mean": 4.11,
+    "fills_a_day": 32.6,
+    "sells": 332,
+    "usd_a_day": 1.025
+   },
+   "m0_Q500": {
+    "buys": 778,
+    "coins_moved_a_day_usd": 3117,
+    "days_positive": 34,
+    "days_with_fills": 34,
+    "edge_bps_mean": 4.11,
+    "fills_a_day": 32.6,
+    "sells": 332,
+    "usd_a_day": 3.612
+   },
+   "m2_Q100": {
+    "buys": 661,
+    "coins_moved_a_day_usd": 1166,
+    "days_positive": 34,
+    "days_with_fills": 34,
+    "edge_bps_mean": 5.53,
+    "fills_a_day": 23.2,
+    "sells": 128,
+    "usd_a_day": 0.982
+   },
+   "m2_Q500": {
+    "buys": 661,
+    "coins_moved_a_day_usd": 3975,
+    "days_positive": 34,
+    "days_with_fills": 34,
+    "edge_bps_mean": 5.53,
+    "fills_a_day": 23.2,
+    "sells": 128,
+    "usd_a_day": 3.466
+   },
+   "prints_1usd_plus": 1767,
+   "usd_a_day": 74200
+  }
+ },
+ "days": 34.0,
+ "window": "2026-09-27 -> 2026-10-31 UTC"
+}
