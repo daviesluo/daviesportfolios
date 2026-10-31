@@ -4,7 +4,10 @@
 // row on, only once its account has turned into the day, the same capital as its live strategy from the same record; and
 // `runQuotesAction` runs LIVE's and the USDC/GBP executor's before the executor's turn, a fault reported and never thrown.
 import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { COMPOUND_RXU, COMPOUND_UNIT_GBP, compoundPlan, realisedSince, runLiveCompound, runTwinsCompound, TWIN_COMPOUND_TABLE } from "./quotes_compound.ts";
+import { COMPOUND_LIVE, COMPOUND_RXU, COMPOUND_UNIT_GBP, COMPOUND_UNIT_RUNGS_FROM, compoundPlan, compoundUnitOf, realisedSince, runLiveCompound, runTwinsCompound, TWIN_COMPOUND_TABLE } from "./quotes_compound.ts";
+import { QUOTE_LIVE_INSTANCE, QUOTE_RXU_INSTANCE, rungGbpOf, type QuoteLiveInstance } from "./quotes_live.ts";
+import { QUOTE_BOOKS } from "./quotes.ts";
+import { cbLiveRungCount } from "./cb_live.ts";
 import { memDb } from "./testing.ts";
 import { runQuotesAction } from "./index.ts";
 import type { Db } from "./db.ts";
@@ -162,4 +165,66 @@ Deno.test("runQuotesAction runs the compounding before the executor's turn, and 
   assertEquals(order, ["paper", "weekend", "compound", "compoundRxu", "live"]);
   assertEquals(reports, ["agents.quotes_compound"]);
   assert("live" in out);
+});
+
+// A pound a rung it quotes (Davies, 2026-10-31 ~03:05 UTC, "c也改"; reviews/2026-10-31-compound-unit-deviation.md): from 2026-11-01
+// 00:00 UTC each executor's and twin's unit and step is its own rung count, so LIVE on USDT-GBP's six rungs moves in whole £6, not
+// the £12 of the twelve it was built with, and a change of rungs can never leave it stale again.
+/** The rungs an instance gives pounds to at `at`, counted from its sizing (`rungGbpOf`), not from the unit's own code. */
+const pricedRungs = (inst: QuoteLiveInstance, at: number) => {
+  let n = 0;
+  for (const b of QUOTE_BOOKS) for (const side of ["bid", "ask"] as const) for (const k of inst.rungs) if (rungGbpOf(inst, 600, b, side, k, at) > 0) n++;
+  return n;
+};
+Deno.test("the unit is £1 a rung each executor quotes: LIVE £6 on USDT-GBP alone, the USDC/GBP executor £4, Coinbase £6", () => {
+  const day = COMPOUND_UNIT_RUNGS_FROM;
+  assertEquals(day, Date.parse("2026-11-01T00:00:00Z"));
+  assertEquals([compoundUnitOf(QUOTE_LIVE_INSTANCE, day), compoundUnitOf(QUOTE_RXU_INSTANCE, day), cbLiveRungCount()], [6, 4, 6]);
+  // Checked against what each sizes: a unit that is not £1 times the rungs given pounds fails here, whatever changed.
+  for (const inst of [QUOTE_LIVE_INSTANCE, QUOTE_RXU_INSTANCE]) assertEquals(compoundUnitOf(inst, day), pricedRungs(inst, day));
+  assertEquals([COMPOUND_LIVE.instance, COMPOUND_RXU.instance], [QUOTE_LIVE_INSTANCE, QUOTE_RXU_INSTANCE]);
+  // Before USDT-only LIVE quoted both books: twelve.
+  assertEquals(compoundUnitOf(QUOTE_LIVE_INSTANCE, Date.parse("2026-10-29T00:00:00Z")), 12);
+});
+
+Deno.test("LIVE compounds in whole £6 from 2026-11-01 00:00 UTC, the stored £12 before it (the counterfactual)", async () => {
+  // £6.70 realised (6,700 coins at 0.0010): 606.70 → £606, £6 away, one step: it moves. In whole £12 it would not (600).
+  const trips = [fill({ at: "2026-11-01T09:00:00Z", leg: "entry", side: "bid", base: 6700, price: 0.7480, book: "USDT-GBP" }),
+    fill({ at: "2026-11-01T09:30:00Z", leg: "exit", side: "bid", base: 6700, price: 0.7490, book: "USDT-GBP" })];
+  const cfg = { ...ON, compound_from: "2026-10-31T00:00:00Z", compound_on: "2026-11-01" };
+  const on = memDb({ agent_quote_live_config: [config(cfg)], agent_quote_live_orders: trips }, { now: () => NOW });
+  const r = await runLiveCompound(on.db, NOW);
+  assertEquals([r.from, r.to, r.plan?.why], [600, 606, "equity £606.70 in whole £6"]);
+  assertEquals(compoundPlan({ base: 600, realised: 6.7, current: 600, cap: 1200, floor: 300, step: 12, unit: 12 }).change, false);
+  // On 10-31 (before the instant) the stored £12 and its step still decide: 600 + 6.70 does not move.
+  const early = Date.parse("2026-10-31T00:00:30Z");
+  const trips0 = trips.map((t) => ({ ...t, ts: "2026-10-30T09:00:00Z", filled_at: "2026-10-30T09:00:00Z" }));
+  const e = memDb({ agent_quote_live_config: [config({ ...cfg, compound_from: "2026-10-28T00:00:00Z", compound_on: "2026-10-30" })], agent_quote_live_orders: trips0 }, { now: () => early });
+  const r0 = await runLiveCompound(e.db, early);
+  assertEquals([r0.to, r0.plan?.why], [600, "equity £606.70 in whole £12"]);
+});
+
+Deno.test("a twin compounds by a pound a rung of its own from 2026-11-01: USDT-GBP alone £6, without its 0.3 % rung £4, both books £12", async () => {
+  const day = Date.parse("2026-11-03T00:00:00Z");
+  const usdtOnly = { ...QUOTE_LIVE_INSTANCE, weights: { from: 0, book: { "USDC-GBP": 0, "USDT-GBP": 1 } } } as QuoteLiveInstance;
+  const no03 = { ...QUOTE_LIVE_INSTANCE, weights: { from: 0, book: { "USDC-GBP": 0, "USDT-GBP": 1 }, k: { "0.003": 0 } } } as QuoteLiveInstance;
+  const both = { ...QUOTE_LIVE_INSTANCE, weights: { from: 0, book: { "USDC-GBP": 1, "USDT-GBP": 1 } } } as QuoteLiveInstance;
+  assertEquals([compoundUnitOf(usdtOnly, day), compoundUnitOf(no03, day), compoundUnitOf(both, day)], [6, 4, 12]);
+  for (const inst of [usdtOnly, no03, both]) assertEquals(compoundUnitOf(inst, day), pricedRungs(inst, day));
+  // £4.02 realised: 604.02 → £604 on four rungs; the row's stored £12 would leave it at 600.
+  const twin = { id: "n600no03", config: "agent_quote_twin_n600no03_config", orders: "agent_quote_twin_n600no03_orders", sim: "agent_quote_twin_n600no03_sim", instance: no03 };
+  const trips = [fill({ at: "2026-11-02T09:00:00Z", leg: "entry", side: "bid", base: 4020, price: 0.7480, book: "USDT-GBP" }),
+    fill({ at: "2026-11-02T09:30:00Z", leg: "exit", side: "bid", base: 4020, price: 0.7490, book: "USDT-GBP" })];
+  const world = () => memDb({
+    [TWIN_COMPOUND_TABLE]: [{ twin_id: twin.id, mode: "realised", base_gbp: 600, from_at: "2026-10-31T00:00:00Z", cap_gbp: 1200, floor_gbp: 300, step_gbp: 12, unit_gbp: 12, on_day: null, last: null }],
+    [twin.config]: [{ id: 1, dry_run: false, live_confirmed_at: "2026-10-28T00:00:00Z", capital_gbp: 600, updated_at: "2026-10-28T00:00:00Z" }],
+    [twin.orders]: trips, [twin.sim]: [{ id: 1, state: { venue: { lastTurnAt: day + 25e3 } }, updated_at: "2026-11-03T00:00:25Z", last_error: null }],
+  }, { now: () => day + 30e3 });
+  const w = world();
+  const [r] = await runTwinsCompound(w.db, day + 30e3, [twin]);
+  assertEquals([r.from, r.to, r.plan?.why], [600, 604, "equity £604.02 in whole £4"]);
+  // Without its instance (the old call), the row's stored £12 decides: it stays at 600.
+  const { instance: _i, ...stored } = twin;
+  const [r0] = await runTwinsCompound(world().db, day + 30e3, [stored]);
+  assertEquals(r0.to, 600);
 });

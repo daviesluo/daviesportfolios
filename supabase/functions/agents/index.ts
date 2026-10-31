@@ -1125,7 +1125,7 @@ export function twinsDelayMs(nowMs: number): number {
 export async function twinsCompoundStep(d: Db, nowMs: number): Promise<string[]> {
   try {
     const { specs } = await twinSpecs(d);
-    const out = await runTwinsCompound(d, nowMs, specs.map((s) => ({ id: s.id, config: s.instance.config, orders: s.instance.orders, sim: s.sim })));
+    const out = await runTwinsCompound(d, nowMs, specs.map((s) => ({ id: s.id, config: s.instance.config, orders: s.instance.orders, sim: s.sim, instance: s.instance })));
     return out.filter((r) => r.error).map((r) => `${r.twin}: compounding: ${r.error}`);
   } catch (e) {
     return [`compounding: ${(e instanceof Error ? e.message : String(e)).slice(0, 300)}`];

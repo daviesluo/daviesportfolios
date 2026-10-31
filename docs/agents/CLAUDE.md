@@ -526,7 +526,8 @@ that follow from that evidence, in short:
   are pinned in its tests and its history in `backtests/mmcomp/results/maker_history.json` is its own code's: change one, run both.
 - **What every Stablecoin quotes strategy realises is put back to work** (`0183`, `reviews/2026-10-30-compounding.md`; Davies,
   2026-10-30: "…都能有效做到盈利金额再利用吗？如果不能请研究实现"): LIVE's `0146` rule for all, once a UTC day the capital = what was put in +
-  what was realised since 2026-10-31 00:00 UTC to the day's 00:00, in whole units (a pound or a dollar a rung), between half and twice,
+  what was realised since 2026-10-31 00:00 UTC to the day's 00:00, in whole units (a pound or a dollar a rung; from 2026-11-01 a pound a rung each Revolut X
+  executor, twin and Coinbase's executor quotes, derived from its rungs, `compoundUnitOf`, so LIVE £6, `0189`, `reviews/2026-10-31-compound-unit-deviation.md`), between half and twice,
   moved a unit or more. The Revolut X twins (`agent_quote_twin_compound`, `runTwinsCompound`) and the Coinbase paper arms
   (`cb_compound.ts`) compound from that instant, recorded apart as each pre-registration's deviation
   (`reviews/2026-10-30-compounding-deviation.md`: a reading in money reads each trip ÷ its day's multiplier). LIVE, the USDC/GBP

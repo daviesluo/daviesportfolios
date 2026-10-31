@@ -815,6 +815,11 @@ and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 0
   (counterfactual: `quotes` without `quotes_live_weekend.ts` fails). Measure after deploy: `function_edge_logs` 503 share
   for the agents function a hour (49-161 of ~950 on 10-30), its boot_time, and `edge_call_retries` a day for `agents%`
   (quotes 134-154 a day since 10-27). Moved the 10-30 03:50, 04:05, 04:20 (two), 05:25 sections to handover (thirty-ninth).
+- **Compounding a pound a rung from 2026-11-01 00:00 UTC** (Davies, ~03:05: "a和b都改； c也改"). LIVE moved in whole £12 (£2 a rung of its six
+  USDT-GBP rungs): the unit and step are now derived, £1 × the rungs each strategy quotes at the day's 00:00 (`compoundUnitOf`,
+  `cbLiveRungCount`): LIVE £6, RXU £4, Coinbase £6 (unchanged), `live600`/`live1200`/`take50` £6, `n600no03` £4, the both-book
+  twins £12. `0189` stores the same. Deviation `reviews/2026-10-31-compound-unit-deviation.md`; pins in `quotes_compound.test.ts`
+  (£6.70 realised moves LIVE to £606; in £12 it stays 600) and `compound_unit_deviation.test.js`.
 
 ### [2026-10-31 03:07 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Agents-module audit, round 1 landed** (fa07448e paged reads in waves, 80bb0fcd monitor reads Coinbase LIVE). Davies on its

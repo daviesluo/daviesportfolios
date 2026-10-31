@@ -10,8 +10,9 @@
 //     walk (`rungBook`), and what each conversion that sold coin realised against the coins it sold, first in, first out
 //     (`conversionSales`, the page's own REALIZED since 2026-10-30), over the fills from `from` to the day's 00:00 UTC. The coins'
 //     marks are left out: an FX move does not resize the rungs;
-//   * the target is equity in whole units (`unit`: £12 for LIVE, a pound a rung of the twelve it was built with; £4 for the £120
-//     USDC/GBP executor's four rungs; each twin its live strategy's), held between a floor and a cap (LIVE's £300 and £1,200:
+//   * the target is equity in whole units, a pound a rung the strategy quotes (`compoundUnitOf` from 2026-11-01 00:00 UTC: LIVE's
+//     six USDT-GBP rungs £6, the £120 USDC/GBP executor's four £4, each twin its own; before it LIVE's £12 of the twelve rungs it
+//     was built with, and the stored units), held between a floor and a cap (LIVE's £300 and £1,200:
 //     half and twice what it was put in at; every other target the same halves and doubles);
 //   * it moves only when the target is at least `step` away (hysteresis), so a day's pennies never resize every rung.
 // Its realised is counted up to the day's 00:00 UTC, so a twin and its live strategy, on the same rule from the same instant, set
@@ -24,19 +25,43 @@
 // A deposit or a withdrawal is not realised P&L: the base is set again (the design doc has the statement).
 
 import { type Db } from "./db.ts";
-import { rungBook, type RungFill } from "./quotes_live.ts";
+import { QUOTE_LIVE_INSTANCE, QUOTE_RXU_INSTANCE, retiredAt, rungBook, weightRetired, type QuoteLiveInstance, type RungFill } from "./quotes_live.ts";
 import { QUOTE_BOOKS, type QuoteBook } from "./quotes.ts";
 
 export const COMPOUND_CONFIG = "agent_quote_live_config";
 export const COMPOUND_ORDERS = "agent_quote_live_orders";
-/** LIVE's unit: twelve rungs, so the capital moves in whole £12 and each rung in whole pounds. */
+/** LIVE's unit until COMPOUND_UNIT_RUNGS_FROM: twelve rungs, so the capital moved in whole £12, a pound a rung of the twelve it was built with. */
 export const COMPOUND_UNIT_GBP = 12;
+/**
+ * From this instant every Revolut X executor's and twin's unit, and its step, is a pound a rung it quotes then (Davies, 2026-10-31
+ * ~03:05 UTC, "c也改", on the audit's finding that LIVE moved in whole £12, £2 a rung, since it quotes USDT-GBP's six rungs alone,
+ * and the question "live复利不仅是usdt吧，另外两个呢？"): `compoundUnitOf`, from the instance's own rungs and weights at the day's 00:00,
+ * so a change of rungs can never leave the unit stale. The next 00:00 after the audit; before it, the stored units, as they ran.
+ */
+export const COMPOUND_UNIT_RUNGS_FROM = Date.parse("2026-11-01T00:00:00Z");
+/**
+ * £1 a rung the instance quotes at `at`: every book, side and distance whose weight is not 0 (`weightRetired`) and that is not
+ * retired (`retiredAt`). LIVE on USDT-GBP alone: £6; the USDC/GBP executor's four: £4; a twin of both books' three rungs: £12.
+ */
+export function compoundUnitOf(inst: QuoteLiveInstance, at: number): number {
+  let n = 0;
+  for (const b of QUOTE_BOOKS) for (const side of ["bid", "ask"] as const) for (const k of inst.rungs) {
+    if (!weightRetired(inst, at, b, side, k) && !retiredAt(inst, at).includes(k)) n++;
+  }
+  return n;
+}
 const DAY = 86400e3;
 
 /** A live executor whose config carries the compounding columns (0146's on LIVE's, 0183's on the USDC/GBP executor's). */
-export type CompoundTarget = { name: string; config: string; orders: string };
-export const COMPOUND_LIVE: CompoundTarget = { name: "live", config: COMPOUND_CONFIG, orders: COMPOUND_ORDERS };
-export const COMPOUND_RXU: CompoundTarget = { name: "rxu", config: "agent_quote_rxu_config", orders: "agent_quote_rxu_orders" };
+export type CompoundTarget = { name: string; config: string; orders: string; instance: QuoteLiveInstance };
+export const COMPOUND_LIVE: CompoundTarget = { name: "live", config: COMPOUND_CONFIG, orders: COMPOUND_ORDERS, instance: QUOTE_LIVE_INSTANCE };
+export const COMPOUND_RXU: CompoundTarget = { name: "rxu", config: "agent_quote_rxu_config", orders: "agent_quote_rxu_orders", instance: QUOTE_RXU_INSTANCE };
+/** The unit and step a day's compounding uses: from COMPOUND_UNIT_RUNGS_FROM a pound a rung the instance quotes, before it the stored ones. */
+export function compoundUnitStep(stored: { unit: number; step: number }, inst: QuoteLiveInstance | undefined, dayStart: number): { unit: number; step: number } {
+  if (!inst || dayStart < COMPOUND_UNIT_RUNGS_FROM) return stored;
+  const unit = compoundUnitOf(inst, dayStart);
+  return { unit, step: unit };
+}
 
 export type CompoundConfig = {
   capital_gbp: number | string; compound_mode: string | null; compound_base_gbp: number | string | null; compound_from: string | null;
@@ -169,6 +194,7 @@ export async function runLiveCompound(db: Db, nowMs: number, target: CompoundTar
       cap: Number(cfg.compound_cap_gbp), floor: Number(cfg.compound_floor_gbp), step: Number(cfg.compound_step_gbp),
       unit: cfg.compound_unit_gbp == null ? COMPOUND_UNIT_GBP : Number(cfg.compound_unit_gbp), on: cfg.compound_on,
     };
+    Object.assign(s, compoundUnitStep(s, target.instance, start));
     const refused = compoundRefusal(s);
     if (refused) return { error: refused };
     const orders = await db.selectAll<CompoundOrder>(target.orders, `mode=eq.live&state=in.(filled,partially_filled)&select=${ORDER_COLUMNS}&order=id.asc`);
@@ -195,7 +221,7 @@ export type TwinCompoundRow = {
   days?: Record<string, number> | null;
 };
 /** A twin as its compounding needs it: its config and orders, its simulated account's row (its last turn). */
-export type TwinCompoundSpec = { id: string; config: string; orders: string; sim: string };
+export type TwinCompoundSpec = { id: string; config: string; orders: string; sim: string; instance?: QuoteLiveInstance };
 /** A twin compounds a day only once its simulated account has turned this close to the day's 00:00 or later (it turns at :25). */
 export const TWIN_COMPOUND_CAUGHT_UP_MS = 5 * 60e3;
 
@@ -223,6 +249,7 @@ export async function runTwinsCompound(db: Db, nowMs: number, specs: ReadonlyArr
         mode: r.mode, base: Number(r.base_gbp), fromMs: r.from_at ? Date.parse(r.from_at) : NaN, cap: Number(r.cap_gbp), floor: Number(r.floor_gbp),
         step: Number(r.step_gbp), unit: Number(r.unit_gbp), on: r.on_day,
       };
+      Object.assign(s, compoundUnitStep(s, spec.instance, start));
       const refused = compoundRefusal(s);
       if (refused) { out.push({ twin: r.twin_id, day, error: refused }); continue; }
       if (start < s.fromMs) continue;                                           // not yet: its first day is the one its start opens

@@ -68,7 +68,7 @@ import { CB_HOLD_MS, cbHoldBarAt } from "./cb_hold.ts";
 import { cbFxCount, cbRatesAt, readCbFx, type CbFxPair, type CbFxReads } from "./cb_fx.ts";
 import { CB_BOOK, CB_FAIR_KIND, cbCoinFair, cbInUsd, cbMinuteInputs } from "./cb_quotes.ts";
 import { cbInBlackout } from "./cb_releases.ts";
-import { compoundDay, compoundPlan, compoundRefusal, type CompoundSettings } from "./quotes_compound.ts";
+import { COMPOUND_UNIT_RUNGS_FROM, compoundDay, compoundPlan, compoundRefusal, type CompoundSettings } from "./quotes_compound.ts";
 import { fairHours, median, QUOTE_FX_LOOKBACK_MS, quoteTicks } from "./quotes.ts";
 import { readDepthThrough, readTouch, takeTriggered, type RecordedRead } from "./quotes_live.ts";
 import { inQuoteClosure } from "./quotes_weekend.ts";
@@ -224,10 +224,12 @@ export function cbLiveRealisedSince(fills: FillRow[], fromMs: number, untilMs: n
   }
   return sum;
 }
-/** Pure: the config a compounded capital `target` sets: the capital, its sixth a rung (to the penny), the top-up cap in proportion. */
+/** The rungs the executor quotes (its paper arm's book: three a side), which its rung and, from 2026-11-01, its compounding unit divide by. */
+export const cbLiveRungCount = () => newBookState(CB_LIVE_PRODUCT).rungs.length;
+/** Pure: the config a compounded capital `target` sets: the capital, its share a rung (to the penny), the top-up cap in proportion. */
 export function cbLiveCompoundSizes(cfg: Pick<CbLiveConfig, "capital_gbp" | "convert_max_gbp_day">, target: number) {
   const k = target / Number(cfg.capital_gbp);
-  return { capital_gbp: target, rung_gbp: Math.floor(target / 6 * 100 + 1e-9) / 100, convert_max_gbp_day: Math.round(Number(cfg.convert_max_gbp_day) * k * 100) / 100 };
+  return { capital_gbp: target, rung_gbp: Math.floor(target / cbLiveRungCount() * 100 + 1e-9) / 100, convert_max_gbp_day: Math.round(Number(cfg.convert_max_gbp_day) * k * 100) / 100 };
 }
 /**
  * Once a UTC day, the compounding: reads the fills since the start (not only the trip window's) and writes the day's sizes into
@@ -242,6 +244,8 @@ async function cbLiveCompound(d: CbLiveDeps, cfg: CbLiveConfig, rep: CbLiveRepor
     mode: String(cfg.compound_mode), base: Number(cfg.compound_base_gbp), fromMs: cfg.compound_from ? Date.parse(cfg.compound_from) : NaN,
     cap: Number(cfg.compound_cap_gbp), floor: Number(cfg.compound_floor_gbp), step: Number(cfg.compound_step_gbp), unit: Number(cfg.compound_unit_gbp), on: cfg.compound_on ?? null,
   };
+  // From 2026-11-01 00:00 UTC a pound a rung it quotes, unit and step, as every Revolut X executor's (COMPOUND_UNIT_RUNGS_FROM).
+  if (start >= COMPOUND_UNIT_RUNGS_FROM) { s.unit = cbLiveRungCount(); s.step = s.unit; }
   const refused = compoundRefusal(s);
   if (refused) { rep.errors.push(`compounding: ${refused}`); return; }
   const fills = await d.db.selectAll<FillRow>(CB_LIVE_TABLES.fills, `trade_time=gte.${enc(s.fromMs - CB_LIVE_TRIP_WINDOW_MS)}&trade_time=lt.${enc(start)}&select=*&order=entry_id.asc`);

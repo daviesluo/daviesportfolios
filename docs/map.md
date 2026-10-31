@@ -918,6 +918,7 @@ before touching migration state.
 | `0184_xhedge_paper.sql` | "Stablecoin quotes RX↔Coinbase hedge" and "… - 1" on paper: their tables (each arm's and book's minute, fills, round trips), the days view with each side's blocked minutes, lock, call a minute (`agents?action=xhedge`, under the watchdog) and prune. |
 | `0185_maker_watch.sql` | The other maker's watch: its minutes, events and state tables, filled by the book recorder's call from 2026-09-26 on. |
 | `0186_dashboard_read_indexes.sql` | Indexes for the Agents page's slowest reads: each Coinbase and OKX arm's minute table by minute, and the loop's decisions by time. |
+| `0189_compound_unit_a_rung.sql` | The compounding's stored units set to a pound a rung each strategy quotes (LIVE's step £6; `live600`, `live1200`, `take50` £6, `n600no03` £4), what the code derives from 2026-11-01. |
 | `0187_cb_live_take_shadow.sql` | The Coinbase live executor's take switch (`cb_live_config.take_mode`, 'off' or 'shadow', never 'live'), set to 'shadow': `take_shadow` events of what a taker entry would do, nothing sent. |
 | `0188_cblive_retry.sql` | Coinbase's live executor call (`agents?action=cblive`) joins the watchdog's retry: a minute whose run never started is run again 13 s late. |
 | `0182_cb_live_decide.sql` | The Coinbase live executor's decision source (`cb_live_config.decide`, 'paper' by default, 'self' only for a USDC arm) and its shadow table (`cb_live_shadow`, 14 days' prune). |
