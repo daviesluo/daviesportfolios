@@ -4,7 +4,8 @@
 // keys, columns and the outcome CHECK, and refuses what PostgREST would (`Rest`).
 import { assert, assertEquals, assertRejects } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
-  activeBy, AFTER_ARRIVAL_MS, beatsUnwritten, CHECK_AT_MS, checkAt, classify, type EdgeCall, handle, HOLD_MS, isCron, isDue, LATE_MS, makeCall, makeRest, MAX_RETRIES, plan,
+  activeBy, AFTER_ARRIVAL_MS, beatsUnwritten, CHECK_AT_MS, checkAt, checkAtFor, classify, DISPATCH_GRACE_MS, dispatchPlan, type EdgeCall, handle, HOLD_MS, isCron, isDue, LATE_MS,
+  makeCall, makeRest, MAX_RETRIES, offsetOf, plan,
   type Rest, retryUrl, runWatchdog, WATCHDOG_PATH, type WatchdogDeps, type WatchdogReport,
 } from "./index.ts";
 import { beatKeyOfPath, minuteOf } from "../_shared/beats.ts";
@@ -28,7 +29,7 @@ const dueKeys = (minuteMs: number, calls = LIST) => calls.filter((c) => c.path !
 
 type Row = Record<string, unknown>;
 const COLS: Record<string, string[]> = {
-  edge_calls: ["id", "path", "timeout_ms", "every_minutes", "last_utc_hour", "enabled", "retry", "active_from"],
+  edge_calls: ["id", "path", "timeout_ms", "every_minutes", "last_utc_hour", "enabled", "retry", "active_from", "offset_s"],
   edge_call_beats: ["minute", "path", "ts"],
   edge_call_retries: ["minute", "path", "claimed_at", "outcome", "status", "ms", "detail"],
 };
@@ -377,12 +378,13 @@ Deno.test("the five-minute calls are looked for at their minutes only, the overn
   assertEquals(w2.sent.map((s) => s.path), ["agents?action=pmrw-select", "agents?action=pmrwc-select", "snapshot-record"]);
 });
 
-Deno.test("a watchdog that starts more than 8 s into its minute reads nothing and runs nothing again", async () => {
+Deno.test("a watchdog that starts more than 8 s into its minute reads the list alone (for what it sends at a second) and runs nothing again", async () => {
   const slept: number[] = [];
   const w = world({ at: MINUTE + 8_001, beats: [], slept });
   const r = await runWatchdog(w.d);
   assert(r.skipped?.includes("late batch"), r.skipped);
-  assertEquals([slept, w.db.reads(), w.sent], [[], 0, []]);
+  // 0191: the list is read as it starts, so a row with a second can still be sent; this list has none, so nothing more.
+  assertEquals([slept, w.db.reads(), w.sent, r.dispatched], [[], 1, [], undefined]);
   const onTime = world({ at: MINUTE + 8_000 });
   assertEquals((await runWatchdog(onTime.d)).checkedMs, 20_000);
 });
@@ -394,6 +396,92 @@ Deno.test("a list or beats it cannot read: nothing is run again, and it is repor
   assertEquals(w.sent, []);
   assert(r.errors[0].includes("unreadable"));
   assertEquals(w.reports.map((x) => x.kind), ["edge-watchdog.unreadable"]);
+});
+
+// ------------------------------------------------------------------------------------------- 0191: rows at a second
+
+/** The list as 0191 leaves it, in short: the live executor at the job's second, a paper arm at 5 s, the books recorder at 23 s. */
+const SPREAD: EdgeCall[] = [
+  { path: "agents?action=quotes", timeout_ms: 58_000, every_minutes: 1, last_utc_hour: 23, enabled: true, retry: true, offset_s: 0 },
+  { path: "agents?action=cbusdc", timeout_ms: 30_000, every_minutes: 1, last_utc_hour: 23, enabled: true, retry: true, offset_s: 5 },
+  { path: "agents?action=books", timeout_ms: 35_000, every_minutes: 1, last_utc_hour: 23, enabled: true, retry: true, offset_s: 23 },
+  { path: "agents?action=grokpmrec", timeout_ms: 30_000, every_minutes: 5, last_utc_hour: 23, enabled: true, retry: true, offset_s: 15 },
+  { path: "edge-watchdog", timeout_ms: 58_000, every_minutes: 1, last_utc_hour: 23, enabled: true, retry: false, offset_s: 0 },
+];
+const JOB_ROWS = ["agents?action=quotes"];                         // what the job itself sends in an ordinary minute
+
+Deno.test("offsetOf, dispatchPlan, checkAtFor — a row's second, the minute's rows sent at theirs in order, and each looked for 13 s after it", () => {
+  assertEquals(SPREAD.map(offsetOf), [0, 5, 23, 15, 0]);
+  assertEquals([offsetOf({ ...SPREAD[0], offset_s: undefined }), offsetOf({ ...SPREAD[0], offset_s: null }), offsetOf({ ...SPREAD[0], offset_s: -3 })], [0, 0, 0]);
+  // Never the job's own rows, never the watchdog, a five-minute row only at its minutes, in their seconds' order.
+  assertEquals(dispatchPlan(SPREAD, MINUTE).map((c) => c.path), ["agents?action=cbusdc", "agents?action=books"]);
+  assertEquals(dispatchPlan(SPREAD, T("2026-10-01T15:05:00Z")).map((c) => c.path), ["agents?action=cbusdc", "agents?action=grokpmrec", "agents?action=books"]);
+  assertEquals(dispatchPlan(SPREAD.map((c) => ({ ...c, enabled: c.path !== "agents?action=books" })), MINUTE).map((c) => c.path), ["agents?action=cbusdc"]);
+  assertEquals(dispatchPlan(LIST, MINUTE), []);                    // a list before 0191: the job sends everything
+  assertEquals([checkAtFor(MINUTE + 300, 0), checkAtFor(MINUTE + 300, 23), checkAtFor(MINUTE + 4_000, 0)].map((t) => t - MINUTE), [13_000, 36_000, 16_000]);
+  assertEquals(DISPATCH_GRACE_MS, 5_000);
+});
+
+Deno.test("0191: each row with a second is sent at it, by its own path and timeout, and looked for 13 s after it, not at 13 s", async () => {
+  // Counterfactual: the watchdog before 0191 read every row's beat at 13 s, so it would run the books recorder again at 13 s
+  // (no beat yet, it is sent at 23 s), and nothing would send it at 23 s.
+  const w = world({ at: MINUTE + 400, db: fakeDb(SPREAD), beats: JOB_ROWS });
+  const r = await runWatchdog(w.d);
+  assertEquals(w.sent.map((s) => [s.path, s.timeoutMs, s.at - MINUTE]), [["agents?action=cbusdc", 30_000, 5_000], ["agents?action=books", 35_000, 23_000]]);
+  assertEquals(r.dispatched?.map((x) => [x.path, x.offsetS, x.sentMs, x.status]), [["agents?action=cbusdc", 5, 5_000, 200], ["agents?action=books", 23, 23_000, 200]]);
+  assertEquals([r.due, r.missing, r.retried, w.db.t.edge_call_retries, w.reports], [3, [], [], [], []]);
+  assertEquals(r.checkedMs, 13_000);
+});
+
+Deno.test("0191: a row sent at its second that never started is run again once, 13 s after its second; the job's rows still at 13 s", async () => {
+  let booksSends = 0;
+  const boot503: Answer = (path, _t, x) => {
+    if (path === "agents?action=books" && booksSends++ === 0) { x.advance(10_300); return Promise.resolve({ status: 503, body: '{"code":"BOOT_ERROR"}' }); }
+    return startsAndAnswers(path, _t, x);
+  };
+  // The live executor's worker did not start at :00 either: its retry at 13 s, as before.
+  const w = world({ at: MINUTE + 400, db: fakeDb(SPREAD), beats: [], answer: boot503 });
+  const r = await runWatchdog(w.d);
+  assertEquals(w.sent.map((s) => [s.path, s.at - MINUTE]), [
+    ["agents?action=cbusdc", 5_000], ["agents?action=quotes", 13_000], ["agents?action=books", 23_000], ["agents?action=books", 36_000],
+  ]);
+  assertEquals(outcomes(w.db), [["agents?action=quotes", "ok", 200], ["agents?action=books", "ok", 200]]);
+  assertEquals(r.retried.map((x) => x.path), ["agents?action=quotes", "agents?action=books"]);
+  assertEquals(r.dispatched?.find((x) => x.path === "agents?action=books")?.status, 503);
+  assertEquals(w.reports, []);
+});
+
+Deno.test("0191: a row whose beat is already there when its second comes (the job sent it) is not sent twice", async () => {
+  const w = world({ at: MINUTE + 400, db: fakeDb(SPREAD), beats: [...JOB_ROWS, "agents?action=cbusdc"] });
+  const r = await runWatchdog(w.d);
+  assertEquals(w.sent.map((s) => s.path), ["agents?action=books"]);
+  assertEquals(r.dispatched?.find((x) => x.path === "agents?action=cbusdc")?.detail, "its beat is there already: the job sent it");
+});
+
+Deno.test("0191: a late watchdog sends what is within 5 s of its second, not what is further behind, and runs nothing again", async () => {
+  const w = world({ at: MINUTE + 9_500, db: fakeDb(SPREAD), beats: [] });
+  const r = await runWatchdog(w.d);
+  assert(r.skipped?.includes("late batch"), r.skipped);
+  // cbusdc's second (5 s) is 4.5 s behind: sent at once. books' (23 s) is ahead: sent at it. No retry, though quotes has no beat.
+  assertEquals(w.sent.map((s) => [s.path, s.at - MINUTE]), [["agents?action=cbusdc", 9_500], ["agents?action=books", 23_000]]);
+  assertEquals(w.db.t.edge_call_retries, []);
+  const w2 = world({ at: MINUTE + 10_200, db: fakeDb(SPREAD), beats: [] });
+  const r2 = await runWatchdog(w2.d);
+  assertEquals(w2.sent.map((s) => s.path), ["agents?action=books"]);
+  assert(r2.dispatched?.find((x) => x.path === "agents?action=cbusdc")?.detail?.startsWith("late: 10.2 s"));
+});
+
+Deno.test("0191: beats not being written, judged on the job's rows at 13 s, holds the later seconds' retries too", async () => {
+  const many: EdgeCall[] = [
+    ...["tick", "quotes", "cbrec", "okxrec", "fxrec", "cblive"].map((a) => ({ path: `agents?action=${a}`, timeout_ms: 30_000, every_minutes: 1, last_utc_hour: 23, enabled: true, retry: true, offset_s: 0 })),
+    SPREAD[2],
+  ];
+  const noBeats: Answer = (_p, _t, x) => { x.advance(500); return Promise.resolve({ status: 200, body: "{}" }); };
+  const w = world({ at: MINUTE + 300, db: fakeDb(many), beats: [], answer: noBeats });
+  const r = await runWatchdog(w.d);
+  assertEquals(w.sent.map((s) => [s.path, s.at - MINUTE]), [["agents?action=books", 23_000]]);   // sent, never run again
+  assertEquals(w.reports.map((x) => x.kind), ["edge-watchdog.beats"]);
+  assertEquals([r.missing.length, r.retried], [7, []]);
 });
 
 // ------------------------------------------------------------------------------------------------------------- I/O

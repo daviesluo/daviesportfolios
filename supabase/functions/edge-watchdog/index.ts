@@ -35,6 +35,20 @@
 //   * A watchdog that starts more than `LATE_MS` into its minute is in a batch that began late (reference §4 item 39
 //     measured batches beginning within 0.44 s of their minute), so it runs nothing again: a retry from past :20 would
 //     run into the next minute's call. Its own boot failing loses only that minute's retries.
+//
+// It also SENDS the calls whose row has a second over 0 (`offset_s`, 0191; Davies, 2026-10-31: "做"). pg_net 0.20's worker
+// takes a batch whole and reads its queue again only when every request of it has answered (0063), so a second job queuing
+// at :10 would wait behind `books`' 45 s: spreading the minute's calls over seconds cannot be done from SQL. This function is
+// in the job's batch at :00 and holds no pg_net slot while it waits, so it sends each such row at its second, by the same
+// request the job makes (`makeCall`: URL, cron bearer, JSON, `{}`, the row's own timeout), and awaits it; and it looks for
+// that row's beat `CHECK_AT_MS` after its second (`checkAtFor`), not at 13 s, so the retry still comes once, keyed to the
+// minute, after the row's own start. A row whose beat is already there when its second comes (the job sent it: a job older
+// than 0191, or a request by hand) is not sent again. A watchdog that starts late sends what is within `DISPATCH_GRACE_MS`
+// of its second and runs nothing again. If the watchdog itself does not start, that minute's rows with a second over 0 are
+// not sent (its beat was missing in 4 of 4,235 minutes to 2026-10-31 08:30 UTC). A row's second is a migration's
+// (`update public.edge_calls set offset_s = …`), and the table keeps every row inside its minute
+// (`offset_s * 1000 + timeout_ms < 60000`).
+//
 // It reports to `ops_errors` only what needs a person: a retry that failed too, a call whose retry wrote no beat, too
 // many missing beats, and a list it could not read.
 //
@@ -79,6 +93,8 @@ export const HOLD_MS = 10 * 60_000;
 export type EdgeCall = {
   path: string; timeout_ms: number; every_minutes: number; last_utc_hour: number; enabled: boolean; retry: boolean;
   active_from?: string | null;
+  /** 0191: the second of its minute it is sent at; 0 or absent, the job's own request (`offsetOf`). */
+  offset_s?: number | null;
 };
 /**
  * What became of a call with no beat. `ok`: its retry answered 2xx. `failed`: its retry answered otherwise, or not at all
@@ -91,6 +107,8 @@ export type RetryResult = { path: string; outcome: Outcome; status: number | nul
 export type WatchdogReport = {
   minute: string; arrivedMs: number; checkedMs: number | null; due: number; beats: number;
   missing: string[]; retried: RetryResult[]; excluded: string[]; held: string[]; skipped?: string; errors: string[];
+  /** 0191: the calls it sent at their seconds, or did not and why. */
+  dispatched?: DispatchResult[];
 };
 
 /** The database, as the watchdog uses it (PostgREST with the service key). */
@@ -161,15 +179,37 @@ export function classify(status: number | null, beat: boolean | null): Outcome {
   return beat === true ? "running" : "failed";
 }
 
-/** One call run again: claimed, sent, awaited within its own timeout, its beat read, and the outcome recorded. */
-async function retryOne(d: WatchdogDeps, c: EdgeCall, minuteIso: string): Promise<RetryResult | null> {
-  const where = `minute=eq.${enc(minuteIso)}&path=eq.${enc(c.path)}`;
+/**
+ * A retry's claim: its row in `edge_call_retries` before anything is sent. `true`: claimed, to be sent; null: already run
+ * again this minute, by another run; a result: not sent, the claim having failed.
+ */
+async function claimRetry(d: WatchdogDeps, c: EdgeCall, minuteIso: string): Promise<true | null | RetryResult> {
   try {
     const claimed = await d.rest.claim(RETRY_TABLE, { minute: minuteIso, path: c.path, outcome: "sent" }, "minute,path");
-    if (!claimed.length) return null;                          // already run again this minute, by another run
+    return claimed.length ? true : null;
   } catch (e) {
     return { path: c.path, outcome: "failed", status: null, ms: null, detail: `not sent: the retry could not be claimed (${msg(e)})` };
   }
+}
+
+/**
+ * The minute's retries of one second: claimed together (awaited, so they go out at the check's instant), then sent together,
+ * the promise of their results returned without waiting on them.
+ */
+async function startRetries(d: WatchdogDeps, cs: EdgeCall[], minuteIso: string): Promise<{ done: Promise<(RetryResult | null)[]> }> {
+  const claims = await Promise.all(cs.map((c) => claimRetry(d, c, minuteIso)));
+  // Wrapped: an async function's promise of a promise would wait on the retries themselves.
+  return {
+    done: Promise.all(cs.map((c, i) => {
+      const k = claims[i];
+      return k === true ? sendRetry(d, c, minuteIso) : Promise.resolve(k);
+    })),
+  };
+}
+
+/** One call run again once claimed: sent, awaited within its own timeout, its beat read, and the outcome recorded. */
+async function sendRetry(d: WatchdogDeps, c: EdgeCall, minuteIso: string): Promise<RetryResult> {
+  const where = `minute=eq.${enc(minuteIso)}&path=eq.${enc(c.path)}`;
   const t0 = d.now();
   let status: number | null = null, detail: string | null = null;
   try {
@@ -193,61 +233,157 @@ async function retryOne(d: WatchdogDeps, c: EdgeCall, minuteIso: string): Promis
   return out;
 }
 
-/** One minute of the watchdog. Never throws past its own reads: what fails is in `errors`, and reported. */
+/**
+ * A row's second (0191): how far into its minute it is sent. 0, or absent while 0191 is not applied, is the job's own
+ * request at the top of the minute; more is this function's (`runWatchdog`), so the minute's `agents` calls do not all
+ * boot in one second. The table holds it to `offset_s * 1000 + timeout_ms < 60 000`.
+ */
+export const offsetOf = (c: EdgeCall): number => {
+  const s = Math.trunc(Number(c.offset_s ?? 0));
+  return Number.isFinite(s) && s > 0 ? s : 0;
+};
+/**
+ * A row sent at its second is sent up to this long after it, when the watchdog itself started late; later than that it
+ * is not sent this minute (`late` in the answer), so a call never starts far from where its minute and timeout put it.
+ */
+export const DISPATCH_GRACE_MS = 5_000;
+/** When a row's own missing beat is looked for: `CHECK_AT_MS` after its second, and `AFTER_ARRIVAL_MS` after the watchdog started. */
+export const checkAtFor = (arrivedMs: number, offsetS: number): number =>
+  Math.max(minuteOf(arrivedMs) + offsetS * 1_000 + CHECK_AT_MS, arrivedMs + AFTER_ARRIVAL_MS);
+
+/** The minute's due calls the watchdog sends at their seconds: offset over 0, never itself, in their seconds' order, then the list's. */
+export function dispatchPlan(calls: EdgeCall[], minuteMs: number): EdgeCall[] {
+  return calls.map((c, i) => ({ c, i })).filter(({ c }) => c.path !== WATCHDOG_PATH && offsetOf(c) > 0 && isDue(c, minuteMs))
+    .sort((a, b) => offsetOf(a.c) - offsetOf(b.c) || a.i - b.i).map(({ c }) => c);
+}
+
+/** What became of a call sent at its second: its answer (null when none came), or why it was not sent. */
+export type DispatchResult = { path: string; offsetS: number; sentMs: number | null; status: number | null; ms: number | null; detail: string | null };
+
+/** One call sent at its second, as the job would send it, awaited within its own timeout. Its beat says it started; nothing is recorded. */
+async function dispatchOne(d: WatchdogDeps, c: EdgeCall, minute: number): Promise<DispatchResult> {
+  const t0 = d.now();
+  const out: DispatchResult = { path: c.path, offsetS: offsetOf(c), sentMs: t0 - minute, status: null, ms: null, detail: null };
+  try {
+    const r = await d.call(c.path, c.timeout_ms);
+    out.status = r.status;
+    if (!isOk(r.status)) out.detail = r.body.slice(0, 300);
+  } catch (e) {
+    out.detail = msg(e);
+  }
+  out.ms = d.now() - t0;
+  return out;
+}
+
+/**
+ * One minute of the watchdog. Never throws past its own reads: what fails is in `errors`, and reported.
+ *
+ * Its minute is one line of events in time order (0191): each row with a second over 0 is SENT at it (`dispatchPlan`),
+ * and each second's rows are CHECKED for a beat `CHECK_AT_MS` later (`checkAtFor`), the job's own rows (second 0) at
+ * 13 s as before. A call sent is not awaited before the next event; every answer is, before the watchdog answers.
+ */
 export async function runWatchdog(d: WatchdogDeps): Promise<WatchdogReport> {
   const arrived = d.now(), minute = minuteOf(arrived), minuteIso = iso(minute);
   const report: WatchdogReport = {
     minute: minuteIso, arrivedMs: arrived - minute, checkedMs: null, due: 0, beats: 0, missing: [], retried: [], excluded: [], held: [], errors: [],
   };
-  if (arrived - minute > LATE_MS) return { ...report, skipped: `started ${((arrived - minute) / 1000).toFixed(1)} s into its minute: a late batch, nothing is run again` };
-  const wait = checkAt(arrived) - d.now();
-  if (wait > 0) await d.sleep(wait);
-  const checkedMs = report.checkedMs = d.now() - minute;
+  const late = arrived - minute > LATE_MS;
+  const lateLine = `started ${((arrived - minute) / 1000).toFixed(1)} s into its minute: a late batch, nothing is run again`;
 
-  let calls: EdgeCall[], beats: string[];
+  // The list, read once as the watchdog starts: the calls it sends at their seconds, and those it looks for.
+  let calls: EdgeCall[];
   try {
-    [calls, beats] = await Promise.all([
-      // Every column, not a list: a column named that the table does not have yet is PostgREST's 400, and this function
-      // and the migration that adds one (0104's `active_from`) land in either order.
-      d.rest.select<EdgeCall>(LIST_TABLE, "select=*&order=id.asc"),
-      d.rest.select<{ path: string }>(BEAT_TABLE, `minute=eq.${enc(minuteIso)}&select=path`).then((rows) => rows.map((r) => r.path)),
-    ]);
+    // Every column, not a list: a column named that the table does not have yet is PostgREST's 400, and this function
+    // and the migration that adds one (0104's `active_from`, 0191's `offset_s`) land in either order.
+    calls = await d.rest.select<EdgeCall>(LIST_TABLE, "select=*&order=id.asc");
   } catch (e) {
+    if (late) return { ...report, skipped: lateLine, errors: [`the list is unreadable (${msg(e)}); nothing is sent at its second this minute`] };
     report.errors.push(`the list or the beats are unreadable (${msg(e)}); nothing is run again this minute`);
     await d.report("edge-watchdog.unreadable", { message: report.errors[0], context: { minute: minuteIso } });
     return report;
   }
-  const p = plan(calls, beats, minute);
-  report.due = p.due;
-  report.beats = beats.length;
-  report.missing = [...p.retry, ...p.excluded].map((c) => c.path);
+  const toSend = dispatchPlan(calls, minute);
+  if (late) {
+    report.skipped = lateLine;
+    if (!toSend.length) return report;
+  }
 
-  // Recorded, never run: the calls the list says not to run again.
-  for (const c of p.excluded) {
+  type Ev = { at: number; kind: "send"; call: EdgeCall } | { at: number; kind: "check"; offsetS: number };
+  const events: Ev[] = toSend.map((call) => ({ at: minute + offsetOf(call) * 1_000, kind: "send" as const, call }));
+  if (!late) {
+    const seconds = [...new Set([0, ...toSend.map(offsetOf)])];
+    for (const s of seconds) events.push({ at: checkAtFor(arrived, s), kind: "check", offsetS: s });
+  }
+  events.sort((a, b) => a.at - b.at || (a.kind === b.kind ? 0 : a.kind === "send" ? -1 : 1));
+
+  const sent: Promise<DispatchResult>[] = [], skippedSends: DispatchResult[] = [], retries: Promise<(RetryResult | null)[]>[] = [];
+  let beatsBefore: Set<string> | null = null, unwritten = false, held: Set<string> | null = null, firstCheck = true;
+  const readBeats = () => d.rest.select<{ path: string }>(BEAT_TABLE, `minute=eq.${enc(minuteIso)}&select=path`).then((rows) => rows.map((r) => r.path));
+
+  for (const ev of events) {
+    const wait = ev.at - d.now();
+    if (wait > 0) await d.sleep(wait);
+    if (ev.kind === "send") {
+      const c = ev.call, none = { path: c.path, offsetS: offsetOf(c), sentMs: null, status: null, ms: null };
+      if (d.now() > ev.at + DISPATCH_GRACE_MS) { skippedSends.push({ ...none, detail: `late: ${((d.now() - minute) / 1000).toFixed(1)} s into its minute, not sent` }); continue; }
+      // A call the job sent itself this minute (a job older than 0191, a request fired by hand) has its beat: not sent twice.
+      if (beatsBefore === null) beatsBefore = new Set(await readBeats().catch(() => [] as string[]));
+      if (beatsBefore.has(beatKeyOfPath(c.path))) { skippedSends.push({ ...none, detail: "its beat is there already: the job sent it" }); continue; }
+      sent.push(dispatchOne(d, c, minute));
+      continue;
+    }
+    // A check: the due rows of one second with no beat, run again once as ever.
+    const rows = calls.filter((c) => offsetOf(c) === ev.offsetS);
+    const checkedMs = d.now() - minute;
+    if (firstCheck) report.checkedMs = checkedMs;
+    let beats: string[];
     try {
-      await d.rest.claim(RETRY_TABLE, { minute: minuteIso, path: c.path, outcome: "excluded" }, "minute,path");
-      report.excluded.push(c.path);
-    } catch (e) { report.errors.push(`${c.path}: not recorded (${msg(e)})`); }
+      beats = await readBeats();
+    } catch (e) {
+      report.errors.push(`the list or the beats are unreadable (${msg(e)}); nothing is run again this minute`);
+      if (firstCheck) await d.report("edge-watchdog.unreadable", { message: report.errors.at(-1), context: { minute: minuteIso } });
+      firstCheck = false;
+      continue;
+    }
+    const p = plan(rows, beats, minute);
+    report.due += p.due;
+    report.beats = beats.length;
+    const missing = [...p.retry, ...p.excluded].map((c) => c.path);
+    report.missing.push(...missing);
+    // Recorded, never run: the calls the list says not to run again.
+    for (const c of p.excluded) {
+      try {
+        await d.rest.claim(RETRY_TABLE, { minute: minuteIso, path: c.path, outcome: "excluded" }, "minute,path");
+        report.excluded.push(c.path);
+      } catch (e) { report.errors.push(`${c.path}: not recorded (${msg(e)})`); }
+    }
+    // Counted over every missing beat, the excluded calls' too: that many at once, with no due call's beat, is the beats, not
+    // a boot. With one, it is a worker that served several calls and did not start, and they are run again (the header).
+    // Judged on the job's own rows, the many; a later second's few are run again unless that judgement was made.
+    if (firstCheck && p.retry.length && beatsUnwritten(p.due, missing.length)) {
+      unwritten = true;
+      report.errors.push(`${missing.length} of ${p.due} due calls wrote no beat by ${(checkedMs / 1000).toFixed(1)} s: beats are not being written (a deploy in flight, or the table refusing them), not a worker that failed to start; nothing is run again`);
+      await d.report("edge-watchdog.beats", { message: report.errors.at(-1), context: { minute: minuteIso, missing } });
+    }
+    firstCheck = false;
+    if (!p.retry.length || unwritten) continue;
+    // A call whose retry wrote no beat in the last `HOLD_MS` is held: run again every minute, it would run twice every minute.
+    if (held === null) {
+      try {
+        held = new Set((await d.rest.select<{ path: string }>(RETRY_TABLE, `outcome=eq.no_beat&minute=gte.${enc(iso(minute - HOLD_MS))}&select=path`)).map((r) => r.path));
+      } catch (e) { held = new Set(); report.errors.push(`recent retries unreadable (${msg(e)}); none held`); }
+    }
+    const h = held;
+    for (const c of p.retry.filter((x) => h.has(x.path))) {
+      try { await d.rest.claim(RETRY_TABLE, { minute: minuteIso, path: c.path, outcome: "held" }, "minute,path"); } catch { /* the report says it */ }
+      report.held.push(c.path);
+    }
+    retries.push((await startRetries(d, p.retry.filter((x) => !h.has(x.path)), minuteIso)).done);
   }
-  if (!p.retry.length) return report;
-  // Counted over every missing beat, the excluded calls' too: that many at once, with no due call's beat, is the beats, not
-  // a boot. With one, it is a worker that served several calls and did not start, and they are run again (the header).
-  if (beatsUnwritten(p.due, report.missing.length)) {
-    report.errors.push(`${report.missing.length} of ${p.due} due calls wrote no beat by ${(checkedMs / 1000).toFixed(1)} s: beats are not being written (a deploy in flight, or the table refusing them), not a worker that failed to start; nothing is run again`);
-    await d.report("edge-watchdog.beats", { message: report.errors.at(-1), context: { minute: minuteIso, missing: report.missing } });
-    return report;
-  }
-  // A call whose retry wrote no beat in the last `HOLD_MS` is held: run again every minute, it would run twice every minute.
-  let held = new Set<string>();
-  try {
-    held = new Set((await d.rest.select<{ path: string }>(RETRY_TABLE, `outcome=eq.no_beat&minute=gte.${enc(iso(minute - HOLD_MS))}&select=path`)).map((r) => r.path));
-  } catch (e) { report.errors.push(`recent retries unreadable (${msg(e)}); none held`); }
-  for (const c of p.retry.filter((x) => held.has(x.path))) {
-    try { await d.rest.claim(RETRY_TABLE, { minute: minuteIso, path: c.path, outcome: "held" }, "minute,path"); } catch { /* the report says it */ }
-    report.held.push(c.path);
-  }
-  const results = await Promise.all(p.retry.filter((x) => !held.has(x.path)).map((c) => retryOne(d, c, minuteIso)));
-  report.retried = results.filter((r): r is RetryResult => r !== null);
+
+  report.retried = (await Promise.all(retries)).flat().filter((r): r is RetryResult => r !== null);
+  const dispatched = [...(await Promise.all(sent)), ...skippedSends];
+  if (dispatched.length) report.dispatched = dispatched;
   const bad = report.retried.filter((r) => r.outcome === "failed" || r.outcome === "no_beat");
   if (bad.length) {
     const line = bad.map((r) => `${r.path} ${r.outcome}${r.status !== null ? ` ${r.status}` : ""}${r.detail ? `: ${r.detail.slice(0, 120)}` : ""}`).join(" | ");

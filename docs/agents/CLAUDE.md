@@ -916,5 +916,11 @@ that follow from that evidence, in short:
   deployed): `edge_calls.active_from` defaults to `now() + 15 minutes`, the
   minute job and `edge-watchdog` skip a row until then, and an insert never
   names it, which the test checks.
+  **A row has a second since `0191`** (2026-10-31, Davies: "做"): `edge_calls.offset_s`, 0 for the job's own request at
+  :00, more for `edge-watchdog` to send at that second by the same request (pg_net takes a batch whole, so no second job
+  could), its beat looked for 13 s after it. Ten `agents` calls left :00 so fourteen no longer boot in one second; the live
+  executors (`quotes`, `cblive`) and the recorders whose read is pre-registered at their minute (`cbrec`, `okxrec`,
+  `fxrec`) keep 0. A row's second and timeout stay inside its minute (`offset_s * 1000 + timeout_ms < 60000`, a check), a
+  new row starts at 0, and moving one is a migration whose header says why its call does not read at the second it starts.
 - **The interview showcase is no longer maintained** (Davies, 2026-10-23: "面试 showcase以后不需要更新了"; last updated
   2026-10-23, `daviesluo/personal` `4ff50fc`). Nothing here updates it.

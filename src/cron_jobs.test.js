@@ -61,6 +61,15 @@ function replayList(sqls) {
   let activeFromColumn = false;
   /** @type {string | null} */
   let activeFromDefault = null;
+  // 0191: a row's second (`offset`, absent = 0) and the two checks that hold it, each enforced from the statement adding it.
+  let offsetColumn = false, offsetRange = false, withinMinute = false;
+  const holds = (name) => {
+    for (const r of rows.values()) {
+      const o = r.offset ?? 0;
+      if (offsetRange && !(o >= 0 && o <= 30)) throw new Error(`${name}: 23514 edge_calls_offset_s_range (${r.path}: ${o})`);
+      if (withinMinute && !(o * 1000 + r.timeout < 60000)) throw new Error(`${name}: 23514 edge_calls_within_minute (${r.path}: ${o} s + ${r.timeout} ms)`);
+    }
+  };
   for (const [name, raw] of sqls) {
     // Comments out, and dollar-quoted bodies (a cron job's command) out: what is left splits on `;`.
     const sql = raw.replace(/--[^\n]*/g, '').replace(/(\$[a-z_]*\$)[\s\S]*?\1/g, "''");
@@ -74,6 +83,18 @@ function replayList(sqls) {
         if (!activeFromColumn) throw new Error(`${name}: sets active_from's default before the column exists`);
         activeFromDefault = 'written + 15 minutes';
         continue;
+      }
+      if (/^alter table public\.edge_calls add column if not exists offset_s integer not null default 0$/.test(s)) { offsetColumn = true; continue; }
+      if (/^alter table public\.edge_calls add constraint edge_calls_offset_s_range check \(offset_s between 0 and 30\)$/.test(s)) {
+        if (!offsetColumn) throw new Error(`${name}: a check on offset_s before the column exists`);
+        offsetRange = true; holds(name); continue;
+      }
+      if (/^alter table public\.edge_calls add constraint edge_calls_within_minute check \(offset_s \* 1000 \+ timeout_ms < 60000\)$/.test(s)) {
+        if (!offsetColumn) throw new Error(`${name}: a check on offset_s before the column exists`);
+        withinMinute = true; holds(name); continue;
+      }
+      if (/^insert into public\.edge_calls \([^)]*\boffset_s\b/.test(s)) {
+        throw new Error(`${name}: an insert into public.edge_calls names offset_s; a new call starts at the job's second and a later migration moves it (0191)`);
       }
       if (/^insert into public\.edge_calls \([^)]*\bactive_from\b/.test(s)) {
         throw new Error(`${name}: an insert into public.edge_calls names active_from; leave it to its default (0104), so the call waits 15 minutes for its function's deploy`);
@@ -96,12 +117,25 @@ function replayList(sqls) {
         }
         continue;
       }
+      m = /^update public\.edge_calls set offset_s = (\d+)(?:, timeout_ms = (\d+))? where path in \(('[^']+'(?:, '[^']+')*)\)$/.exec(s);
+      if (m) {
+        if (!offsetColumn) throw new Error(`${name}: sets offset_s before the column exists`);
+        for (const p of m[3].matchAll(/'([^']+)'/g)) {
+          if (!rows.has(p[1])) throw new Error(`${name}: updates '${p[1]}', which public.edge_calls does not hold`);
+          const r = rows.get(p[1]);
+          r.offset = Number(m[1]);
+          if (m[2] !== undefined) r.timeout = Number(m[2]);
+        }
+        holds(name);
+        continue;
+      }
       m = /^update public\.edge_calls set timeout_ms = (\d+) where path in \(('[^']+'(?:, '[^']+')*)\)$/.exec(s);
       if (m) {
         for (const p of m[2].matchAll(/'([^']+)'/g)) {
           if (!rows.has(p[1])) throw new Error(`${name}: updates '${p[1]}', which public.edge_calls does not hold`);
           rows.get(p[1]).timeout = Number(m[1]);
         }
+        holds(name);
         continue;
       }
       m = /^delete from public\.edge_calls where path in \(('[^']+'(?:, '[^']+')*)\)$/.exec(s);
@@ -405,7 +439,7 @@ describe('pg_cron jobs', () => {
     expect(TWIN_SPECS).not.toBe('');
     expect(replayList(sqlsOf(FILES.filter((f) => f <= TWIN_SPECS)))).toEqual(replayList(sqlsOf(FILES.filter((f) => f < TWIN_SPECS))));
     expect([...cronJobs(FILES.filter((f) => f <= TWIN_SPECS))]).toEqual([...cronJobs(FILES.filter((f) => f < TWIN_SPECS))]);
-    expect(replayList(sqlsOf(FILES)).filter((r) => r.path === 'agents?action=quotestwins').map((r) => [r.timeout, r.every, r.enabled, r.retry])).toEqual([[58000, 1, true, true]]);
+    expect(replayList(sqlsOf(FILES)).filter((r) => r.path === 'agents?action=quotestwins').map((r) => [r.timeout, r.every, r.enabled, r.retry])).toEqual([[38000, 1, true, true]]);   // 38 s from its second, 20 s (0191)
   });
 
   // 0091: "Reward quotes live-prep", the order path and its paper layer run a third time under their own tables.
@@ -1497,6 +1531,110 @@ describe('pg_cron jobs', () => {
   it("never cancels a migrations run in flight: a newer push's run waits for it (review D1)", () => {
     const yml = fs.readFileSync(path.join(ROOT, '.github/workflows/migrations.yml'), 'utf8');
     expect(yml).toMatch(/^concurrency:\n {2}group: \$\{\{ github\.workflow \}\}-\$\{\{ github\.ref \}\}\n {2}cancel-in-progress: false$/m);
+  });
+
+  // 0191 (Davies, 2026-10-31: "做"): the minute's `agents` calls spread over seconds. pg_net takes a batch whole (0063), so
+  // the job keeps sending second 0 and `edge-watchdog` sends every row with a second over 0 at it.
+  const SPREAD = FILES.find((f) => /^\d{4}_edge_call_offsets\.sql$/.test(f)) ?? '';
+  const MOVED = {
+    'agents?action=cbnudge': [3, 30000], 'agents?action=cbusdc': [5, 30000], 'agents?action=cbhold': [7, 30000],
+    'agents?action=okxbasis': [9, 30000], 'agents?action=xhedge': [11, 30000], 'agents?action=cjrec': [13, 30000],
+    'agents?action=grokpmrec': [15, 30000], 'agents?action=cbbooks': [17, 41000], 'agents?action=quotestwins': [20, 38000],
+    'agents?action=books': [23, 35000],
+  };
+
+  it('moves ten agents calls off the top of the minute (0191), each inside its minute, every other row and job as it was', () => {
+    expect(SPREAD).not.toBe('');
+    const before = replayList(sqlsOf(FILES.filter((f) => f < SPREAD))), after = replayList(sqlsOf(FILES.filter((f) => f <= SPREAD)));
+    expect(before.every((r) => r.offset === undefined)).toBe(true);
+    const moved = after.filter((r) => (r.offset ?? 0) > 0);
+    expect(Object.fromEntries(moved.map((r) => [r.path, [r.offset, r.timeout]]))).toEqual(MOVED);
+    expect(moved.every((r) => r.enabled && r.retry)).toBe(true);                    // each may be run again (0075's table)
+    // Every other row exactly as it was; the moved ones differ in their second and, for the three that wait inside the
+    // minute, the timeout that keeps them inside it.
+    const strip = (r) => ({ ...r, offset: undefined, timeout: Object.hasOwn(MOVED, r.path) ? null : r.timeout });
+    expect(after.map(strip)).toEqual(before.map(strip));
+    expect(after.filter((r) => !Object.hasOwn(MOVED, r.path))).toEqual(before.filter((r) => !Object.hasOwn(MOVED, r.path)));
+    // No two moved rows share a second, and the live executors and the recorders whose read is pre-registered at their
+    // minute's read keep the job's second.
+    expect(new Set(moved.map((r) => r.offset)).size).toBe(moved.length);
+    const KEEP = ['agents?action=quotes', 'agents?action=cblive', 'agents?action=cbrec', 'agents?action=okxrec', 'agents?action=fxrec', 'edge-watchdog'];
+    for (const p of KEEP) expect(after.find((r) => r.path === p)?.offset ?? 0, p).toBe(0);
+    // Each row of the list the migrations leave ends inside its minute: its second and its whole timeout.
+    for (const r of replayList(sqlsOf(FILES))) expect((r.offset ?? 0) * 1000 + r.timeout, r.path).toBeLessThan(60000);
+    const others = (files) => [...cronJobs(files)].filter(([n]) => n !== 'edge-calls-every-minute');
+    expect(others(FILES.filter((f) => f <= SPREAD))).toEqual(others(FILES.filter((f) => f < SPREAD)));
+  });
+
+  it("keeps the job one statement (0191): 0104's request and filter word for word, with second 0 alone", () => {
+    const old = cronJobs(FILES.filter((f) => f < SPREAD)).get('edge-calls-every-minute');
+    const now = cronJobs(FILES.filter((f) => f <= SPREAD)).get('edge-calls-every-minute');
+    expect(now.schedule).toBe(old.schedule);
+    const requestOf = (c) => norm(c).replace(/ from public\.edge_calls as call .*$/, '');
+    expect(requestOf(now.command)).toBe(requestOf(old.command));
+    const whereOf = (c) => norm(c).match(/ from public\.edge_calls as call where (.*) order by call\.id;$/)[1];
+    expect(whereOf(now.command)).toBe(whereOf(old.command).replace(/^call\.enabled and /, 'call.enabled and call.offset_s = 0 and '));
+    expect(count(now.command, ';')).toBe(1);
+    expect(now.command).not.toMatch(/pg_sleep/);
+    expect(httpJobs(cronJobs(FILES)).map(([n]) => n)).toEqual(['edge-calls-every-minute']);
+    // The file's statements: the column, its two checks, the seconds, the job, under a short lock wait (as 0104).
+    const stmts = fs.readFileSync(path.join(DIR, SPREAD), 'utf8').replace(/--[^\n]*/g, '').replace(/(\$[a-z_]*\$)[\s\S]*?\1/g, "''")
+      .split(';').map((x) => norm(x)).filter(Boolean);
+    expect(stmts.slice(0, 4)).toEqual([
+      "set lock_timeout = '3s'",
+      'alter table public.edge_calls add column if not exists offset_s integer not null default 0',
+      'alter table public.edge_calls add constraint edge_calls_offset_s_range check (offset_s between 0 and 30)',
+      'alter table public.edge_calls add constraint edge_calls_within_minute check (offset_s * 1000 + timeout_ms < 60000)',
+    ]);
+    expect(stmts.slice(-2)).toEqual(["select cron.schedule( 'edge-calls-every-minute', '* * * * *', '' )", 'reset lock_timeout']);
+    // No index, vacuum or cluster statement: `db push` sends the file as one transaction, the job and the seconds together.
+    expect(stmts.some((x) => /^(create (unique )?index|vacuum|cluster)\b/i.test(x))).toBe(false);
+  });
+
+  it('makes every call of every minute of a day exactly once (0191): the job at second 0, the watchdog at each second over 0', () => {
+    const before = replayList(sqlsOf(FILES.filter((f) => f < SPREAD))), after = replayList(sqlsOf(FILES.filter((f) => f <= SPREAD)));
+    const day = Date.UTC(2026, 10, 2);
+    const agentsAtZero = new Set();
+    // RW's four calls left the job by `retire_after_rw()` (0103) at run time, which no statement here replays.
+    const liveAgents = (p) => p.startsWith('agents?') && !/^agents\?action=pmrw/.test(p);
+    for (let m = 0; m < 1440; m++) {
+      const at = day + m * 60e3;
+      const was = before.filter((c) => c.enabled && isDue(c, at)).map((c) => c.path);
+      const job = after.filter((c) => c.enabled && (c.offset ?? 0) === 0 && isDue(c, at)).map((c) => c.path);
+      const watchdog = after.filter((c) => c.enabled && (c.offset ?? 0) > 0 && c.path !== 'edge-watchdog' && isDue(c, at)).map((c) => c.path);
+      expect([...job, ...watchdog].sort()).toEqual([...was].sort());
+      expect(job.filter((p) => watchdog.includes(p))).toEqual([]);
+      expect(job).toContain('edge-watchdog');                                       // the one that sends the others
+      agentsAtZero.add(job.filter(liveAgents).join(' '));
+    }
+    // Five agents calls at the top of the minute, where there were fourteen.
+    expect([...agentsAtZero]).toEqual(['agents?action=quotes agents?action=cbrec agents?action=okxrec agents?action=fxrec agents?action=cblive']);
+    expect(before.filter((c) => c.enabled && liveAgents(c.path) && c.every === 1).length).toBe(14);
+    // The counterfactual: a row moved so its timeout runs past its minute, or a second past 30, is refused as Postgres would.
+    const upTo = sqlsOf(FILES.filter((f) => f <= SPREAD));
+    expect(() => replayList([...upTo, ['9999_x.sql', "update public.edge_calls set offset_s = 5 where path in ('agents?action=quotes');"]])).toThrow(/edge_calls_within_minute/);
+    expect(() => replayList([...upTo, ['9999_x.sql', "update public.edge_calls set offset_s = 31 where path in ('agents?action=fxrec');"]])).toThrow(/edge_calls_offset_s_range/);
+    expect(() => replayList([...upTo, ['9999_x.sql', "update public.edge_calls set timeout_ms = 58000 where path in ('agents?action=books');"]])).toThrow(/edge_calls_within_minute/);
+    expect(() => replayList([...upTo, ['9999_x.sql', "insert into public.edge_calls (path, timeout_ms, every_minutes, last_utc_hour, retry, offset_s) values ('agents?action=y', 1000, 1, 23, true, 5) on conflict (path) do nothing;"]])).toThrow(/names offset_s/);
+    expect(() => replayList([['x', "update public.edge_calls set offset_s = 3 where path in ('a');"]])).toThrow(/before the column exists/);
+  });
+
+  it('moves only calls that do not read at the second they start (0191): the waiters start reading after their second, the watchdog sends', () => {
+    const src = (f) => fs.readFileSync(path.join(ROOT, 'supabase/functions', f), 'utf8');
+    // A call that waits to an instant of its minute reads there whenever it arrived: each arrives well before it.
+    expect(src('agents/books.ts')).toContain('export const BOOKS_START_MS = 40e3;');
+    expect(src('agents/index.ts')).toContain('export const TWINS_START_MS = 38e3;');
+    expect(src('agents/cb_books.ts')).toContain('export const CB_BOOKS_START_MS = 30e3;');
+    expect(src('agents/index.ts')).toContain('const MAKER_WATCH_BY_MS = 32e3;');
+    expect([MOVED['agents?action=books'][0], MOVED['agents?action=quotestwins'][0], MOVED['agents?action=cbbooks'][0]]).toEqual([23, 20, 17]);
+    // The paper arms that read a recorder's state decide its minutes a minute behind the clock, from recorded inputs.
+    expect(src('agents/cb_usdc.ts')).toContain('minuteOf(d.now) - M');
+    expect(src('agents/okx_basis.ts')).toContain('minuteOf(d.now) - M');
+    expect(src('agents/xhedge.ts')).toContain('minuteOf(d.now) - 3 * M');
+    // The watchdog sends a row with a second over 0, and looks for its beat after that second.
+    const wd = src('edge-watchdog/index.ts');
+    expect(wd).toContain('offsetOf(c) > 0 && isDue(c, minuteMs)');
+    expect(wd).toContain('Math.max(minuteOf(arrivedMs) + offsetS * 1_000 + CHECK_AT_MS, arrivedMs + AFTER_ARRIVAL_MS)');
   });
 
   it('refuses a statement on the list it cannot replay, so a later change to the list must be taught here', () => {
