@@ -47917,3 +47917,21 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
   `n600usdt`. Stacked lots from the same pounds lose 30-75 % (P 1.00 everywhere: each print fills a smaller order); doubled rungs
   earn 1.7-1.9×, two stacked lots of today's size 1.04-1.2× (worse markouts): bigger rungs are the lever. Same £ split into
   lots resting together +2-3 % on USDT-GBP (a partly filled rung keeps its rest), not on USDC, 2-3× orders: K = 1, no twin.
+## LEDGER.md, archived 2026-10-31 (fortieth) — the 2026-10-30 05:40, 2026-10-30 05:55 UTC history sections, oldest first
+
+### [2026-10-30 05:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Quotes pages: TODAY is DAYS' today; the board refreshes the Agents pages; a faster dashboard; ↔ drawn** (sub-agent; not
+  pushed; Davies, ~04:00). TODAY = today's realised on every page (`liveBookGbp`, `cbLiveDetail`, xhedge's split; was the loss
+  stop's realised+marked / the balance move). `refresh_bus.js`: the board's ↻/`r` and tick refresh the Agents page; its load
+  and error retry announce nothing (a by-hand announce on load made 2 dashboard requests on open, sweep agents-reload/open).
+  `dashboard`: page reads start first and are awaited together, venues asked only for rows on the page (`venueAsks`),
+  preflight cached; `serverMs` in the answer.
+
+### [2026-10-30 05:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Dashboard speed, round 2; the Agents list stays in its rows' own currency** (sub-agent, landed by the main session; Davies,
+  ~05:30: "…和策略列表里加起来还是不一致", "好的接着优化"; then, told the list prints pound rows in pounds while the scoreboard and
+  cards add their dollars: "原来如此，是我之前没看清，不用改了，你确保数字能对的上就行"). On real data the scoreboard, the cards and
+  the rows' dollars agree to the cent per tab; the list-in-dollars change was dropped. The dashboard no longer reads PR5V, rule D
+  or PR5's paper test (unused; their days views ~0.95 s each), nor live-prep's book while disarmed; `serverMs` taken after every
+  read, `stagesMs` per read; 0186 indexes the arms' minute tables by minute and `agent_decisions` by ts. Moved the 00:17, 00:30
+  sections to handover (thirty-third).

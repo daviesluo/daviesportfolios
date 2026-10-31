@@ -13,10 +13,10 @@
 //                 the same commit, or the Worker pages three minutes later and has nothing left to watch the loop by.
 //   * cbLive    — Coinbase's live executor, "Stablecoin quotes USDC/GBP" (`cb_live.ts`, armed 2026-10-29 21:45 UTC),
 //                 finished a turn (`cb_live_state.updated_at`, the turn's clock, written at its end). It is a call of its
-//                 own (`agents?action=cblive`) with no watchdog retry (0177), and no dead-man of ours: Coinbase ends its
+//                 own (`agents?action=cblive`, under the watchdog's retry since 0188, none before), and no dead-man of ours: Coinbase ends its
 //                 orders within 20 minutes by itself, but a stopped executor manages no fill, no exit and no 24-hour stop,
-//                 and nothing paged on one (2026-10-31 audit). Five minutes, not three: without the retry its turn misses
-//                 the minute whenever the function fails to boot (188 of 1,440 minutes on 10-30/31, at most four in a
+//                 and nothing paged on one (2026-10-31 audit). Five minutes, not three: before 0188's retry its turn missed
+//                 the minute whenever the function failed to boot (188 of 1,440 minutes on 10-30/31, at most four in a
 //                 row since it was armed), and only a stop longer than that is news.
 //   (tickBeat and tickTurn, the tick's newest beat and its lease, were read here from 2026-10-02 until 2026-10-29, when
 //    the tick's call was switched off (`0160`): Davies retired its last strategy rows the day before (`0158`) and left
